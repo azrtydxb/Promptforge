@@ -6,6 +6,7 @@ import {
   DialogContent,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { LoadingButton } from "../ui/loading-button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useState } from "react";
@@ -26,6 +27,7 @@ export const CreatePromptModal = () => {
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState("Text");
+  const [isCreating, setIsCreating] = useState(false);
 
   const languageOptions = ["Markdown", "Text", "JavaScript", "Python", "JSON", "YAML", "XML"];
   const isModalOpen = isOpen && type === "createPrompt";
@@ -44,6 +46,7 @@ export const CreatePromptModal = () => {
       return;
     }
     
+    setIsCreating(true);
     try {
       console.log("Creating prompt with data:", {
         title: title.trim(),
@@ -70,6 +73,8 @@ export const CreatePromptModal = () => {
     } catch (error) {
       console.error("Error creating prompt:", error);
       alert("Failed to create prompt. Please check the console for details.");
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -91,6 +96,7 @@ export const CreatePromptModal = () => {
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter prompt title"
                     className="w-64"
+                    disabled={isCreating}
                   />
                 </div>
               </div>
@@ -117,12 +123,17 @@ export const CreatePromptModal = () => {
                   </DropdownMenu>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleClose}>
+                  <Button variant="outline" onClick={handleClose} disabled={isCreating}>
                     Cancel
                   </Button>
-                  <Button onClick={handleCreate} variant="default">
+                  <LoadingButton 
+                    onClick={handleCreate} 
+                    variant="default"
+                    loading={isCreating}
+                    loadingText="Creating..."
+                  >
                     Create Prompt
-                  </Button>
+                  </LoadingButton>
                 </div>
               </div>
             </div>
