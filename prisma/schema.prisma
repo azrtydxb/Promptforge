@@ -196,6 +196,11 @@ model SharedPrompt {
   @@index([status])
   @@index([isPublished])
   @@index([publishedAt])
+  @@index([viewCount])
+  @@index([likeCount])
+  @@index([copyCount])
+  @@index([commentCount])
+  @@index([publishedAt, likeCount])
 }
 
 enum PromptVisibility {

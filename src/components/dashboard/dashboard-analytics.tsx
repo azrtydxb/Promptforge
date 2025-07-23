@@ -16,6 +16,8 @@ import {
   LineChart,
   Line
 } from "recharts";
+import { SectionErrorBoundary } from "@/components/error-boundary";
+import { MinimalErrorFallback } from "@/components/error-boundary/error-fallbacks";
 
 interface DashboardData {
   totalPrompts: number;
@@ -101,8 +103,9 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             <CardTitle className="text-base">Trends</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={data.promptGrowth}>
+            <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={data.promptGrowth}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="date"
@@ -134,8 +137,9 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   strokeDasharray="5 5"
                   name="Total Prompts"
                 />
-              </LineChart>
-            </ResponsiveContainer>
+                </LineChart>
+              </ResponsiveContainer>
+            </SectionErrorBoundary>
           </CardContent>
         </Card>
 
@@ -145,8 +149,9 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             <CardTitle className="text-base">Folders</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
+            <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
                 <Pie
                   data={data.promptsByFolder}
                   cx="50%"
@@ -162,8 +167,9 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   ))}
                 </Pie>
                 <Tooltip formatter={(value, name) => [`${value}`, name]} />
-              </PieChart>
-            </ResponsiveContainer>
+                </PieChart>
+              </ResponsiveContainer>
+            </SectionErrorBoundary>
           </CardContent>
         </Card>
 
@@ -173,8 +179,9 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             <CardTitle className="text-base">Activity</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={data.promptsByMonth}>
+            <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={data.promptsByMonth}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="month"
@@ -192,8 +199,9 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                 />
                 <Tooltip />
                 <Bar dataKey="count" fill="#007DB8" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+                </BarChart>
+              </ResponsiveContainer>
+            </SectionErrorBoundary>
           </CardContent>
         </Card>
 

@@ -1,11 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import CredentialsProvider from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { generateRandomUsername } from "@/lib/username-generator"
+import type { AuthOptions } from "next-auth"
+import type { JWT } from "next-auth/jwt"
+import type { Session, User } from "next-auth"
 
-export const authOptions = {
+export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
@@ -48,17 +50,17 @@ export const authOptions = {
   },
   pages: {
     signIn: "/sign-in",
-    signUp: "/sign-up",
+    newUser: "/sign-up",
   },
   callbacks: {
-    async jwt({ token, user }: { token: any; user: any }) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
         token.id = user.id
       }
       return token
     },
-    async session({ session, token }: { session: any; token: any }) {
-      if (token) {
+    async session({ session, token }: { session: Session; token: JWT }) {
+      if (token && token.id) {
         session.user.id = token.id
       }
       return session
@@ -72,7 +74,7 @@ export const authOptions = {
     },
   },
   events: {
-    async createUser({ user }: { user: any }) {
+    async createUser({ user }: { user: User }) {
       // Generate username for new users if they don't have one
       if (!user.username) {
         let username = generateRandomUsername();

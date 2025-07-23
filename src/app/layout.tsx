@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ModalProvider } from "@/components/providers/modal-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { GlobalErrorBoundary } from "@/components/error-boundary/global-error-boundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,10 +37,12 @@ export default function RootLayout({
         <a href="#main-navigation" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-48 focus:z-50 bg-primary text-primary-foreground px-4 py-2 rounded-md">
           Skip to navigation
         </a>
-        <AuthProvider>
-          <ModalProvider />
-          {children}
-        </AuthProvider>
+        <GlobalErrorBoundary>
+          <AuthProvider>
+            <ModalProvider />
+            {children}
+          </AuthProvider>
+        </GlobalErrorBoundary>
       </body>
     </html>
   );
