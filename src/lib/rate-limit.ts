@@ -131,6 +131,14 @@ export class RateLimiter {
     }
   }
 
+  get standardHeaders(): boolean {
+    return this.config.standardHeaders;
+  }
+
+  get legacyHeaders(): boolean {
+    return this.config.legacyHeaders;
+  }
+
   middleware() {
     return async (req: NextRequest): Promise<NextResponse | null> => {
       const result = await this.checkLimit(req);
@@ -197,13 +205,13 @@ export function withRateLimit(
     // Add rate limit headers to successful responses
     const result = await limiter.checkLimit(req);
     
-    if (limiter.config.standardHeaders) {
+    if (limiter.standardHeaders) {
       response.headers.set('RateLimit-Limit', result.limit.toString());
       response.headers.set('RateLimit-Remaining', result.remaining.toString());
       response.headers.set('RateLimit-Reset', result.reset.toISOString());
     }
     
-    if (limiter.config.legacyHeaders) {
+    if (limiter.legacyHeaders) {
       response.headers.set('X-RateLimit-Limit', result.limit.toString());
       response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
       response.headers.set('X-RateLimit-Reset', result.reset.getTime().toString());
