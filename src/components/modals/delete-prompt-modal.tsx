@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 
 export const DeletePromptModal = () => {
   const { isOpen, onClose, type, data } = useModal();
@@ -68,14 +69,15 @@ export const DeletePromptModal = () => {
           <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
-          <Button 
+          <LoadingButton 
             type="button" 
             variant="destructive" 
             onClick={handleDelete} 
-            disabled={loading}
+            loading={loading}
+            loadingText="Deleting..."
           >
-            {loading ? "Deleting..." : "Delete"}
-          </Button>
+            Delete
+          </LoadingButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -8,8 +8,7 @@ import type { Prompt, Tag } from "@/generated/prisma";
 import Link from "next/link";
 import { useModal } from "@/hooks/use-modal-store";
 import { stickyNoteCard } from "@/lib/styles";
-import { ComponentErrorBoundary } from "@/components/error-boundary";
-import { MinimalErrorFallback } from "@/components/error-boundary/error-fallbacks";
+import { SkeletonPromptCard } from "../ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -296,13 +295,14 @@ interface PromptListProps {
   selectedTagIds?: string[];
 }
 
-const PromptListComponent = ({
+export const PromptList = ({
   folderId,
   prompts: initialPrompts,
   searchQuery = "",
   selectedTagIds = []
 }: PromptListProps) => {
   const [prompts, setPrompts] = useState<PromptWithTags[]>(initialPrompts || []);
+  const [isLoading, setIsLoading] = useState(!initialPrompts);
   const removePromptFromState = (promptId: string) => {
     setPrompts((prevPrompts) => prevPrompts.filter((p) => p.id !== promptId));
   };
@@ -342,15 +342,20 @@ const PromptListComponent = ({
   }, [prompts, searchQuery, selectedTagIds]);
 
   const fetchPrompts = useCallback(async () => {
-    if (folderId !== undefined) {
-      const fetchedPrompts = await getPromptsByFolder(folderId);
-      setPrompts(fetchedPrompts as PromptWithTags[]);
-    } else if (initialPrompts) {
-      setPrompts(initialPrompts);
-    } else {
-      // Get unassigned prompts (folderId is null)
-      const fetchedPrompts = await getPromptsByFolder();
-      setPrompts(fetchedPrompts as PromptWithTags[]);
+    setIsLoading(true);
+    try {
+      if (folderId !== undefined) {
+        const fetchedPrompts = await getPromptsByFolder(folderId);
+        setPrompts(fetchedPrompts as PromptWithTags[]);
+      } else if (initialPrompts) {
+        setPrompts(initialPrompts);
+      } else {
+        // Get unassigned prompts (folderId is null)
+        const fetchedPrompts = await getPromptsByFolder();
+        setPrompts(fetchedPrompts as PromptWithTags[]);
+      }
+    } finally {
+      setIsLoading(false);
     }
   }, [folderId, initialPrompts]);
 
@@ -391,6 +396,17 @@ const PromptListComponent = ({
     }
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-12 p-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonPromptCard key={i} />
+        ))}
+      </div>
+    );
+  }
+
   // Show message when no prompts match the filters
   if (filteredPrompts.length === 0 && prompts.length > 0) {
     return (
@@ -426,13 +442,3 @@ const PromptListComponent = ({
     </DndContext>
   );
 };
-
-// Export wrapped with error boundary
-export const PromptList = (props: PromptListProps) => (
-  <ComponentErrorBoundary
-    fallback={<MinimalErrorFallback />}
-    resetKeys={[props.folderId || '', props.searchQuery || '', props.selectedTagIds?.join(',') || '']}
-  >
-    <PromptListComponent {...props} />
-  </ComponentErrorBoundary>
-);
