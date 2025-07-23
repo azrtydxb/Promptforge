@@ -1,5 +1,6 @@
 import { cacheService, cacheKeys } from '@/lib/redis';
 import { sessionCache } from '@/lib/session-cache';
+import { logger } from '@/lib/logger';
 
 /**
  * Cache Invalidation Service
@@ -28,9 +29,9 @@ export class CacheInvalidationService {
       // Also invalidate session cache
       await sessionCache.invalidateUser(userId);
       
-      console.log(`Invalidated user caches for user: ${userId}`);
+      logger.info(`Invalidated user caches for user: ${userId}`, { userId });
     } catch (error) {
-      console.error(`Failed to invalidate user caches for ${userId}:`, error);
+      logger.error(`Failed to invalidate user caches for ${userId}`, error, { userId });
     }
   }
 
@@ -62,9 +63,9 @@ export class CacheInvalidationService {
       await this.invalidateSharedPromptsCaches();
       await this.invalidateTrendingCaches();
 
-      console.log(`Invalidated prompt caches for prompt: ${promptId}`);
+      logger.info(`Invalidated prompt caches for prompt: ${promptId}`, { promptId, userId });
     } catch (error) {
-      console.error(`Failed to invalidate prompt caches for ${promptId}:`, error);
+      logger.error(`Failed to invalidate prompt caches for ${promptId}`, error, { promptId, userId });
     }
   }
 
@@ -88,9 +89,9 @@ export class CacheInvalidationService {
       await this.invalidateSharedPromptsCaches();
       await this.invalidateSearchCaches();
 
-      console.log(`Invalidated tag caches${tagId ? ` for tag: ${tagId}` : ''}`);
+      logger.info(`Invalidated tag caches${tagId ? ` for tag: ${tagId}` : ''}`, { tagId });
     } catch (error) {
-      console.error(`Failed to invalidate tag caches:`, error);
+      logger.error(`Failed to invalidate tag caches`, error, { tagId });
     }
   }
 
@@ -104,9 +105,9 @@ export class CacheInvalidationService {
       await cacheService.delPattern('trending:*');
       await cacheService.delPattern('featured:*');
 
-      console.log('Invalidated shared prompts caches');
+      logger.info('Invalidated shared prompts caches');
     } catch (error) {
-      console.error('Failed to invalidate shared prompts caches:', error);
+      logger.error('Failed to invalidate shared prompts caches', error);
     }
   }
 
@@ -124,9 +125,9 @@ export class CacheInvalidationService {
 
       await Promise.all(trendingKeys.map(key => cacheService.del(key)));
 
-      console.log('Invalidated trending caches');
+      logger.info('Invalidated trending caches');
     } catch (error) {
-      console.error('Failed to invalidate trending caches:', error);
+      logger.error('Failed to invalidate trending caches', error);
     }
   }
 
@@ -138,9 +139,9 @@ export class CacheInvalidationService {
       // Clear all search result caches
       await cacheService.delPattern('search:*');
 
-      console.log('Invalidated search caches');
+      logger.info('Invalidated search caches');
     } catch (error) {
-      console.error('Failed to invalidate search caches:', error);
+      logger.error('Failed to invalidate search caches', error);
     }
   }
 
@@ -162,9 +163,9 @@ export class CacheInvalidationService {
 
       await Promise.all(analyticsCacheKeys.map(key => cacheService.del(key)));
 
-      console.log(`Invalidated analytics caches${userId ? ` for user: ${userId}` : ''}`);
+      logger.info(`Invalidated analytics caches${userId ? ` for user: ${userId}` : ''}`, { userId });
     } catch (error) {
-      console.error('Failed to invalidate analytics caches:', error);
+      logger.error('Failed to invalidate analytics caches', error, { userId });
     }
   }
 
@@ -185,9 +186,9 @@ export class CacheInvalidationService {
 
       await Promise.all(collectionCacheKeys.map(key => cacheService.del(key)));
 
-      console.log(`Invalidated collection caches${collectionId ? ` for collection: ${collectionId}` : ''}`);
+      logger.info(`Invalidated collection caches${collectionId ? ` for collection: ${collectionId}` : ''}`, { collectionId, userId });
     } catch (error) {
-      console.error('Failed to invalidate collection caches:', error);
+      logger.error('Failed to invalidate collection caches', error, { collectionId, userId });
     }
   }
 
@@ -211,9 +212,9 @@ export class CacheInvalidationService {
 
       await Promise.all(folderCacheKeys.map(key => cacheService.del(key)));
 
-      console.log(`Invalidated folder caches${folderId ? ` for folder: ${folderId}` : ''}`);
+      logger.info(`Invalidated folder caches${folderId ? ` for folder: ${folderId}` : ''}`, { folderId, userId });
     } catch (error) {
-      console.error('Failed to invalidate folder caches:', error);
+      logger.error('Failed to invalidate folder caches', error, { folderId, userId });
     }
   }
 
@@ -321,9 +322,9 @@ export class CacheInvalidationService {
       await this.invalidateAnalyticsCaches();
       await this.invalidateTrendingCaches();
 
-      console.log('Scheduled analytics cache refresh completed');
+      logger.info('Scheduled analytics cache refresh completed');
     } catch (error) {
-      console.error('Failed to refresh analytics caches:', error);
+      logger.error('Failed to refresh analytics caches', error);
     }
   }
 
@@ -349,9 +350,9 @@ export class CacheInvalidationService {
         cacheService.delPattern('rate:*'),
       ]);
 
-      console.log('Emergency cache clear completed');
+      logger.info('Emergency cache clear completed');
     } catch (error) {
-      console.error('Failed to clear all caches:', error);
+      logger.error('Failed to clear all caches', error);
     }
   }
 
@@ -385,7 +386,7 @@ export class CacheInvalidationService {
 
       return { totalKeys, keysByPattern };
     } catch (error) {
-      console.error('Failed to get cache stats:', error);
+      logger.error('Failed to get cache stats', error);
       return { totalKeys: 0, keysByPattern: {} };
     }
   }

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { generateRandomUsername } from "@/lib/username-generator";
+import { logger } from "@/lib/logger";
 
 interface CreateUserParams {
     name: string;
@@ -44,7 +45,7 @@ export async function createUser(user: CreateUserParams) {
         });
         return newUser;
     } catch (error) {
-        console.error("Error creating user:", error);
+        logger.error("Error creating user", error, { email: user.email });
         throw error;
     }
 }
@@ -76,7 +77,7 @@ export async function deleteUser(userId: string) {
         revalidatePath(`/`);
         return deletedUser;
     } catch (error) {
-        console.error("Error deleting user:", error);
+        logger.error("Error deleting user", error, { userId });
         throw error;
     }
 }
@@ -88,7 +89,7 @@ export async function getUserByEmail(email: string) {
         });
         return user;
     } catch (error) {
-        console.error("Error getting user by email:", error);
+        logger.error("Error getting user by email", error, { email });
         return null;
     }
 }
@@ -99,8 +100,10 @@ interface ChangePasswordParams {
 }
 
 export async function changePassword({ currentPassword, newPassword }: ChangePasswordParams) {
+    let userId: string | undefined;
     try {
         const user = await requireAuth();
+        userId = user.id;
         
         // Get the user's current password hash
         const userWithPassword = await db.user.findUnique({
@@ -130,7 +133,7 @@ export async function changePassword({ currentPassword, newPassword }: ChangePas
         revalidatePath("/");
         return { success: true };
     } catch (error) {
-        console.error("Error changing password:", error);
+        logger.error("Error changing password", error, { userId });
         throw error;
     }
 }

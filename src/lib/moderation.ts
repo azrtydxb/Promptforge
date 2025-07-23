@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { ModerationAction, ModerationSeverity } from '@/generated/prisma';
+import { logger } from '@/lib/logger';
 
 interface ModerationResult {
   isAllowed: boolean;
@@ -101,9 +102,9 @@ export async function initializeModerationRules() {
         create: rule
       });
     }
-    console.log('Moderation rules initialized successfully');
+    logger.info('Moderation rules initialized successfully');
   } catch (error) {
-    console.error('Error initializing moderation rules:', error);
+    logger.error('Error initializing moderation rules', error);
     throw error;
   }
 }
@@ -150,7 +151,7 @@ export async function moderateContent(content: ContentToModerate): Promise<Moder
     };
 
   } catch (error) {
-    console.error('Error during content moderation:', error);
+    logger.error('Error during content moderation', error);
     // In case of error, err on the side of caution
     return {
       isAllowed: false,
@@ -186,7 +187,7 @@ export async function logModerationAction(
       }
     });
   } catch (error) {
-    console.error('Error logging moderation action:', error);
+    logger.error('Error logging moderation action', error, { contentType, contentId, action });
   }
 }
 
@@ -279,7 +280,7 @@ export async function getModerationStats(days: number = 30) {
       return acc;
     }, {} as Record<ModerationAction, number>);
   } catch (error) {
-    console.error('Error getting moderation stats:', error);
+    logger.error('Error getting moderation stats', error, { days });
     return {};
   }
 }
