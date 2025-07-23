@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Icons } from "@/components/ui/icons";
+import { Star, FileText, Folder, Tag, BarChart3, Heart, History } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -68,7 +68,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Prompts</CardTitle>
-            <Icons.File className="h-4 w-4 text-blue-600" />
+            <FileText className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data.totalPrompts}</div>
@@ -81,7 +81,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Folders</CardTitle>
-            <Icons.Folder className="h-4 w-4 text-blue-600" />
+            <Folder className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data.totalFolders}</div>
@@ -94,7 +94,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Tags</CardTitle>
-            <Icons.Tag className="h-4 w-4 text-blue-600" />
+            <Tag className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data.totalTags}</div>
@@ -107,7 +107,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Versions</CardTitle>
-            <Icons.BarChart3 className="h-4 w-4 text-blue-600" />
+            <BarChart3 className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data.totalVersions}</div>
@@ -289,7 +289,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Icons.Heart className="h-3 w-3" />
+                    <Heart className="h-3 w-3" />
                     <span>{prompt._count.likes}</span>
                   </div>
                 </div>
@@ -318,7 +318,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                       </a>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Icons.Heart className="h-3 w-3 text-red-500 fill-current" />
+                      <Heart className="h-3 w-3 text-red-500 fill-current" />
                       <span className="text-sm">{prompt._count.likes}</span>
                     </div>
                   </div>
@@ -345,7 +345,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                       </a>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Icons.History className="h-3 w-3 text-blue-500" />
+                      <History className="h-3 w-3 text-blue-500" />
                       <span className="text-sm">{prompt._count.versions} versions</span>
                     </div>
                   </div>
@@ -372,7 +372,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                       </a>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Icons.Star className="h-3 w-3 text-yellow-500 fill-current" />
+                      <Star className="h-3 w-3 text-yellow-500 fill-current" />
                       <span className="text-sm">{prompt._count.favorites}</span>
                     </div>
                   </div>

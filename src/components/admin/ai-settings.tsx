@@ -5,22 +5,20 @@ import {
   getAISettings,
   createAISettings,
   updateAISettings,
-  deleteAISettings,
-  testAIConnection
+  testAIConnection,
+  resetEmbeddingIndex,
+  triggerEmbeddingRegeneration,
+  getEmbeddingStats,
+  getEmbeddingQueueStatus,
+  getSemanticSearchEnabled,
+  setSemanticSearchEnabled
 } from "@/app/actions/admin-ai.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -29,18 +27,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Bot, 
-  Plus, 
-  Settings, 
-  Trash, 
+  Brain,
   Zap,
   CheckCircle,
-  XCircle,
-  Key,
-  Loader2
+  Loader2,
+  AlertCircle,
+  Save,
+  RefreshCw,
+  Trash2,
+  Activity,
+  Database,
+  Clock
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 interface AISettingsItem {
   id: string;
@@ -48,7 +51,6 @@ interface AISettingsItem {
   provider: string;
   model: string;
   apiKey: string;
-  hasApiKey: boolean;
   isActive: boolean;
   isDefault: boolean;
   maxTokens: number | null;
@@ -60,23 +62,78 @@ interface AISettingsItem {
   lastUsedAt: Date | null;
 }
 
-const PROVIDER_OPTIONS = [
-  { value: "openai", label: "OpenAI", models: ["gpt-4-turbo-preview", "gpt-4", "gpt-3.5-turbo"] },
-  { value: "anthropic", label: "Anthropic", models: ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"] },
-  { value: "google", label: "Google", models: ["gemini-pro", "gemini-pro-vision"] },
-];
+// AI model configurations
+const AI_CONFIGS = {
+  general: {
+    title: "General AI",
+    description: "Configure AI models for prompt enhancement and generation features",
+    icon: Bot,
+    providers: [
+      { 
+        value: "openai", 
+        label: "OpenAI", 
+        models: ["gpt-4-turbo-preview", "gpt-4", "gpt-3.5-turbo"]
+      },
+      { 
+        value: "anthropic", 
+        label: "Anthropic", 
+        models: ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"]
+      },
+      { 
+        value: "google", 
+        label: "Google", 
+        models: ["gemini-pro", "gemini-pro-vision"]
+      },
+    ]
+  },
+  embedding: {
+    title: "Embedding AI",
+    description: "Configure embedding models for semantic search functionality",
+    icon: Brain,
+    providers: [
+      { 
+        value: "openai", 
+        label: "OpenAI", 
+        models: ["text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"]
+      }
+    ]
+  }
+};
 
 export function AISettings() {
-  const [settings, setSettings] = useState<AISettingsItem[]>([]);
+  const [settings, setSettings] = useState<Record<string, AISettingsItem | null>>({
+    general: null,
+    embedding: null
+  });
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedSetting, setSelectedSetting] = useState<AISettingsItem | null>(null);
-  const [testingConnection, setTestingConnection] = useState<string | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [testing, setTesting] = useState<string | null>(null);
+  const [resettingIndex, setResettingIndex] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [embeddingStats, setEmbeddingStats] = useState<{
+    prompts: { total: number; withEmbeddings: number; outdated: number; pending: number };
+    templates: { total: number; withEmbeddings: number; outdated: number; pending: number };
+  } | null>(null);
+  const [queueStatus, setQueueStatus] = useState<{
+    waiting: number;
+    active: number;
+    completed: number;
+    failed: number;
+    delayed: number;
+    total: number;
+    health?: {
+      isHealthy: boolean;
+      hasActiveWorkers: boolean;
+      message: string;
+    };
+  } | null>(null);
+  const [statusRefreshInterval, setStatusRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
+  const [loadingSemanticSearch, setLoadingSemanticSearch] = useState(false);
+  const { toast } = useToast();
   
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
+  // Form states for each configuration type
+  const [generalForm, setGeneralForm] = useState({
     provider: "openai",
     model: "gpt-4-turbo-preview",
     apiKey: "",
@@ -85,443 +142,823 @@ export function AISettings() {
     topP: 1.0,
     rateLimit: 100,
     monthlyQuota: 10000,
-    isDefault: false,
     isActive: true,
+    isDefault: true,
   });
+
+  const [embeddingForm, setEmbeddingForm] = useState({
+    provider: "openai",
+    model: "text-embedding-3-small",
+    apiKey: "",
+    isActive: true,
+    isDefault: true,
+  });
+
+  useEffect(() => {
+    fetchSettings();
+    fetchSemanticSearchSetting();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchSettings = async () => {
     setLoading(true);
     try {
       const data = await getAISettings();
-      setSettings(data);
-    } catch (error) {
-      console.error("Failed to fetch AI settings:", error);
+      
+      // Organize settings by type
+      const organized: Record<string, AISettingsItem | null> = {
+        general: null,
+        embedding: null
+      };
+
+      data.forEach((setting: AISettingsItem) => {
+        if (setting.name === "general") {
+          organized.general = setting;
+          setGeneralForm(prev => ({
+            ...prev,
+            provider: setting.provider,
+            model: setting.model,
+            maxTokens: setting.maxTokens || 4096,
+            temperature: setting.temperature || 0.7,
+            topP: setting.topP || 1.0,
+            rateLimit: setting.rateLimit || 100,
+            monthlyQuota: setting.monthlyQuota || 10000,
+            isActive: setting.isActive,
+            isDefault: setting.isDefault,
+          }));
+        } else if (setting.name === "embedding") {
+          organized.embedding = setting;
+          setEmbeddingForm(prev => ({
+            ...prev,
+            provider: setting.provider,
+            model: setting.model,
+            isActive: setting.isActive,
+            isDefault: setting.isDefault,
+          }));
+        }
+      });
+
+      setSettings(organized);
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to fetch AI settings",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const handleCreate = async () => {
-    const result = await createAISettings(formData);
-    if (result.success) {
-      fetchSettings();
-      setDialogOpen(false);
-      resetForm();
-    } else {
-      alert(result.error || "Failed to create AI settings");
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (!selectedSetting) return;
-    
-    const updates: Record<string, unknown> = { ...formData };
-    // Only include API key if it was changed
-    if (!formData.apiKey || formData.apiKey === '********') {
-      delete updates.apiKey;
-    }
-    
-    const result = await updateAISettings({
-      id: selectedSetting.id,
-      updates,
-    });
-    
-    if (result.success) {
-      fetchSettings();
-      setDialogOpen(false);
-      resetForm();
-    } else {
-      alert(result.error || "Failed to update AI settings");
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    const result = await deleteAISettings(id);
-    if (result.success) {
-      fetchSettings();
-      setDeleteDialogOpen(false);
-    } else {
-      alert(result.error || "Failed to delete AI settings");
-    }
-  };
-
-  const handleTest = async (id: string) => {
-    setTestingConnection(id);
+  const handleSave = async (type: "general" | "embedding") => {
+    setSaving(type);
     try {
-      const result = await testAIConnection(id);
-      alert(result.message);
+      const formData = type === "general" ? generalForm : embeddingForm;
+      const existingSettings = settings[type];
+      
+      const data = {
+        name: type,
+        ...formData,
+        apiKey: formData.apiKey || undefined, // Only update if provided
+      };
+
+      if (existingSettings) {
+        await updateAISettings(existingSettings.id, data);
+      } else {
+        await createAISettings(data);
+      }
+
+      toast({
+        title: "Success",
+        description: `${type === "general" ? "General AI" : "Embedding"} settings saved successfully`
+      });
+      
+      await fetchSettings();
+    } catch {
+      toast({
+        title: "Error",
+        description: `Failed to save ${type} settings`,
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const handleTest = async (type: "general" | "embedding") => {
+    const setting = settings[type];
+    if (!setting && !(type === "general" ? generalForm.apiKey : embeddingForm.apiKey)) {
+      toast({
+        title: "Error",
+        description: "Please enter an API key first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setTesting(type);
+    try {
+      const provider = type === "general" ? generalForm.provider : embeddingForm.provider;
+      const result = await testAIConnection(provider, type);
+      
       if (result.success) {
-        fetchSettings(); // Refresh to show updated lastUsedAt
+        toast({
+          title: "Success",
+          description: "Connection test successful!"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Connection test failed",
+          variant: "destructive"
+        });
       }
     } catch {
-      alert("Connection test failed");
+      toast({
+        title: "Error",
+        description: "Failed to test connection",
+        variant: "destructive"
+      });
     } finally {
-      setTestingConnection(null);
+      setTesting(null);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      provider: "openai",
-      model: "gpt-4-turbo-preview",
-      apiKey: "",
-      maxTokens: 4096,
-      temperature: 0.7,
-      topP: 1.0,
-      rateLimit: 100,
-      monthlyQuota: 10000,
-      isDefault: false,
-      isActive: true,
-    });
-    setSelectedSetting(null);
+  const fetchEmbeddingStatus = async () => {
+    try {
+      const [stats, queue] = await Promise.all([
+        getEmbeddingStats(),
+        getEmbeddingQueueStatus()
+      ]);
+      setEmbeddingStats(stats);
+      setQueueStatus(queue);
+    } catch (error) {
+      console.error("Error fetching embedding status:", error);
+    }
   };
 
-  const openEditDialog = (setting: AISettingsItem) => {
-    setSelectedSetting(setting);
-    setFormData({
-      name: setting.name,
-      provider: setting.provider,
-      model: setting.model,
-      apiKey: "", // Don't show the actual key
-      maxTokens: setting.maxTokens || 4096,
-      temperature: setting.temperature || 0.7,
-      topP: setting.topP || 1.0,
-      rateLimit: setting.rateLimit || 100,
-      monthlyQuota: setting.monthlyQuota || 10000,
-      isDefault: setting.isDefault,
-      isActive: setting.isActive,
-    });
-    setDialogOpen(true);
+  const fetchSemanticSearchSetting = async () => {
+    try {
+      const enabled = await getSemanticSearchEnabled();
+      console.log("Semantic search enabled:", enabled);
+      setSemanticSearchEnabled(enabled);
+    } catch (error) {
+      console.error("Error fetching semantic search setting:", error);
+      // Default to false if there's an error
+      setSemanticSearchEnabled(false);
+    }
   };
+
+  const handleSemanticSearchToggle = async (checked: boolean) => {
+    setLoadingSemanticSearch(true);
+    try {
+      await setSemanticSearchEnabled(checked);
+      setSemanticSearchEnabled(checked);
+      toast({
+        title: "Success",
+        description: `Semantic search ${checked ? 'enabled' : 'disabled'} successfully`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update semantic search setting",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingSemanticSearch(false);
+    }
+  };
+
+  const handleResetIndex = async () => {
+    if (!confirm("Are you sure you want to reset the embedding index? This will remove all existing embeddings.")) {
+      return;
+    }
+
+    setResettingIndex(true);
+    try {
+      const result = await resetEmbeddingIndex();
+      toast({
+        title: "Success",
+        description: result.message
+      });
+      await fetchEmbeddingStatus();
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to reset embedding index",
+        variant: "destructive"
+      });
+    } finally {
+      setResettingIndex(false);
+    }
+  };
+
+  const handleRegenerateEmbeddings = async () => {
+    setRegenerating(true);
+    try {
+      const result = await triggerEmbeddingRegeneration();
+      toast({
+        title: "Success",
+        description: result.message
+      });
+      
+      // Start polling for status updates
+      if (statusRefreshInterval) {
+        clearInterval(statusRefreshInterval);
+      }
+      const interval = setInterval(fetchEmbeddingStatus, 2000); // Refresh every 2 seconds
+      setStatusRefreshInterval(interval);
+      
+      await fetchEmbeddingStatus();
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to trigger embedding regeneration",
+        variant: "destructive"
+      });
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (statusRefreshInterval) {
+        clearInterval(statusRefreshInterval);
+      }
+    };
+  }, [statusRefreshInterval]);
+
+  // Fetch embedding status when embedding tab is active
+  useEffect(() => {
+    fetchEmbeddingStatus();
+  }, []);
 
   if (loading) {
     return (
-      <div className="grid gap-4">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-64" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-20 w-full" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid gap-4">
+          {[...Array(2)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-64" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-40 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium">AI Model Configuration</h3>
-          <p className="text-sm text-muted-foreground">
-            Configure AI providers and models for prompt enhancement features
-          </p>
-        </div>
-        <Button onClick={() => { resetForm(); setDialogOpen(true); }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Configuration
-        </Button>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium">AI Model Configuration</h3>
+        <p className="text-sm text-muted-foreground">
+          Configure AI providers and models for different features
+        </p>
       </div>
 
-      <div className="grid gap-4">
-        {settings.length === 0 ? (
+      <Tabs defaultValue="general" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            General AI
+          </TabsTrigger>
+          <TabsTrigger value="embedding" className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            Embedding AI
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="space-y-4">
           <Card>
-            <CardContent className="text-center py-8">
-              <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No AI configurations yet</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => { resetForm(); setDialogOpen(true); }}
-              >
-                Add your first configuration
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          settings.map((setting) => (
-            <Card key={setting.id} className={setting.isDefault ? "border-primary" : ""}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="flex items-center gap-2">
-                      {setting.name}
-                      {setting.isDefault && (
-                        <Badge variant="default">Default</Badge>
-                      )}
-                      {setting.isActive ? (
-                        <Badge variant="outline" className="text-green-600 border-green-600">
-                          <CheckCircle className="h-3 w-3 mr-1" /> Active
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-red-600 border-red-600">
-                          <XCircle className="h-3 w-3 mr-1" /> Inactive
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <CardDescription>
-                      {setting.provider} - {setting.model}
-                    </CardDescription>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                General AI Configuration
+              </CardTitle>
+              <CardDescription>
+                Configure AI models for prompt enhancement, auto-tagging, and generation features
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {settings.general && (
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Configuration exists</span>
+                  {settings.general.isActive && (
+                    <Badge variant="outline" className="ml-auto">Active</Badge>
+                  )}
+                </div>
+              )}
+
+              <div className="grid gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Provider</Label>
+                    <Select
+                      value={generalForm.provider}
+                      onValueChange={(value) => {
+                        const provider = AI_CONFIGS.general.providers.find(p => p.value === value);
+                        setGeneralForm({ 
+                          ...generalForm, 
+                          provider: value,
+                          model: provider?.models[0] || ""
+                        });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AI_CONFIGS.general.providers.map(provider => (
+                          <SelectItem key={provider.value} value={provider.value}>
+                            {provider.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>Model</Label>
+                    <Select
+                      value={generalForm.model}
+                      onValueChange={(value) => setGeneralForm({ ...generalForm, model: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AI_CONFIGS.general.providers
+                          .find(p => p.value === generalForm.provider)
+                          ?.models.map(model => (
+                            <SelectItem key={model} value={model}>
+                              {model}
+                            </SelectItem>
+                          ))
+                        }
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>API Key</Label>
                   <div className="flex gap-2">
+                    <Input
+                      type="password"
+                      placeholder={settings.general ? "Enter new key to update" : "Enter API key"}
+                      value={generalForm.apiKey}
+                      onChange={(e) => setGeneralForm({ ...generalForm, apiKey: e.target.value })}
+                    />
                     <Button
                       variant="outline"
-                      size="sm"
-                      onClick={() => handleTest(setting.id)}
-                      disabled={testingConnection === setting.id}
+                      onClick={() => handleTest("general")}
+                      disabled={!generalForm.apiKey && !settings.general}
                     >
-                      {testingConnection === setting.id ? (
+                      {testing === "general" ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Zap className="h-4 w-4" />
                       )}
                       Test
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditDialog(setting)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Your API key is encrypted and stored securely
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Max Tokens</Label>
+                    <Input
+                      type="number"
+                      value={generalForm.maxTokens}
+                      onChange={(e) => setGeneralForm({ ...generalForm, maxTokens: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Temperature</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="2"
+                      value={generalForm.temperature}
+                      onChange={(e) => setGeneralForm({ ...generalForm, temperature: parseFloat(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Top P</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="1"
+                      value={generalForm.topP}
+                      onChange={(e) => setGeneralForm({ ...generalForm, topP: parseFloat(e.target.value) })}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between border-t pt-4">
+                  <div className="space-y-0.5">
+                    <Label>Active</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Enable or disable this AI configuration
+                    </p>
+                  </div>
+                  <Switch
+                    checked={generalForm.isActive}
+                    onCheckedChange={(checked) => setGeneralForm({ ...generalForm, isActive: checked })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={() => handleSave("general")} disabled={saving === "general"}>
+                  {saving === "general" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  Save Configuration
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="embedding" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                Embedding AI Configuration
+              </CardTitle>
+              <CardDescription>
+                Configure embedding models for semantic search functionality
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Embeddings enable semantic search by converting text into vector representations. 
+                  Changing the model will require regenerating all embeddings.
+                </AlertDescription>
+              </Alert>
+
+              {settings.embedding && (
+                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Configuration exists</span>
+                  {settings.embedding.isActive && (
+                    <Badge variant="outline" className="ml-auto">Active</Badge>
+                  )}
+                </div>
+              )}
+
+              <div className="grid gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Provider</Label>
+                    <Select value={embeddingForm.provider} disabled>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="openai">OpenAI</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Currently only OpenAI is supported
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Embedding Model</Label>
+                    <Select
+                      value={embeddingForm.model}
+                      onValueChange={(value) => setEmbeddingForm({ ...embeddingForm, model: value })}
                     >
-                      <Settings className="h-4 w-4" />
-                    </Button>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AI_CONFIGS.embedding.providers[0].models.map(model => (
+                          <SelectItem key={model} value={model}>
+                            {model === "text-embedding-3-small" ? "Text Embedding 3 Small (Recommended)" :
+                             model === "text-embedding-3-large" ? "Text Embedding 3 Large (Higher Quality)" :
+                             model === "text-embedding-ada-002" ? "Text Embedding Ada 002 (Legacy)" :
+                             model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Smaller models are faster and more cost-effective
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>API Key</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="password"
+                      placeholder={settings.embedding ? "Enter new key to update" : "Enter API key"}
+                      value={embeddingForm.apiKey}
+                      onChange={(e) => setEmbeddingForm({ ...embeddingForm, apiKey: e.target.value })}
+                    />
                     <Button
                       variant="outline"
+                      onClick={() => handleTest("embedding")}
+                      disabled={!embeddingForm.apiKey && !settings.embedding}
+                    >
+                      {testing === "embedding" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Zap className="h-4 w-4" />
+                      )}
+                      Test
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Uses the same OpenAI account as general AI
+                  </p>
+                </div>
+
+                <div className="space-y-4 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Semantic Search Enabled</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Enable or disable semantic search globally
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {semanticSearchEnabled ? "Enabled" : "Disabled"}
+                      </span>
+                      <Switch
+                        checked={semanticSearchEnabled}
+                        onCheckedChange={handleSemanticSearchToggle}
+                        disabled={loadingSemanticSearch || !settings.embedding?.isActive}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Embedding Service Active</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Enable or disable the embedding service
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {embeddingForm.isActive ? "Enabled" : "Disabled"}
+                      </span>
+                      <Switch
+                        checked={embeddingForm.isActive}
+                        onCheckedChange={(checked) => setEmbeddingForm({ ...embeddingForm, isActive: checked })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={() => handleSave("embedding")} disabled={saving === "embedding"}>
+                  {saving === "embedding" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  Save Configuration
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Embedding Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Embedding Management
+              </CardTitle>
+              <CardDescription>
+                Manage vector embeddings for semantic search
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Status Display */}
+              {embeddingStats && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Prompts</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total:</span>
+                          <span>{embeddingStats.prompts.total}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">With Embeddings:</span>
+                          <span className="text-green-600">{embeddingStats.prompts.withEmbeddings}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Pending:</span>
+                          <span className="text-orange-600">{embeddingStats.prompts.pending}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Outdated:</span>
+                          <span className="text-red-600">{embeddingStats.prompts.outdated}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Templates</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total:</span>
+                          <span>{embeddingStats.templates.total}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">With Embeddings:</span>
+                          <span className="text-green-600">{embeddingStats.templates.withEmbeddings}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Pending:</span>
+                          <span className="text-orange-600">{embeddingStats.templates.pending}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Outdated:</span>
+                          <span className="text-red-600">{embeddingStats.templates.outdated}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  {embeddingStats && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Overall Progress</span>
+                        <span>
+                          {Math.round(
+                            ((embeddingStats.prompts.withEmbeddings + embeddingStats.templates.withEmbeddings) /
+                              (embeddingStats.prompts.total + embeddingStats.templates.total)) * 100
+                          )}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                          style={{
+                            width: `${
+                              ((embeddingStats.prompts.withEmbeddings + embeddingStats.templates.withEmbeddings) /
+                                (embeddingStats.prompts.total + embeddingStats.templates.total)) * 100
+                            }%`
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Queue Status */}
+              {queueStatus && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium flex items-center gap-2">
+                      <Activity className="h-4 w-4" />
+                      Queue Status
+                    </h4>
+                    <div className="grid grid-cols-5 gap-2 text-sm">
+                      <div className="text-center p-2 bg-muted rounded">
+                        <div className="text-2xl font-bold">{queueStatus.waiting}</div>
+                        <div className="text-xs text-muted-foreground">Waiting</div>
+                      </div>
+                      <div className="text-center p-2 bg-blue-50 rounded">
+                        <div className="text-2xl font-bold text-blue-600">{queueStatus.active}</div>
+                        <div className="text-xs text-muted-foreground">Active</div>
+                      </div>
+                      <div className="text-center p-2 bg-green-50 rounded">
+                        <div className="text-2xl font-bold text-green-600">{queueStatus.completed}</div>
+                        <div className="text-xs text-muted-foreground">Completed</div>
+                      </div>
+                      <div className="text-center p-2 bg-red-50 rounded">
+                        <div className="text-2xl font-bold text-red-600">{queueStatus.failed}</div>
+                        <div className="text-xs text-muted-foreground">Failed</div>
+                      </div>
+                      <div className="text-center p-2 bg-orange-50 rounded">
+                        <div className="text-2xl font-bold text-orange-600">{queueStatus.delayed}</div>
+                        <div className="text-xs text-muted-foreground">Delayed</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Worker Health Status */}
+                  {queueStatus.health && (
+                    <Alert variant={queueStatus.health.isHealthy ? "default" : "destructive"}>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Worker Status:</strong> {queueStatus.health.message}
+                        {!queueStatus.health.hasActiveWorkers && queueStatus.waiting > 0 && (
+                          <div className="mt-2">
+                            <code className="bg-muted px-2 py-1 rounded text-sm">npm run worker</code>
+                          </div>
+                        )}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
+
+              {/* Management Actions */}
+              <div className="space-y-4 border-t pt-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Force Regenerate Embeddings</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Regenerate all embeddings using current model settings
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={handleRegenerateEmbeddings}
+                      disabled={regenerating || !settings.embedding?.isActive}
+                    >
+                      {regenerating ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                      )}
+                      Regenerate
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Reset Embedding Index</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Clear all embeddings and reset the vector index
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      onClick={handleResetIndex}
+                      disabled={resettingIndex}
+                    >
+                      {resettingIndex ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4 mr-2" />
+                      )}
+                      Reset Index
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Auto-refresh indicator */}
+                {statusRefreshInterval && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-3 w-3 animate-pulse" />
+                    <span>Status refreshing every 2 seconds</span>
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setSelectedSetting(setting);
-                        setDeleteDialogOpen(true);
+                        if (statusRefreshInterval) {
+                          clearInterval(statusRefreshInterval);
+                          setStatusRefreshInterval(null);
+                        }
                       }}
                     >
-                      <Trash className="h-4 w-4" />
+                      Stop
                     </Button>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">API Key</p>
-                    <p className="flex items-center gap-1">
-                      <Key className="h-3 w-3" />
-                      {setting.hasApiKey ? "Configured" : "Not configured"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Usage</p>
-                    <p>{setting.usageCount} / {setting.monthlyQuota || "∞"}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Rate Limit</p>
-                    <p>{setting.rateLimit || "∞"} req/min</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Last Used</p>
-                    <p>
-                      {setting.lastUsedAt 
-                        ? new Date(setting.lastUsedAt).toLocaleDateString()
-                        : "Never"
-                      }
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedSetting ? "Edit AI Configuration" : "Add AI Configuration"}
-            </DialogTitle>
-            <DialogDescription>
-              Configure AI provider settings for prompt enhancement features
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Configuration Name</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Primary OpenAI"
-                />
+                )}
               </div>
-              <div>
-                <Label>Provider</Label>
-                <Select
-                  value={formData.provider}
-                  onValueChange={(value) => {
-                    const provider = PROVIDER_OPTIONS.find(p => p.value === value);
-                    setFormData({ 
-                      ...formData, 
-                      provider: value,
-                      model: provider?.models[0] || ""
-                    });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROVIDER_OPTIONS.map(provider => (
-                      <SelectItem key={provider.value} value={provider.value}>
-                        {provider.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Model</Label>
-                <Select
-                  value={formData.model}
-                  onValueChange={(value) => setFormData({ ...formData, model: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROVIDER_OPTIONS
-                      .find(p => p.value === formData.provider)
-                      ?.models.map(model => (
-                        <SelectItem key={model} value={model}>
-                          {model}
-                        </SelectItem>
-                      ))
-                    }
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>API Key</Label>
-                <Input
-                  type="password"
-                  value={formData.apiKey}
-                  onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                  placeholder={selectedSetting ? "Leave blank to keep current" : "Enter API key"}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Max Tokens</Label>
-                <Input
-                  type="number"
-                  value={formData.maxTokens}
-                  onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })}
-                />
-              </div>
-              <div>
-                <Label>Temperature</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="2"
-                  value={formData.temperature}
-                  onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
-                />
-              </div>
-              <div>
-                <Label>Top P</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="1"
-                  value={formData.topP}
-                  onChange={(e) => setFormData({ ...formData, topP: parseFloat(e.target.value) })}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Rate Limit (req/min)</Label>
-                <Input
-                  type="number"
-                  value={formData.rateLimit}
-                  onChange={(e) => setFormData({ ...formData, rateLimit: parseInt(e.target.value) })}
-                />
-              </div>
-              <div>
-                <Label>Monthly Quota</Label>
-                <Input
-                  type="number"
-                  value={formData.monthlyQuota}
-                  onChange={(e) => setFormData({ ...formData, monthlyQuota: parseInt(e.target.value) })}
-                />
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="active"
-                  checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                />
-                <Label htmlFor="active">Active</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="default"
-                  checked={formData.isDefault}
-                  onCheckedChange={(checked) => setFormData({ ...formData, isDefault: checked })}
-                />
-                <Label htmlFor="default">Set as Default</Label>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>
-              Cancel
-            </Button>
-            <Button onClick={selectedSetting ? handleUpdate : handleCreate}>
-              {selectedSetting ? "Save Changes" : "Create Configuration"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete AI Configuration</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{selectedSetting?.name}&quot;? 
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive"
-              onClick={() => selectedSetting && handleDelete(selectedSetting.id)}
-            >
-              Delete Configuration
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

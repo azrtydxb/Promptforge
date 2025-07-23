@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { togglePromptFavorite } from "@/app/actions/prompt-favorites.actions";
 import { Button } from "@/components/ui/button";
-import { Icons } from "@/components/ui/icons";
+import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 interface FavoriteButtonProps {
   promptId: string;
@@ -81,7 +80,7 @@ export function FavoriteButton({
         className
       )}
     >
-      <Icons.Star
+      <Star
         className={cn(
           iconClasses,
           isFavorited && "fill-current"

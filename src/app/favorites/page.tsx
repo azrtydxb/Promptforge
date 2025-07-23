@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getFavoritePrompts } from "@/app/actions/prompt-favorites.actions";
 import { PromptCard } from "@/components/prompts/prompt-card";
-import { Icons } from "@/components/ui/icons";
+import { Star } from "lucide-react";
 
 async function FavoritesList() {
   const favorites = await getFavoritePrompts();
@@ -9,7 +9,7 @@ async function FavoritesList() {
   if (favorites.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <Icons.Star className="h-12 w-12 text-gray-400 mb-4" />
+        <Star className="h-12 w-12 text-gray-400 mb-4" />
         <h3 className="text-lg font-semibold mb-2">No favorites yet</h3>
         <p className="text-muted-foreground max-w-sm">
           Start favoriting prompts to quickly access them here
@@ -19,7 +19,7 @@ async function FavoritesList() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {favorites.map((prompt) => (
         <PromptCard
           key={prompt.id}
@@ -44,7 +44,7 @@ export default function FavoritesPage() {
 
       <Suspense
         fallback={
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}

@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { ChevronDown, Save, ArrowLeft, Copy, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
+import { AIEnhancementPanel } from "@/components/prompts/ai-enhancement-panel";
+import { useSession } from "next-auth/react";
 
 export default function PromptPage({
   params,
@@ -35,11 +37,13 @@ export default function PromptPage({
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const debouncedContent = useDebounce(content, 500);
   const debouncedDescription = useDebounce(description, 500);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { onOpen } = useModal();
+  const { status } = useSession();
 
   const languageOptions = ["Markdown", "Text", "JavaScript", "Python", "JSON", "YAML", "XML"];
 
@@ -53,8 +57,17 @@ export default function PromptPage({
     initializeParams();
   }, [params]);
 
+  // Check authentication status
   useEffect(() => {
-    if (!promptId) return;
+    if (status === "loading") return;
+    
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (!promptId || status !== "authenticated") return;
     
     if (isCreateMode) {
       // Initialize empty state for new prompt
@@ -63,24 +76,33 @@ export default function PromptPage({
       setTitle("");
       setDescription("");
       setTags([]);
+      setIsLoading(false);
       return;
     }
     
     const fetchPrompt = async () => {
-      const fetchedPrompt = await getPromptById(promptId);
-      setPrompt(fetchedPrompt as (Prompt & { tags: Tag[], versions: PromptVersion[] }) | null);
-      setContent(fetchedPrompt?.content || "");
-      setTitle(fetchedPrompt?.title || "");
-      setDescription(fetchedPrompt?.description || "");
-      setTags(fetchedPrompt?.tags?.map(tag => tag.name) || []);
-      
-      // Update lastUsedAt timestamp
-      if (fetchedPrompt) {
-        updatePromptLastUsed(promptId).catch(console.error);
+      try {
+        const fetchedPrompt = await getPromptById(promptId);
+        setPrompt(fetchedPrompt as (Prompt & { tags: Tag[], versions: PromptVersion[] }) | null);
+        setContent(fetchedPrompt?.content || "");
+        setTitle(fetchedPrompt?.title || "");
+        setDescription(fetchedPrompt?.description || "");
+        setTags(fetchedPrompt?.tags?.map(tag => tag.name) || []);
+        
+        // Update lastUsedAt timestamp
+        if (fetchedPrompt) {
+          updatePromptLastUsed(promptId).catch(console.error);
+        }
+      } catch (error) {
+        console.error('Error fetching prompt:', error);
+        // Handle errors by redirecting to prompts page
+        router.push('/prompts');
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchPrompt();
-  }, [promptId, isCreateMode]);
+  }, [promptId, isCreateMode, status, router]);
 
   useEffect(() => {
     if (!promptId || isCreateMode || debouncedContent === prompt?.content) return;
@@ -146,8 +168,12 @@ export default function PromptPage({
       onOpen("saveVersion", {
         promptData: { id: promptId, content, title, description },
         onSuccess: async () => {
-          const fetchedPrompt = await getPromptById(promptId);
-          setPrompt(fetchedPrompt as (Prompt & { tags: Tag[], versions: PromptVersion[] }) | null);
+          try {
+            const fetchedPrompt = await getPromptById(promptId);
+            setPrompt(fetchedPrompt as (Prompt & { tags: Tag[], versions: PromptVersion[] }) | null);
+          } catch (error) {
+            console.error('Error refreshing prompt after save:', error);
+          }
         },
       });
     }
@@ -155,9 +181,14 @@ export default function PromptPage({
 
   const handleRestore = async () => {
     if (!promptId) return;
-    const fetchedPrompt = await getPromptById(promptId);
-    setPrompt(fetchedPrompt as (Prompt & { tags: Tag[], versions: PromptVersion[] }) | null);
-    setContent(fetchedPrompt?.content || "");
+    try {
+      const fetchedPrompt = await getPromptById(promptId);
+      setPrompt(fetchedPrompt as (Prompt & { tags: Tag[], versions: PromptVersion[] }) | null);
+      setContent(fetchedPrompt?.content || "");
+    } catch (error) {
+      console.error('Error restoring prompt:', error);
+      alert('Failed to restore prompt version. Please try again.');
+    }
   };
 
   const handleTagsChange = async (newTags: string[]) => {
@@ -178,8 +209,30 @@ export default function PromptPage({
     }
   };
 
+  // Show loading state while checking authentication or loading prompt
+  if (status === "loading" || isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (status === "unauthenticated") {
+    return null;
+  }
+
   if (!promptId || (!prompt && !isCreateMode)) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -308,7 +361,19 @@ export default function PromptPage({
           </div>
         </div>
         {!isCreateMode && prompt && (
-          <div className="flex-grow">
+          <div className="flex-grow overflow-y-auto">
+            <div className="p-4 border-b">
+              <AIEnhancementPanel
+                promptId={promptId!}
+                currentContent={content}
+                currentTags={tags}
+                onTagsUpdate={handleTagsChange}
+                onContentUpdate={(newContent) => {
+                  setContent(newContent);
+                  updatePrompt(promptId!, { content: newContent });
+                }}
+              />
+            </div>
             <VersionHistorySidebar versions={prompt.versions} onRestore={handleRestore} />
           </div>
         )}

@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Shield,
   Star,
+  Layout,
 } from "lucide-react"
 import { dellNavItem } from "@/lib/styles"
 
@@ -37,6 +38,12 @@ const getNavigationItems = (isAdmin: boolean) => [
     icon: Star,
     label: "Favorites",
     description: "Your favorite prompts"
+  },
+  {
+    href: "/templates",
+    icon: Layout,
+    label: "Templates",
+    description: "Pre-built prompt templates"
   },
   {
     href: "/shared-prompts",

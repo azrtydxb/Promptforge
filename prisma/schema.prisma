@@ -50,6 +50,8 @@ model User {
   followers     UserFollow[] @relation("UserFollowers")
   publishedPrompts SharedPrompt[]
   moderatedPrompts SharedPrompt[] @relation("ModeratedBy")
+  promptTemplates PromptTemplate[]
+  aiUsageLogs AIUsageLog[]
 }
 
 enum AvatarType {
@@ -159,6 +161,16 @@ model Prompt {
   sharedPrompt SharedPrompt?
   order       Int?
   lastUsedAt  DateTime?       // Track when prompt was last accessed/used
+  // AI Enhancement fields
+  enhancedContent String?     // AI-enhanced version of the prompt
+  enhancementSuggestions Json? // Stored suggestions from AI
+  autoTags    String[]        // AI-suggested tags
+  embedding   String?         // Vector embeddings as JSON string
+  embeddingVersion Int?        @default(1) // Track embedding model version
+  embeddingOutdated Boolean    @default(true) // Flag for re-generation
+  templateId  String?
+  template    PromptTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  aiUsageLogs AIUsageLog[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -391,6 +403,16 @@ enum UserRole {
   ADMIN
 }
 
+// System Settings for global configuration
+model SystemSettings {
+  id                      String   @id @default(cuid())
+  key                     String   @unique
+  value                   String
+  description             String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
 // AI Configuration Settings
 model AISettings {
   id          String   @id @default(cuid())
@@ -415,4 +437,54 @@ model AISettings {
   
   @@index([provider])
   @@index([isActive, isDefault])
+}
+
+// Prompt Templates
+model PromptTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String   // e.g., "coding", "writing", "analysis"
+  content     String   // Template with variables like {{variable}}
+  variables   Json     // Variable definitions with descriptions
+  example     String?  // Example of filled template
+  icon        String?  // Icon identifier
+  isPublic    Boolean  @default(true)
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  prompts     Prompt[] // Prompts created from this template
+  usageCount  Int      @default(0)
+  rating      Float?   @default(0)
+  embedding   String?  // Vector embeddings as JSON string
+  embeddingVersion Int? @default(1) // Track embedding model version
+  embeddingOutdated Boolean @default(true) // Flag for re-generation
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([isPublic])
+  @@index([authorId])
+}
+
+// AI Usage Tracking
+model AIUsageLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId   String?
+  prompt     Prompt?  @relation(fields: [promptId], references: [id], onDelete: SetNull)
+  operation  String   // "enhance", "auto-tag", "similarity", "embedding"
+  provider   String   // "openai", "anthropic", etc.
+  model      String   // Model used
+  tokensUsed Int      // Tokens consumed
+  cost       Float?   // Estimated cost in USD
+  duration   Int      // Response time in ms
+  success    Boolean
+  error      String?
+  metadata   Json?    // Additional data
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([operation])
+  @@index([createdAt])
 }

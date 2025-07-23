@@ -5,9 +5,7 @@ import { logger } from '@/lib/logger';
 const redisConfig = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD || (() => {
-    throw new Error('REDIS_PASSWORD environment variable is required');
-  })(),
+  password: process.env.REDIS_PASSWORD || 'redispassword', // Use default from docker-compose
   db: 0,
   
   // Connection settings
@@ -15,11 +13,11 @@ const redisConfig = {
   keepAlive: 30000,
   family: 4, // IPv4
   connectTimeout: 10000,
-  commandTimeout: 5000,
+  commandTimeout: 30000, // Increased from 5 seconds to 30 seconds
   
   // Retry and reconnection settings
   retryDelayOnFailover: 100,
-  maxRetriesPerRequest: 3,
+  maxRetriesPerRequest: null, // BullMQ requires this to be null
   retryStrategy(times: number) {
     const delay = Math.min(times * 50, 2000);
     return delay;

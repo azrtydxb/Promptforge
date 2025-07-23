@@ -11,6 +11,8 @@ A comprehensive Next.js application for managing, sharing, and organizing AI pro
 - **Dashboard Analytics**: Real-time insights into prompt usage and performance
 - **Shared Prompts Marketplace**: Discover and share prompts with the community
 - **Search & Filtering**: Advanced search capabilities across prompts and tags
+- **Semantic Search**: AI-powered search using embeddings for finding similar prompts
+- **Embedding Management**: Background worker for generating and updating embeddings
 
 ### Performance & Caching
 - **Redis Caching**: Comprehensive caching strategy for optimal performance
@@ -84,6 +86,15 @@ A comprehensive Next.js application for managing, sharing, and organizing AI pro
    npm run dev
    ```
 
+   This command automatically starts both:
+   - The Next.js development server
+   - The embedding worker (required for semantic search)
+
+   **Note:** If you want to run only the Next.js server without the worker:
+   ```bash
+   npm run dev:next-only
+   ```
+
 6. **Open the application**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
@@ -132,7 +143,9 @@ src/
 
 ```bash
 # Development
-npm run dev          # Start development server
+npm run dev          # Start dev server + embedding worker
+npm run dev:next-only # Start only Next.js dev server
+npm run worker       # Start embedding worker separately
 npm run build        # Build for production
 npm run start        # Start production server
 
@@ -145,6 +158,11 @@ npx prisma studio       # Open Prisma Studio
 docker-compose up -d     # Start services (PostgreSQL + Redis)
 docker-compose down      # Stop services
 docker-compose logs      # View service logs
+
+# Redis Management
+npm run redis:up     # Start Redis container
+npm run redis:down   # Stop Redis container
+npm run redis:logs   # View Redis logs
 ```
 
 ## API Endpoints
@@ -272,6 +290,37 @@ REDIS_URL="redis://..."
 NEXTAUTH_SECRET="secure-secret"
 NEXTAUTH_URL="https://your-domain.com"
 ```
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Command timed out" Errors
+If you see Redis timeout errors in the logs:
+1. Ensure Redis is running: `docker-compose ps`
+2. Check Redis connection: `npm run redis:logs`
+3. **Make sure the embedding worker is running**: `npm run worker`
+
+#### Embeddings Not Generating
+1. Check Admin > AI Settings > Embedding tab
+2. Verify OpenAI API key is configured
+3. Look for "Worker Status" alerts
+4. If jobs are waiting, start the worker: `npm run worker`
+
+#### Worker Crashes
+1. Check Redis is accessible
+2. Verify API keys in Admin settings
+3. Check logs for specific errors
+4. Try restarting: `npm run worker`
+
+### Worker Management
+
+The embedding worker is automatically started with `npm run dev`:
+- Development: `npm run dev` starts both app and worker
+- Production: Run worker as a separate process
+- Monitor: Check Admin > AI Settings > Embedding Management
+
+For detailed worker documentation, see [docs/EMBEDDING_WORKER.md](docs/EMBEDDING_WORKER.md)
 
 ## Contributing
 

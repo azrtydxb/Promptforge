@@ -4,18 +4,19 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin-auth";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/logger";
+import { clearOpenAIClient } from "@/services/embedding-service";
+import OpenAI from "openai";
 import crypto from "crypto";
 
 // Simple encryption for API keys (in production, use a proper KMS)
-const ENCRYPTION_KEY = process.env.AI_KEY_ENCRYPTION_SECRET || 'default-encryption-key-change-in-production';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
+const ALGORITHM = 'aes-256-gcm';
 
-function encrypt(text: string): string {
-  const algorithm = 'aes-256-gcm';
-  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
+function encryptApiKey(apiKey: string): string {
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv(algorithm, key, iv);
+  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
   
-  let encrypted = cipher.update(text, 'utf8', 'hex');
+  let encrypted = cipher.update(apiKey, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   
   const authTag = cipher.getAuthTag();
@@ -23,16 +24,13 @@ function encrypt(text: string): string {
   return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
 }
 
-function decrypt(encryptedData: string): string {
-  const algorithm = 'aes-256-gcm';
-  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
-  
+function decryptApiKey(encryptedData: string): string {
   const parts = encryptedData.split(':');
   const iv = Buffer.from(parts[0], 'hex');
   const authTag = Buffer.from(parts[1], 'hex');
   const encrypted = parts[2];
   
-  const decipher = crypto.createDecipheriv(algorithm, key, iv);
+  const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
   decipher.setAuthTag(authTag);
   
   let decrypted = decipher.update(encrypted, 'hex', 'utf8');
@@ -41,136 +39,112 @@ function decrypt(encryptedData: string): string {
   return decrypted;
 }
 
-interface CreateAISettingsParams {
-  name: string;
-  provider: string;
-  model: string;
-  apiKey: string;
-  maxTokens?: number;
-  temperature?: number;
-  topP?: number;
-  rateLimit?: number;
-  monthlyQuota?: number;
-  isDefault?: boolean;
-}
-
-interface UpdateAISettingsParams {
-  id: string;
-  updates: Partial<CreateAISettingsParams> & {
-    isActive?: boolean;
-  };
-}
-
 export async function getAISettings() {
   await requireAdmin();
   
   try {
     const settings = await db.aISettings.findMany({
-      orderBy: [
-        { isDefault: 'desc' },
-        { isActive: 'desc' },
-        { name: 'asc' },
-      ],
+      orderBy: { createdAt: 'desc' }
     });
     
-    // Don't send decrypted API keys to the client
+    // Don't send actual API keys to the client
     return settings.map(setting => ({
       ...setting,
-      apiKey: '********', // Masked
-      hasApiKey: true,
+      apiKey: undefined
     }));
   } catch (error) {
-    logger.error("Error fetching AI settings", error);
+    logger.error("Error fetching AI settings", { error });
     throw new Error("Failed to fetch AI settings");
   }
 }
 
-export async function createAISettings(params: CreateAISettingsParams) {
+export async function createAISettings(data: {
+  name: string;
+  provider: string;
+  model: string;
+  apiKey: string;
+  isActive?: boolean;
+  isDefault?: boolean;
+}) {
   await requireAdmin();
   
   try {
-    // Encrypt the API key
-    const encryptedApiKey = encrypt(params.apiKey);
-    
-    // If this is set as default, unset other defaults
-    if (params.isDefault) {
+    // If setting as default, unset other defaults for the same provider
+    if (data.isDefault) {
       await db.aISettings.updateMany({
-        where: { isDefault: true },
-        data: { isDefault: false },
+        where: { provider: data.provider },
+        data: { isDefault: false }
       });
     }
+    
+    const encryptedApiKey = encryptApiKey(data.apiKey);
     
     const settings = await db.aISettings.create({
       data: {
-        ...params,
-        apiKey: encryptedApiKey,
-      },
+        ...data,
+        apiKey: encryptedApiKey
+      }
     });
     
-    logger.info("AI settings created", { 
-      name: settings.name, 
-      provider: settings.provider,
-      model: settings.model,
-    });
+    // Clear the cached OpenAI client so it uses the new settings
+    clearOpenAIClient();
     
-    revalidatePath("/admin");
-    return { 
-      success: true, 
-      settings: { ...settings, apiKey: '********' } 
-    };
+    revalidatePath("/admin/ai-settings");
+    
+    return settings;
   } catch (error) {
-    logger.error("Error creating AI settings", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to create AI settings" 
-    };
+    logger.error("Error creating AI settings", { error });
+    throw new Error("Failed to create AI settings");
   }
 }
 
-export async function updateAISettings({ id, updates }: UpdateAISettingsParams) {
+export async function updateAISettings(id: string, data: {
+  model?: string;
+  apiKey?: string;
+  isActive?: boolean;
+  isDefault?: boolean;
+}) {
   await requireAdmin();
   
   try {
-    const dataToUpdate: Record<string, unknown> = { ...updates };
+    const updateData: Record<string, unknown> = { ...data };
     
     // Encrypt API key if provided
-    if (updates.apiKey) {
-      dataToUpdate.apiKey = encrypt(updates.apiKey);
+    if (data.apiKey) {
+      updateData.apiKey = encryptApiKey(data.apiKey);
     }
     
-    // If setting as default, unset other defaults
-    if (updates.isDefault) {
-      await db.aISettings.updateMany({
-        where: { 
-          isDefault: true,
-          id: { not: id },
-        },
-        data: { isDefault: false },
+    // If setting as default, unset other defaults for the same provider
+    if (data.isDefault) {
+      const currentSettings = await db.aISettings.findUnique({
+        where: { id }
       });
+      
+      if (currentSettings) {
+        await db.aISettings.updateMany({
+          where: { 
+            provider: currentSettings.provider,
+            id: { not: id }
+          },
+          data: { isDefault: false }
+        });
+      }
     }
     
     const settings = await db.aISettings.update({
       where: { id },
-      data: dataToUpdate,
+      data: updateData
     });
     
-    logger.info("AI settings updated", { 
-      id,
-      name: settings.name,
-      updates: { ...updates, apiKey: updates.apiKey ? '********' : undefined },
-    });
+    // Clear the cached OpenAI client so it uses the new settings
+    clearOpenAIClient();
     
-    revalidatePath("/admin");
-    return { 
-      success: true, 
-      settings: { ...settings, apiKey: '********' } 
-    };
+    revalidatePath("/admin/ai-settings");
+    
+    return settings;
   } catch (error) {
-    logger.error("Error updating AI settings", error, { id });
-    return { 
-      success: false, 
-      error: "Failed to update AI settings" 
-    };
+    logger.error("Error updating AI settings", { error });
+    throw new Error("Failed to update AI settings");
   }
 }
 
@@ -179,128 +153,273 @@ export async function deleteAISettings(id: string) {
   
   try {
     await db.aISettings.delete({
-      where: { id },
+      where: { id }
     });
     
-    logger.info("AI settings deleted", { id });
+    // Clear the cached OpenAI client
+    clearOpenAIClient();
     
-    revalidatePath("/admin");
-    return { success: true };
+    revalidatePath("/admin/ai-settings");
   } catch (error) {
-    logger.error("Error deleting AI settings", error, { id });
-    return { 
-      success: false, 
-      error: "Failed to delete AI settings" 
-    };
+    logger.error("Error deleting AI settings", { error });
+    throw new Error("Failed to delete AI settings");
   }
 }
 
-export async function testAIConnection(id: string) {
+export async function testAIConnection(provider: string, configType: string = "general") {
   await requireAdmin();
   
   try {
-    const settings = await db.aISettings.findUnique({
-      where: { id },
+    const settings = await db.aISettings.findFirst({
+      where: {
+        provider,
+        name: configType
+      }
     });
     
     if (!settings) {
-      throw new Error("AI settings not found");
+      return { success: false, error: "No settings found for this provider" };
     }
     
-    const apiKey = decrypt(settings.apiKey);
+    const apiKey = decryptApiKey(settings.apiKey);
     
-    // Test connection based on provider
-    let success = false;
-    let message = "";
-    
-    switch (settings.provider.toLowerCase()) {
-      case 'openai':
-        // Test OpenAI connection
-        const openaiResponse = await fetch('https://api.openai.com/v1/models', {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-          },
-        });
-        success = openaiResponse.ok;
-        message = success ? "OpenAI connection successful" : "Failed to connect to OpenAI";
-        break;
-        
-      case 'anthropic':
-        // Test Anthropic connection
-        const anthropicResponse = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: settings.model,
-            messages: [{ role: 'user', content: 'test' }],
-            max_tokens: 1,
-          }),
-        });
-        success = anthropicResponse.ok || anthropicResponse.status === 400; // 400 is expected for test
-        message = success ? "Anthropic connection successful" : "Failed to connect to Anthropic";
-        break;
-        
-      default:
-        message = `Provider ${settings.provider} not yet implemented`;
-        break;
-    }
-    
-    // Update last used timestamp if successful
-    if (success) {
-      await db.aISettings.update({
-        where: { id },
-        data: { lastUsedAt: new Date() },
+    if (provider === "openai") {
+      const openai = new OpenAI({ apiKey });
+      
+      // Test the connection by creating a small embedding
+      const response = await openai.embeddings.create({
+        model: settings.model,
+        input: "test",
       });
+      
+      if (response.data && response.data.length > 0) {
+        return { success: true };
+      }
     }
     
-    logger.info("AI connection test", { 
-      id, 
-      provider: settings.provider, 
-      success 
-    });
-    
-    return { success, message };
+    return { success: false, error: "Provider not supported" };
   } catch (error) {
-    logger.error("Error testing AI connection", error, { id });
+    logger.error("Error testing AI connection", { error, provider });
     return { 
       success: false, 
-      message: error instanceof Error ? error.message : "Connection test failed" 
+      error: error instanceof Error ? error.message : "Connection test failed" 
     };
   }
 }
 
-// Get the active AI settings for use in the application
-export async function getActiveAISettings() {
+// Embedding management functions
+export async function resetEmbeddingIndex() {
+  await requireAdmin();
+  
   try {
-    const settings = await db.aISettings.findFirst({
-      where: { 
-        isActive: true,
-        OR: [
-          { isDefault: true },
-          { isActive: true },
-        ],
-      },
-      orderBy: [
-        { isDefault: 'desc' },
-        { lastUsedAt: 'desc' },
-      ],
+    // Reset all embeddings to null
+    await db.prompt.updateMany({
+      data: {
+        embedding: null,
+        embeddingOutdated: true
+      }
     });
     
-    if (!settings) {
-      return null;
-    }
+    await db.promptTemplate.updateMany({
+      data: {
+        embedding: null,
+        embeddingOutdated: true
+      }
+    });
     
-    // Decrypt API key for internal use
-    return {
-      ...settings,
-      apiKey: decrypt(settings.apiKey),
+    logger.info("Embedding index reset completed");
+    
+    return { 
+      success: true, 
+      message: "Embedding index has been reset. All embeddings marked for regeneration." 
     };
   } catch (error) {
-    logger.error("Error fetching active AI settings", error);
+    logger.error("Error resetting embedding index", { error });
+    throw new Error("Failed to reset embedding index");
+  }
+}
+
+export async function triggerEmbeddingRegeneration() {
+  await requireAdmin();
+  
+  try {
+    // Import the queue functions
+    const { scheduleBatchEmbeddingUpdate } = await import('@/lib/queues/embedding-queue');
+    
+    // Mark all embeddings as outdated
+    await db.prompt.updateMany({
+      data: { embeddingOutdated: true }
+    });
+    
+    await db.promptTemplate.updateMany({
+      data: { embeddingOutdated: true }
+    });
+    
+    // Schedule batch update
+    await scheduleBatchEmbeddingUpdate();
+    
+    logger.info("Embedding regeneration triggered");
+    
+    return { 
+      success: true, 
+      message: "Embedding regeneration has been scheduled." 
+    };
+  } catch (error) {
+    logger.error("Error triggering embedding regeneration", { error });
+    throw new Error("Failed to trigger embedding regeneration");
+  }
+}
+
+export async function getEmbeddingStats() {
+  await requireAdmin();
+  
+  try {
+    const [
+      totalPrompts,
+      promptsWithEmbeddings,
+      outdatedPromptEmbeddings,
+      totalTemplates,
+      templatesWithEmbeddings,
+      outdatedTemplateEmbeddings
+    ] = await Promise.all([
+      db.prompt.count(),
+      db.prompt.count({ where: { embedding: { not: null } } }),
+      db.prompt.count({ where: { embeddingOutdated: true } }),
+      db.promptTemplate.count(),
+      db.promptTemplate.count({ where: { embedding: { not: null } } }),
+      db.promptTemplate.count({ where: { embeddingOutdated: true } })
+    ]);
+    
+    return {
+      prompts: {
+        total: totalPrompts,
+        withEmbeddings: promptsWithEmbeddings,
+        outdated: outdatedPromptEmbeddings,
+        pending: totalPrompts - promptsWithEmbeddings
+      },
+      templates: {
+        total: totalTemplates,
+        withEmbeddings: templatesWithEmbeddings,
+        outdated: outdatedTemplateEmbeddings,
+        pending: totalTemplates - templatesWithEmbeddings
+      }
+    };
+  } catch (error) {
+    logger.error("Error getting embedding stats", { error });
+    throw new Error("Failed to get embedding statistics");
+  }
+}
+
+export async function getEmbeddingQueueStatus() {
+  await requireAdmin();
+  
+  try {
+    const { getQueueStats } = await import('@/lib/queues/embedding-queue');
+    
+    // Get queue stats first
+    const stats = await getQueueStats();
+    
+    // Try to get health status, but don't fail if it errors
+    let health = {
+      isHealthy: false,
+      hasActiveWorkers: false,
+      message: "Unable to check worker health"
+    };
+    
+    try {
+      const { checkWorkerHealth } = await import('@/lib/queues/worker-health');
+      const healthResult = await checkWorkerHealth();
+      health = {
+        isHealthy: healthResult.isHealthy,
+        hasActiveWorkers: healthResult.hasActiveWorkers,
+        message: healthResult.message
+      };
+    } catch (healthError) {
+      logger.error("Error checking worker health", { 
+        error: healthError instanceof Error ? healthError.message : 'Unknown error' 
+      });
+    }
+    
+    return {
+      ...stats,
+      health
+    };
+  } catch (error) {
+    logger.error("Error getting queue status", { 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return {
+      waiting: 0,
+      active: 0,
+      completed: 0,
+      failed: 0,
+      delayed: 0,
+      total: 0,
+      health: {
+        isHealthy: false,
+        hasActiveWorkers: false,
+        message: "Failed to connect to queue system"
+      }
+    };
+  }
+}
+
+// System settings management
+export async function getSystemSetting(key: string) {
+  await requireAdmin();
+  
+  try {
+    const setting = await db.systemSettings.findUnique({
+      where: { key }
+    });
+    
+    return setting?.value || null;
+  } catch (error) {
+    logger.error("Error getting system setting", { error, key });
     return null;
   }
 }
+
+export async function setSystemSetting(key: string, value: string, description?: string) {
+  await requireAdmin();
+  
+  try {
+    const setting = await db.systemSettings.upsert({
+      where: { key },
+      update: { value, description },
+      create: { key, value, description }
+    });
+    
+    revalidatePath("/admin/ai-settings");
+    
+    return setting;
+  } catch (error) {
+    logger.error("Error setting system setting", { error, key, value });
+    throw new Error("Failed to update system setting");
+  }
+}
+
+export async function getSemanticSearchEnabled() {
+  await requireAdmin();
+  
+  const value = await getSystemSetting('semantic_search_enabled');
+  return value === 'true';
+}
+
+export async function setSemanticSearchEnabled(enabled: boolean) {
+  await requireAdmin();
+  
+  await setSystemSetting(
+    'semantic_search_enabled', 
+    enabled.toString(),
+    'Global toggle for semantic search functionality'
+  );
+  
+  logger.info("Semantic search setting updated", { enabled });
+  
+  return { success: true, enabled };
+}
+
+// Export the decrypt function for use in the embedding service
+export { decryptApiKey };

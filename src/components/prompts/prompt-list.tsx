@@ -10,6 +10,8 @@ import Link from "next/link";
 import { useModal } from "@/hooks/use-modal-store";
 import { stickyNoteCard } from "@/lib/styles";
 import { SkeletonPromptCard } from "../ui/skeleton";
+import { PromptGrid } from "./prompt-grid";
+import { LayoutGrid, List } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -336,6 +338,7 @@ export const PromptList = ({
 }: PromptListProps) => {
   const [prompts, setPrompts] = useState<PromptWithTags[]>(initialPrompts || []);
   const [isLoading, setIsLoading] = useState(!initialPrompts);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const removePromptFromState = (promptId: string) => {
     setPrompts((prevPrompts) => prevPrompts.filter((p) => p.id !== promptId));
   };
@@ -432,7 +435,7 @@ export const PromptList = ({
   // Show loading state
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-12 p-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <SkeletonPromptCard key={i} />
         ))}
@@ -460,23 +463,51 @@ export const PromptList = ({
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext items={filteredPrompts} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-12 p-4">
-          {filteredPrompts.map((prompt) => (
-            <PromptItem 
-              key={prompt.id} 
-              prompt={prompt} 
-              onConfirm={() => removePromptFromState(prompt.id)} 
-              onDuplicate={fetchPrompts}
-            />
-          ))}
+    <div>
+      {/* View Mode Toggle */}
+      <div className="flex justify-end mb-4">
+        <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+          <Button
+            size="sm"
+            variant={viewMode === "grid" ? "default" : "ghost"}
+            onClick={() => setViewMode("grid")}
+            className="h-8 px-3"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant={viewMode === "list" ? "default" : "ghost"}
+            onClick={() => setViewMode("list")}
+            className="h-8 px-3"
+          >
+            <List className="h-4 w-4" />
+          </Button>
         </div>
-      </SortableContext>
-    </DndContext>
+      </div>
+
+      {viewMode === "grid" ? (
+        <PromptGrid prompts={filteredPrompts} />
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={filteredPrompts} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-12 p-4">
+              {filteredPrompts.map((prompt) => (
+                <PromptItem 
+                  key={prompt.id} 
+                  prompt={prompt} 
+                  onConfirm={() => removePromptFromState(prompt.id)} 
+                  onDuplicate={fetchPrompts}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+    </div>
   );
 };

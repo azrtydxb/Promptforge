@@ -13,6 +13,8 @@ const protectedPaths = [
   '/shared-prompts',
   '/group-by-tags',
   '/tags',
+  '/templates',
+  '/favorites',
 ]
 
 // Generate or retrieve request ID
