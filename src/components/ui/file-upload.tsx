@@ -166,8 +166,8 @@ export function FileUpload({
       </div>
       
       {error && (
-        <div className="mt-2 flex items-center gap-2 text-sm text-destructive">
-          <AlertCircle className="h-4 w-4" />
+        <div className="mt-2 flex items-center gap-2 text-sm text-destructive" role="alert" aria-live="assertive">
+          <AlertCircle className="h-4 w-4" aria-hidden="true" />
           {error}
         </div>
       )}

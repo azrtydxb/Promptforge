@@ -106,7 +106,7 @@ export function ChangePasswordModal() {
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             {errors.length > 0 && (
-              <div className="rounded-md bg-red-50 p-3">
+              <div className="rounded-md bg-red-50 p-3" role="alert" aria-live="polite">
                 <div className="text-sm text-red-700">
                   {errors.map((error, index) => (
                     <div key={index}>• {error}</div>
@@ -134,11 +134,12 @@ export function ChangePasswordModal() {
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   disabled={isLoading}
+                  aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
                 >
                   {showCurrentPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4" aria-hidden="true" />
                   )}
                 </Button>
               </div>
@@ -164,11 +165,12 @@ export function ChangePasswordModal() {
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   disabled={isLoading}
+                  aria-label={showNewPassword ? "Hide new password" : "Show new password"}
                 >
                   {showNewPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4" aria-hidden="true" />
                   )}
                 </Button>
               </div>
@@ -193,11 +195,12 @@ export function ChangePasswordModal() {
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   disabled={isLoading}
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4" aria-hidden="true" />
                   )}
                 </Button>
               </div>

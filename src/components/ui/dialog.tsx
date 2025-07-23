@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 
 interface DialogContextType {
   open: boolean;
@@ -78,30 +79,60 @@ export interface DialogContentProps {
 
 export function DialogContent({ className, children }: DialogContentProps) {
   const context = React.useContext(DialogContext);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  
   if (!context) {
     throw new Error('DialogContent must be used within a Dialog');
   }
 
+  // Handle focus trap and keyboard navigation
+  useFocusTrap(contentRef, context.open);
+
+  // Handle Escape key
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && context.open) {
+        event.preventDefault();
+        context.onOpenChange(false);
+      }
+    };
+
+    if (context.open) {
+      document.addEventListener('keydown', handleKeyDown);
+      // Prevent body scroll when dialog is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [context]);
+
   if (!context.open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={() => context.onOpenChange(false)}
+        aria-hidden="true"
       />
       <div
+        ref={contentRef}
         className={cn(
           "relative z-[61] bg-white rounded-lg shadow-lg border border-gray-200 w-full max-w-lg max-h-[90vh] overflow-y-auto",
           className
         )}
         onClick={(e) => e.stopPropagation()}
+        role="document"
       >
         <button
           onClick={() => context.onOpenChange(false)}
           className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+          aria-label="Close dialog"
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4" aria-hidden="true" />
           <span className="sr-only">Close</span>
         </button>
         {children}
@@ -142,8 +173,17 @@ export interface DialogTitleProps {
 }
 
 export function DialogTitle({ className, children }: DialogTitleProps) {
+  const dialogTitleId = React.useId();
+  
+  React.useEffect(() => {
+    const dialogElement = document.querySelector('[role="dialog"]');
+    if (dialogElement) {
+      dialogElement.setAttribute('aria-labelledby', dialogTitleId);
+    }
+  }, [dialogTitleId]);
+  
   return (
-    <h2 className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900", className)}>
+    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900", className)}>
       {children}
     </h2>
   );
@@ -155,8 +195,20 @@ export interface DialogDescriptionProps {
 }
 
 export function DialogDescription({ className, children }: DialogDescriptionProps) {
+  const dialogDescId = React.useId();
+  
+  React.useEffect(() => {
+    const dialogElement = document.querySelector('[role="dialog"]');
+    if (dialogElement) {
+      const currentDesc = dialogElement.getAttribute('aria-describedby');
+      if (!currentDesc) {
+        dialogElement.setAttribute('aria-describedby', dialogDescId);
+      }
+    }
+  }, [dialogDescId]);
+  
   return (
-    <p className={cn("text-sm text-gray-600", className)}>
+    <p id={dialogDescId} className={cn("text-sm text-gray-600", className)}>
       {children}
     </p>
   );

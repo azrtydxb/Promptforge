@@ -51,6 +51,7 @@ export default function Prompts() {
       rightPanel={
         <div className="pb-4 px-4">
           <div className="flex justify-between items-center mb-4 pt-4">
+            <h1 className="sr-only">Prompts Management</h1>
             <span className="font-medium">
               Selected folder: <span className="text-blue-500">{selectedFolder.name}</span>
             </span>

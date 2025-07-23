@@ -18,7 +18,7 @@ const ProfileLayout = async ({ children }: { children: React.ReactNode }) => {
       <Sidebar />
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex flex-1 flex-col gap-6 p-6 lg:gap-8 lg:p-8 bg-background">
+        <main id="main-content" className="flex flex-1 flex-col gap-6 p-6 lg:gap-8 lg:p-8 bg-background">
           {children}
         </main>
         <Footer />

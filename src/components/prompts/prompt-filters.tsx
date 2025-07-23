@@ -90,7 +90,7 @@ export function PromptFilters({
       <div className="flex items-center gap-4">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" aria-hidden="true" />
           <Input
             placeholder="Search prompts..."
             value={searchValue}
@@ -101,7 +101,7 @@ export function PromptFilters({
 
         {/* Tag Search Input */}
         <div className="relative flex-1">
-          <Icons.Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Icons.Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" aria-hidden="true" />
           <Input
             placeholder="Filter by tags..."
             value={tagSearchValue}
@@ -122,7 +122,7 @@ export function PromptFilters({
           {isTagDropdownOpen && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
               {filteredTags.length === 0 ? (
-                <div className="px-4 py-2 text-sm text-gray-500">
+                <div className="px-4 py-2 text-sm text-gray-700">
                   No tags found
                 </div>
               ) : (
@@ -146,7 +146,7 @@ export function PromptFilters({
                       </div>
                       <span className="text-sm">{tag.name}</span>
                     </div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-700">
                       {tag._count.prompts}
                     </span>
                   </div>
