@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ModalProvider } from "@/components/providers/modal-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { GlobalErrorBoundary } from "@/components/error-boundary/global-error-boundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,10 +30,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("antialiased", inter.className, systemMono.variable)}>
-        <AuthProvider>
-          <ModalProvider />
-          {children}
-        </AuthProvider>
+        <GlobalErrorBoundary>
+          <AuthProvider>
+            <ModalProvider />
+            {children}
+          </AuthProvider>
+        </GlobalErrorBoundary>
       </body>
     </html>
   );

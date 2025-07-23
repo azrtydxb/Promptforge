@@ -8,6 +8,8 @@ import type { Prompt, Tag } from "@/generated/prisma";
 import Link from "next/link";
 import { useModal } from "@/hooks/use-modal-store";
 import { stickyNoteCard } from "@/lib/styles";
+import { ComponentErrorBoundary } from "@/components/error-boundary";
+import { MinimalErrorFallback } from "@/components/error-boundary/error-fallbacks";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -294,7 +296,7 @@ interface PromptListProps {
   selectedTagIds?: string[];
 }
 
-export const PromptList = ({
+const PromptListComponent = ({
   folderId,
   prompts: initialPrompts,
   searchQuery = "",
@@ -424,3 +426,13 @@ export const PromptList = ({
     </DndContext>
   );
 };
+
+// Export wrapped with error boundary
+export const PromptList = (props: PromptListProps) => (
+  <ComponentErrorBoundary
+    fallback={<MinimalErrorFallback />}
+    resetKeys={[props.folderId || '', props.searchQuery || '', props.selectedTagIds?.join(',') || '']}
+  >
+    <PromptListComponent {...props} />
+  </ComponentErrorBoundary>
+);
