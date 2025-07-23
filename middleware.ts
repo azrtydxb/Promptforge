@@ -9,12 +9,29 @@ export default withAuth({
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (API authentication routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Protected routes that require authentication:
+     * - /dashboard (all dashboard routes)
+     * - /profile (all profile routes)
+     * - /admin-monitoring (admin dashboard)
+     * - /prompts (prompt management)
+     * - /shared-prompts (marketplace - requires auth)
+     * - /group-by-tags (tag grouping)
+     * - /tags (tag management)
+     * 
+     * Public routes (not in matcher):
+     * - / (home page)
+     * - /sign-in
+     * - /sign-up
+     * - /api/auth/* (auth endpoints)
+     * - /_next/* (Next.js internals)
+     * - /favicon.ico
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico).*)',
+    '/dashboard/:path*',
+    '/profile/:path*',
+    '/admin-monitoring/:path*',
+    '/prompts/:path*',
+    '/shared-prompts/:path*',
+    '/group-by-tags/:path*',
+    '/tags/:path*',
   ],
 };
