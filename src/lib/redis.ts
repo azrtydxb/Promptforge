@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { logger } from '@/lib/logger';
 
 // Redis client configuration with best practices from ioredis docs
 const redisConfig = {
@@ -48,23 +49,23 @@ export const getRedisClient = (): Redis => {
     redis = new Redis(redisConfig);
     
     redis.on('connect', () => {
-      console.log('Redis connected successfully');
+      logger.info('Redis connected successfully');
     });
     
     redis.on('ready', () => {
-      console.log('Redis client ready');
+      logger.info('Redis client ready');
     });
     
     redis.on('error', (err) => {
-      console.error('Redis connection error:', err);
+      logger.error('Redis connection error', err);
     });
     
     redis.on('reconnecting', () => {
-      console.log('Redis reconnecting...');
+      logger.info('Redis reconnecting');
     });
     
     redis.on('close', () => {
-      console.log('Redis connection closed');
+      logger.info('Redis connection closed');
     });
   }
   
@@ -76,9 +77,9 @@ export const initRedis = async (): Promise<void> => {
   const client = getRedisClient();
   try {
     await client.connect();
-    console.log('Redis initialization complete');
+    logger.info('Redis initialization complete');
   } catch (error) {
-    console.error('Failed to initialize Redis:', error);
+    logger.error('Failed to initialize Redis', error);
     throw error;
   }
 };
@@ -174,11 +175,11 @@ export class CacheService {
       try {
         return JSON.parse(value);
       } catch (parseError) {
-        console.warn(`Failed to parse cached value for key ${key}:`, parseError);
+        logger.warn(`Failed to parse cached value for key ${key}`, { key, error: parseError });
         return null;
       }
     } catch (error) {
-      console.error(`Cache get error for key ${key}:`, error);
+      logger.error(`Cache get error for key ${key}`, error, { key });
       return null;
     }
   }
@@ -187,7 +188,7 @@ export class CacheService {
     try {
       return await this.redis.getBuffer(key);
     } catch (error) {
-      console.error(`Cache getBuffer error for key ${key}:`, error);
+      logger.error(`Cache getBuffer error for key ${key}`, error, { key });
       return null;
     }
   }
@@ -202,7 +203,7 @@ export class CacheService {
       }
       return true;
     } catch (error) {
-      console.error(`Cache set error for key ${key}:`, error);
+      logger.error(`Cache set error for key ${key}`, error, { key });
       return false;
     }
   }
@@ -216,7 +217,7 @@ export class CacheService {
       }
       return true;
     } catch (error) {
-      console.error(`Cache setBuffer error for key ${key}:`, error);
+      logger.error(`Cache setBuffer error for key ${key}`, error, { key });
       return false;
     }
   }
@@ -226,7 +227,7 @@ export class CacheService {
       await this.redis.del(key);
       return true;
     } catch (error) {
-      console.error(`Cache delete error for key ${key}:`, error);
+      logger.error(`Cache delete error for key ${key}`, error, { key });
       return false;
     }
   }
@@ -262,7 +263,7 @@ export class CacheService {
         stream.on('error', reject);
       });
     } catch (error) {
-      console.error(`Cache delete pattern error for pattern ${pattern}:`, error);
+      logger.error(`Cache delete pattern error for pattern ${pattern}`, error, { pattern });
       return false;
     }
   }
@@ -272,7 +273,7 @@ export class CacheService {
       const result = await this.redis.exists(key);
       return result === 1;
     } catch (error) {
-      console.error(`Cache exists error for key ${key}:`, error);
+      logger.error(`Cache exists error for key ${key}`, error, { key });
       return false;
     }
   }
@@ -281,7 +282,7 @@ export class CacheService {
     try {
       return await this.redis.ttl(key);
     } catch (error) {
-      console.error(`Cache TTL error for key ${key}:`, error);
+      logger.error(`Cache TTL error for key ${key}`, error, { key });
       return -1;
     }
   }
@@ -295,7 +296,7 @@ export class CacheService {
       }
       return result;
     } catch (error) {
-      console.error(`Cache incr error for key ${key}:`, error);
+      logger.error(`Cache incr error for key ${key}`, error, { key });
       return 0;
     }
   }
@@ -305,7 +306,7 @@ export class CacheService {
       const result = await this.redis.expire(key, ttl);
       return result === 1;
     } catch (error) {
-      console.error(`Cache expire error for key ${key}:`, error);
+      logger.error(`Cache expire error for key ${key}`, error, { key });
       return false;
     }
   }
@@ -354,7 +355,7 @@ export async function cacheAside<T>(
   
   // Store in cache for next time (fire and forget)
   cacheService.set(key, data, ttl).catch(error => {
-    console.warn(`Failed to cache data for key ${key}:`, error);
+    logger.warn(`Failed to cache data for key ${key}`, { key, error });
   });
   
   return data;
@@ -426,7 +427,7 @@ export async function checkRateLimit(
       resetTime: Date.now() + (ttl * 1000),
     };
   } catch (error) {
-    console.error('Rate limit check error:', error);
+    logger.error('Rate limit check error', error, { key, limit, windowSeconds });
     // Fail open - allow the request if Redis is down
     return {
       allowed: true,
@@ -442,7 +443,7 @@ export async function checkRedisHealth(): Promise<boolean> {
     const result = await cacheService.redis.ping();
     return result === 'PONG';
   } catch (error) {
-    console.error('Redis health check failed:', error);
+    logger.error('Redis health check failed', error);
     return false;
   }
 }

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { generateRandomUsername } from "@/lib/username-generator"
+import { logger } from "@/lib/logger"
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -11,8 +12,9 @@ const registerSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  let body: unknown;
   try {
-    const body = await request.json()
+    body = await request.json()
     const { name, email, password } = registerSchema.parse(body)
 
     // Check if user already exists
@@ -84,7 +86,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.error("Registration error:", error)
+    logger.error("Registration error", error, { 
+      email: body && typeof body === 'object' && 'email' in body ? (body as { email?: string }).email : undefined 
+    })
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
