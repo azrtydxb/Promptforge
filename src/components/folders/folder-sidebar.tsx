@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { Skeleton } from "../ui/skeleton";
 
 type FolderNode = {
   id: string;
@@ -198,11 +199,13 @@ FolderNodeComponent.displayName = 'FolderNodeComponent';
 
 export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarProps) => {
   const [data, setData] = useState<FolderNode[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const treeRef = useRef<TreeApi<FolderNode>>(null);
   const [initialFolderSelected, setInitialFolderSelected] = useState(false);
 
   const fetchFolders = async () => {
     try {
+      setIsLoading(true);
       const fetchedFolders = await getFolders();
       
       // Transform folder data for react-arborist
@@ -225,6 +228,8 @@ export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarP
       setData(transformedData);
     } catch (error) {
       console.error("Error fetching folders:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -305,7 +310,23 @@ export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarP
       </div>
       
       <div className="h-[calc(100vh-12rem)] overflow-auto">
-        <Tree
+        {isLoading ? (
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-2 ml-6">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Tree
           ref={treeRef}
           data={data}
           openByDefault={false}
@@ -320,6 +341,7 @@ export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarP
             <FolderNodeComponent {...props} onRefresh={fetchFolders} />
           )}
         </Tree>
+        )}
       </div>
     </div>
   );
