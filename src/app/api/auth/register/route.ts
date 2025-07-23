@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { generateRandomUsername } from "@/lib/username-generator"
+import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit"
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -10,7 +11,7 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 })
 
-export async function POST(request: NextRequest) {
+async function handleRegister(request: NextRequest) {
   try {
     const body = await request.json()
     const { name, email, password } = registerSchema.parse(body)
