@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { getRedisClient } from "@/lib/redis";
+import { logger } from "@/lib/logger";
 
 export interface PostgreSQLMetrics {
   connectionCount: number;
@@ -103,7 +104,7 @@ export class MonitoringService {
         `;
         connectionCount = Number(connectionResult[0]?.count || 0);
       } catch (error) {
-        console.warn('Could not get connection count:', error);
+        logger.warn('Could not get connection count', { error });
       }
 
       try {
@@ -113,7 +114,7 @@ export class MonitoringService {
         `;
         activeQueries = Number(activeQueriesResult[0]?.count || 0);
       } catch (error) {
-        console.warn('Could not get active queries count:', error);
+        logger.warn('Could not get active queries count', { error });
       }
 
       try {
@@ -122,7 +123,7 @@ export class MonitoringService {
         `;
         databaseSize = Number(dbSizeResult[0]?.size || 0);
       } catch (error) {
-        console.warn('Could not get database size:', error);
+        logger.warn('Could not get database size', { error });
       }
 
       // Try to get table statistics (might fail if pg_stat_user_tables is not accessible)
@@ -150,7 +151,7 @@ export class MonitoringService {
           indexSize: row.index_size,
         }));
       } catch (error) {
-        console.warn('Could not get table statistics:', error);
+        logger.warn('Could not get table statistics', { error });
       }
 
       // Try to get lock statistics (might fail in some environments)
@@ -171,7 +172,7 @@ export class MonitoringService {
           count: Number(row.count),
         }));
       } catch (error) {
-        console.warn('Could not get lock statistics:', error);
+        logger.warn('Could not get lock statistics', { error });
       }
 
       // Try to get cache hit ratio (might fail if pg_statio_user_tables is not accessible)
@@ -189,7 +190,7 @@ export class MonitoringService {
         `;
         cacheHitRatio = Number(cacheHitResult[0]?.hit_ratio || 0);
       } catch (error) {
-        console.warn('Could not get cache hit ratio:', error);
+        logger.warn('Could not get cache hit ratio', { error });
       }
 
       // Try to get slow queries (requires pg_stat_statements extension)
@@ -217,7 +218,7 @@ export class MonitoringService {
           meanTime: row.mean_exec_time,
         }));
       } catch (error) {
-        console.warn('pg_stat_statements extension not available:', error);
+        logger.warn('pg_stat_statements extension not available', { error });
       }
 
       return {
@@ -230,7 +231,7 @@ export class MonitoringService {
         cacheHitRatio,
       };
     } catch (error) {
-      console.error('Error getting PostgreSQL metrics:', error);
+      logger.error('Error getting PostgreSQL metrics', error);
       // Return safe defaults instead of throwing
       return {
         connectionCount: 0,
@@ -250,7 +251,7 @@ export class MonitoringService {
       
       // Check if Redis is connected
       if (redis.status !== 'ready') {
-        console.warn('Redis client not ready, status:', redis.status);
+        logger.warn('Redis client not ready', { status: redis.status });
         return {
           info: {
             version: 'unknown',
@@ -337,7 +338,7 @@ export class MonitoringService {
           keyPatterns.push({ pattern, count, memory });
         }
       } catch (error) {
-        console.warn('Could not analyze key patterns:', error);
+        logger.warn('Could not analyze key patterns', { error });
       }
 
       // Calculate performance metrics
@@ -376,7 +377,7 @@ export class MonitoringService {
         },
       };
     } catch (error) {
-      console.error('Error getting Redis metrics:', error);
+      logger.error('Error getting Redis metrics', error);
       throw error;
     }
   }
@@ -401,7 +402,7 @@ export class MonitoringService {
         topHitKeys: [], // Would need to track this separately
       };
     } catch (error) {
-      console.error('Error getting cache performance metrics:', error);
+      logger.error('Error getting cache performance metrics', error);
       throw error;
     }
   }
@@ -427,7 +428,7 @@ export class MonitoringService {
         latency: Date.now() - start,
       };
     } catch (error) {
-      console.error('PostgreSQL health check failed:', error);
+      logger.error('PostgreSQL health check failed', error);
     }
 
     // Test Redis
@@ -440,7 +441,7 @@ export class MonitoringService {
         latency: Date.now() - start,
       };
     } catch (error) {
-      console.error('Redis health check failed:', error);
+      logger.error('Redis health check failed', error);
     }
 
     return results;
