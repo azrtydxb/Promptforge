@@ -12,6 +12,8 @@ import {
   RefreshCw,
   Share2
 } from 'lucide-react';
+import { SectionErrorBoundary } from '@/components/error-boundary';
+import { NetworkErrorFallback } from '@/components/error-boundary/error-fallbacks';
 
 interface SharedPrompt {
   id: string;
@@ -292,16 +294,30 @@ export default function SharedPromptsPage() {
   };
 
   return (
-    <ResizablePanels
-      leftPanel={renderFilterSidebar()}
-      rightPanel={
-        <div className="pb-4 px-4">
-          {renderMainContent()}
-        </div>
-      }
-      defaultLeftWidth={210}
-      minLeftWidth={150}
-      maxLeftWidth={500}
-    />
+    <SectionErrorBoundary 
+      fallback={<NetworkErrorFallback onReset={loadPrompts} />}
+      resetKeys={[searchQuery, selectedTags, sortBy]}
+    >
+      <ResizablePanels
+        leftPanel={
+          <SectionErrorBoundary fallback={<NetworkErrorFallback />}>
+            {renderFilterSidebar()}
+          </SectionErrorBoundary>
+        }
+        rightPanel={
+          <div className="pb-4 px-4">
+            <SectionErrorBoundary 
+              fallback={<NetworkErrorFallback onReset={loadPrompts} />}
+              resetKeys={[prompts.length, page]}
+            >
+              {renderMainContent()}
+            </SectionErrorBoundary>
+          </div>
+        }
+        defaultLeftWidth={210}
+        minLeftWidth={150}
+        maxLeftWidth={500}
+      />
+    </SectionErrorBoundary>
   );
 }

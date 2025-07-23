@@ -37,7 +37,9 @@ export function LoadingSpinner({ label, size = "md", className, ...props }: Load
   )
 }
 
-export function FullPageSpinner(props: LoadingSpinnerProps) {
+interface FullPageSpinnerProps extends LoadingSpinnerProps {}
+
+export function FullPageSpinner(props: FullPageSpinnerProps) {
   return (
     <div className="flex h-screen w-full items-center justify-center">
       <LoadingSpinner size="lg" {...props} />

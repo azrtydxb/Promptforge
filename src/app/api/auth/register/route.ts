@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { generateRandomUsername } from "@/lib/username-generator"
-import { withRateLimit, rateLimitConfigs } from "@/lib/rate-limit"
+import { logger } from "@/lib/logger"
+import { checkApiRateLimit } from "@/lib/rate-limit"
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -11,9 +12,16 @@ const registerSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 })
 
-async function handleRegister(request: NextRequest) {
+export async function POST(request: NextRequest) {
+  // Check rate limit for auth endpoints
+  const rateLimitResponse = await checkApiRateLimit(request, 'auth');
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  let body: unknown;
   try {
-    const body = await request.json()
+    body = await request.json()
     const { name, email, password } = registerSchema.parse(body)
 
     // Check if user already exists
@@ -22,6 +30,7 @@ async function handleRegister(request: NextRequest) {
     })
 
     if (existingUser) {
+      logger.warn("Registration attempt with existing email", { email })
       return NextResponse.json(
         { error: "User with this email already exists" },
         { status: 400 }
@@ -50,6 +59,7 @@ async function handleRegister(request: NextRequest) {
     }
 
     if (attempts >= 10) {
+      logger.error("Failed to generate unique username after 10 attempts")
       return NextResponse.json(
         { error: "Failed to generate unique username" },
         { status: 500 }
@@ -73,19 +83,28 @@ async function handleRegister(request: NextRequest) {
       }
     })
 
+    logger.info("User created successfully", { userId: user.id, email: user.email })
+
     return NextResponse.json(
       { user, message: "User created successfully" },
       { status: 201 }
     )
   } catch (error) {
     if (error instanceof z.ZodError) {
+      logger.warn("Invalid registration input", { 
+        errors: error.errors,
+        body 
+      })
       return NextResponse.json(
         { error: "Invalid input", details: error.errors },
         { status: 400 }
       )
     }
 
-    console.error("Registration error:", error)
+    logger.error("Registration error", { 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

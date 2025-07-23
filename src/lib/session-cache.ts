@@ -1,5 +1,6 @@
 import { Session } from 'next-auth';
 import { cacheService, cacheKeys, cacheTTL } from '@/lib/redis';
+import { logger } from '@/lib/logger';
 
 // Types for cached session data
 interface CachedSession extends Session {
@@ -43,7 +44,7 @@ export class SessionCacheService {
         cacheTTL.userProfile // 1 hour TTL for sessions
       );
     } catch (error) {
-      console.error('Failed to cache session:', error);
+      logger.error('Failed to cache session', error, { userId: session.user.id });
     }
   }
 
@@ -64,7 +65,7 @@ export class SessionCacheService {
       
       return cached;
     } catch (error) {
-      console.error('Failed to get cached session:', error);
+      logger.error('Failed to get cached session', error, { userId });
       return null;
     }
   }
@@ -78,7 +79,7 @@ export class SessionCacheService {
     try {
       await cacheService.del(cacheKey);
     } catch (error) {
-      console.error('Failed to invalidate session cache:', error);
+      logger.error('Failed to invalidate session cache', error, { userId });
     }
   }
 
@@ -107,7 +108,7 @@ export class SessionCacheService {
         cacheTTL.userProfile
       );
     } catch (error) {
-      console.error('Failed to cache user session data:', error);
+      logger.error('Failed to cache user session data', error, { userId });
     }
   }
 
@@ -120,7 +121,7 @@ export class SessionCacheService {
     try {
       return await cacheService.get<UserSessionData>(cacheKey);
     } catch (error) {
-      console.error('Failed to get user session data:', error);
+      logger.error('Failed to get user session data', error, { userId });
       return null;
     }
   }
@@ -152,7 +153,7 @@ export class SessionCacheService {
         recentActivity: trimmedActivity,
       });
     } catch (error) {
-      console.error('Failed to add user activity:', error);
+      logger.error('Failed to add user activity', error, { userId, action });
     }
   }
 
@@ -171,7 +172,7 @@ export class SessionCacheService {
         preferences,
       });
     } catch (error) {
-      console.error('Failed to cache user preferences:', error);
+      logger.error('Failed to cache user preferences', error, { userId });
     }
   }
 
@@ -183,7 +184,7 @@ export class SessionCacheService {
       const sessionData = await this.getUserSessionData(userId);
       return sessionData?.preferences || null;
     } catch (error) {
-      console.error('Failed to get user preferences:', error);
+      logger.error('Failed to get user preferences', error, { userId });
       return null;
     }
   }
@@ -201,7 +202,7 @@ export class SessionCacheService {
         cacheTTL.userProfile
       );
     } catch (error) {
-      console.error('Failed to cache user profile:', error);
+      logger.error('Failed to cache user profile', error, { userId });
     }
   }
 
@@ -214,7 +215,7 @@ export class SessionCacheService {
     try {
       return await cacheService.get<Record<string, unknown>>(cacheKey);
     } catch (error) {
-      console.error('Failed to get cached user profile:', error);
+      logger.error('Failed to get cached user profile', error, { userId });
       return null;
     }
   }
@@ -232,7 +233,7 @@ export class SessionCacheService {
     try {
       await Promise.all(keys.map(key => cacheService.del(key)));
     } catch (error) {
-      console.error('Failed to invalidate user cache:', error);
+      logger.error('Failed to invalidate user cache', error, { userId });
     }
   }
 
@@ -258,7 +259,7 @@ export class SessionCacheService {
       
       return count;
     } catch (error) {
-      console.error('Failed to get active sessions count:', error);
+      logger.error('Failed to get active sessions count', error);
       return 0;
     }
   }
@@ -302,7 +303,7 @@ export class SessionCacheService {
       
       return { allowed, remaining, resetTime };
     } catch (error) {
-      console.error('Failed to check session rate limit:', error);
+      logger.error('Failed to check session rate limit', error, { userId, action });
       // Allow request on error
       return { allowed: true, remaining: limit - 1, resetTime: Date.now() + windowMs };
     }
