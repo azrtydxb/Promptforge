@@ -3,7 +3,7 @@
 import { MarketplaceFilters } from '@/components/marketplace/marketplace-filters';
 import { SharedPromptCard } from '@/components/marketplace/shared-prompt-card';
 import { ResizablePanels } from '@/components/ui/resizable-panels';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSharedPrompts } from '@/app/actions/shared-prompts.actions';
 import { initializeMarketplace } from '@/app/actions/shared-prompts.actions';
 import { Button } from '@/components/ui/button';
@@ -75,7 +75,7 @@ export default function SharedPromptsPage() {
   }, []);
 
   // Load prompts
-  const loadPrompts = async (page = 1, append = false) => {
+  const loadPrompts = useCallback(async (page = 1, append = false) => {
     try {
       if (!append) setLoading(true);
       else setLoadingMore(true);
@@ -106,7 +106,7 @@ export default function SharedPromptsPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [searchQuery, selectedTags, sortBy]);
 
   // Load more prompts for pagination
   const loadMore = () => {
@@ -139,7 +139,7 @@ export default function SharedPromptsPage() {
     }, 300); // Debounce search
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedTags, sortBy]);
+  }, [searchQuery, selectedTags, sortBy, loadPrompts]);
 
   // Initial load
   useEffect(() => {
@@ -154,7 +154,7 @@ export default function SharedPromptsPage() {
       { id: '5', name: 'Marketing', count: 19 },
       { id: '6', name: 'Education', count: 15 },
     ]);
-  }, []);
+  }, [loadPrompts]);
 
   const handleLikeToggle = (promptId: string, isLiked: boolean) => {
     setPrompts(prev => prev.map(prompt => 

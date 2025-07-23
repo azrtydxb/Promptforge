@@ -41,7 +41,6 @@ export class CacheInvalidationService {
     try {
       const promptCacheKeys = [
         cacheKeys.prompt(promptId),
-        cacheKeys.prompt(promptId),
         cacheKeys.promptVersions(promptId),
         cacheKeys.promptLikes(promptId),
         cacheKeys.promptComments(promptId),

@@ -3,10 +3,15 @@
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import type { Folder } from '@/generated/prisma';
+
+// Type for folder with nested children
+type FolderWithChildren = Folder & {
+  children?: FolderWithChildren[];
+};
 
 // Helper function to recursively sort folders and their children
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function sortFoldersRecursively(folders: any[]): any[] {
+function sortFoldersRecursively(folders: FolderWithChildren[]): FolderWithChildren[] {
   return folders
     .sort((a, b) => (a.order || 0) - (b.order || 0))
     .map(folder => ({

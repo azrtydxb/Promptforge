@@ -4,7 +4,9 @@ import Redis from 'ioredis';
 const redisConfig = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD || 'redispassword',
+  password: process.env.REDIS_PASSWORD || (() => {
+    throw new Error('REDIS_PASSWORD environment variable is required');
+  })(),
   db: 0,
   
   // Connection settings
