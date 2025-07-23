@@ -5,6 +5,7 @@ import { getTagsWithPrompts } from "@/app/actions/tag-management.actions";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Tag {
   id: string;
@@ -51,10 +52,31 @@ export const TagSidebar = ({ onSelectTag, selectedTag }: TagSidebarProps) => {
 
   if (loading) {
     return (
-      <div className="p-4">
-        <div className="animate-pulse space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-10 bg-gray-200 rounded"></div>
+      <div className="h-full flex flex-col">
+        <div className="p-4 border-b">
+          <Skeleton className="h-6 w-16 mb-2" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        
+        <div className="p-4 space-y-2">
+          {/* All prompts skeleton */}
+          <div className="p-3 rounded-lg border">
+            <div className="flex items-center justify-between mb-1">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-5 w-8 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-48" />
+          </div>
+          
+          {/* Tag skeletons */}
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="p-3 rounded-lg border">
+              <div className="flex items-center justify-between mb-1">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-6 rounded-full" />
+              </div>
+              <Skeleton className="h-4 w-40" />
+            </div>
           ))}
         </div>
       </div>

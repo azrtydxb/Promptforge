@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { validateUsername } from '@/lib/username-generator';
 import { Separator } from '@/components/ui/separator';
 import { AvatarType } from '@/generated/prisma';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProfileData {
   id: string;
@@ -283,17 +284,54 @@ export default function ProfilePage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-muted rounded w-48 mb-6"></div>
-            <div className="space-y-4">
-              <div className="h-32 bg-muted rounded"></div>
-              <div className="h-48 bg-muted rounded"></div>
-              <div className="h-32 bg-muted rounded"></div>
-            </div>
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-9 w-48 mb-2" />
+            <Skeleton className="h-5 w-64" />
           </div>
         </div>
+
+        {/* Profile info card skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <Skeleton className="h-24 w-24 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Settings card skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+              <Skeleton className="h-5 w-24 mb-2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div>
+              <Skeleton className="h-5 w-32 mb-2" />
+              <div className="flex gap-4">
+                <Skeleton className="h-16 w-16 rounded" />
+                <Skeleton className="h-16 w-16 rounded" />
+                <Skeleton className="h-16 w-16 rounded" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
