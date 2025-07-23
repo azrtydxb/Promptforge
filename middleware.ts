@@ -1,6 +1,5 @@
 import { withAuth } from "next-auth/middleware"
 import { NextRequest, NextResponse } from 'next/server'
-import { randomUUID } from "crypto"
 import { requestContext, logger } from "@/lib/logger"
 import { rateLimitMiddleware, applyRateLimitHeaders } from './src/lib/rate-limit'
 
@@ -9,6 +8,7 @@ const protectedPaths = [
   '/dashboard',
   '/profile',
   '/admin-monitoring',
+  '/admin',
   '/prompts',
   '/shared-prompts',
   '/group-by-tags',
@@ -17,7 +17,7 @@ const protectedPaths = [
 
 // Generate or retrieve request ID
 function getRequestId(request: NextRequest): string {
-  return request.headers.get('x-request-id') || randomUUID()
+  return request.headers.get('x-request-id') || crypto.randomUUID()
 }
 
 // Main middleware function combining rate limiting, logging, and auth

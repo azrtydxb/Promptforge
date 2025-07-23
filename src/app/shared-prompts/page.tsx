@@ -296,7 +296,7 @@ export default function SharedPromptsPage() {
   return (
     <SectionErrorBoundary 
       fallback={<NetworkErrorFallback onReset={loadPrompts} />}
-      resetKeys={[searchQuery, selectedTags, sortBy]}
+      resetKeys={[searchQuery, selectedTags.join(','), sortBy]}
     >
       <ResizablePanels
         leftPanel={
@@ -308,7 +308,7 @@ export default function SharedPromptsPage() {
           <div className="pb-4 px-4">
             <SectionErrorBoundary 
               fallback={<NetworkErrorFallback onReset={loadPrompts} />}
-              resetKeys={[prompts.length, page]}
+              resetKeys={[prompts.length, pagination?.page || 1]}
             >
               {renderMainContent()}
             </SectionErrorBoundary>

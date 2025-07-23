@@ -85,7 +85,7 @@ export const CreatePromptModal = () => {
           {/* Main section: Editor taking almost all screen */}
           <div className="flex-grow flex flex-col">
             {/* Header with title and language dropdown */}
-            <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
+            <div className="p-4 border-b bg-gray-50 dark:bg-gray-900 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <h2 className="text-lg font-semibold">Create New Prompt</h2>
                 <div className="flex items-center gap-2">

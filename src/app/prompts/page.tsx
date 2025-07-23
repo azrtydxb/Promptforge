@@ -19,6 +19,7 @@ export default function Prompts() {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
   const router = useRouter();
 
   // Load selected folder from localStorage on mount
@@ -45,6 +46,11 @@ export default function Prompts() {
     localStorage.setItem('selectedFolder', JSON.stringify(newFolder));
   }, []);
 
+  const handleImportComplete = useCallback(() => {
+    // Force refresh of the prompt list
+    setRefreshKey(prev => prev + 1);
+  }, []);
+
   return (
     <ResizablePanels
       leftPanel={<FolderSidebar onSelectFolder={handleFolderSelect} selectedFolder={selectedFolder} />}
@@ -65,10 +71,13 @@ export default function Prompts() {
               searchValue={searchQuery}
               selectedTagIds={selectedTagIds}
               onNewPrompt={() => router.push(`/prompts/new?folderId=${selectedFolder.id || ''}`)}
+              folderId={selectedFolder.id || undefined}
+              onImportComplete={handleImportComplete}
             />
           </div>
           
           <PromptList
+            key={refreshKey}
             folderId={selectedFolder.id || undefined}
             searchQuery={searchQuery}
             selectedTagIds={selectedTagIds}

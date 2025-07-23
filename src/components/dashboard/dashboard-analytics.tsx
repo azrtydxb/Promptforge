@@ -29,6 +29,29 @@ interface DashboardData {
   topTags: Array<{ name: string; count: number }>;
   recentActivity: Array<{ id: string; title: string; type: string; createdAt: string }>;
   promptGrowth: Array<{ date: string; prompts: number; cumulative: number }>;
+  recentlyUsedPrompts?: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    lastUsedAt: Date | null;
+    tags: Array<{ id: string; name: string }>;
+    _count: { likes: number };
+  }>;
+  mostLikedPrompts?: Array<{
+    id: string;
+    title: string;
+    _count: { likes: number };
+  }>;
+  mostVersionedPrompts?: Array<{
+    id: string;
+    title: string;
+    _count: { versions: number };
+  }>;
+  mostFavoritedPrompts?: Array<{
+    id: string;
+    title: string;
+    _count: { favorites: number };
+  }>;
 }
 
 interface DashboardAnalyticsProps {
@@ -234,6 +257,130 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Recently Used Prompts */}
+      {data.recentlyUsedPrompts && data.recentlyUsedPrompts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recently Used</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {data.recentlyUsedPrompts.map((prompt) => (
+                <div key={prompt.id} className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-blue-600 transition-colors">
+                      {prompt.title}
+                    </a>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        Last used: {prompt.lastUsedAt ? new Date(prompt.lastUsedAt).toLocaleDateString() : 'Never'}
+                      </p>
+                      {prompt.tags.length > 0 && (
+                        <div className="flex gap-1">
+                          {prompt.tags.slice(0, 2).map((tag, idx) => (
+                            <span key={idx} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                              {tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Icons.Heart className="h-3 w-3" />
+                    <span>{prompt._count.likes}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Enhanced Statistics Section */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Most Liked Prompts */}
+        {data.mostLikedPrompts && data.mostLikedPrompts.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Most Popular Prompts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {data.mostLikedPrompts.map((prompt, index) => (
+                  <div key={prompt.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-blue-600 transition-colors">
+                        {prompt.title}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Icons.Heart className="h-3 w-3 text-red-500 fill-current" />
+                      <span className="text-sm">{prompt._count.likes}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Most Versioned Prompts */}
+        {data.mostVersionedPrompts && data.mostVersionedPrompts.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Most Edited Prompts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {data.mostVersionedPrompts.map((prompt, index) => (
+                  <div key={prompt.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-blue-600 transition-colors">
+                        {prompt.title}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Icons.History className="h-3 w-3 text-blue-500" />
+                      <span className="text-sm">{prompt._count.versions} versions</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Most Favorited Prompts */}
+        {data.mostFavoritedPrompts && data.mostFavoritedPrompts.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Most Favorited Prompts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {data.mostFavoritedPrompts.map((prompt, index) => (
+                  <div key={prompt.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-blue-600 transition-colors">
+                        {prompt.title}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Icons.Star className="h-3 w-3 text-yellow-500 fill-current" />
+                      <span className="text-sm">{prompt._count.favorites}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Recent Activity */}

@@ -24,9 +24,15 @@ export async function getPromptsByFolder(folderId?: string) {
           },
         },
       },
+      favorites: {
+        where: {
+          userId: user.id,
+        },
+      },
       _count: {
         select: {
           likes: true,
+          favorites: true,
         },
       },
     },
@@ -39,7 +45,9 @@ export async function getPromptsByFolder(folderId?: string) {
   const promptsWithLikeData = prompts.map(prompt => ({
     ...prompt,
     likeCount: prompt._count.likes,
+    favoriteCount: prompt._count.favorites,
     isLikedByUser: prompt.likes.some((like: { userId: string }) => like.userId === user.id),
+    isFavoritedByUser: prompt.favorites.length > 0,
   }));
 
   return promptsWithLikeData;
@@ -64,9 +72,15 @@ export async function getAllPrompts() {
           },
         },
       },
+      favorites: {
+        where: {
+          userId: user.id,
+        },
+      },
       _count: {
         select: {
           likes: true,
+          favorites: true,
         },
       },
     },
@@ -79,7 +93,9 @@ export async function getAllPrompts() {
   const promptsWithLikeData = prompts.map(prompt => ({
     ...prompt,
     likeCount: prompt._count.likes,
+    favoriteCount: prompt._count.favorites,
     isLikedByUser: prompt.likes.some((like: { userId: string }) => like.userId === user.id),
+    isFavoritedByUser: prompt.favorites.length > 0,
   }));
 
   return promptsWithLikeData;
@@ -516,4 +532,86 @@ export async function getPromptLikes(promptId: string) {
     console.error("Error fetching prompt likes:", error);
     throw error;
   }
+}
+
+export async function duplicatePrompt(promptId: string) {
+  const user = await requireAuth();
+
+  // Get the original prompt with all its relations
+  const originalPrompt = await db.prompt.findUnique({
+    where: {
+      id: promptId,
+      userId: user.id,
+    },
+    include: {
+      tags: true,
+    },
+  });
+
+  if (!originalPrompt) {
+    throw new Error("Prompt not found or you don't have permission to duplicate it");
+  }
+
+  // Create the duplicated prompt
+  const duplicatedPrompt = await db.prompt.create({
+    data: {
+      title: `${originalPrompt.title} (Copy)`,
+      content: originalPrompt.content,
+      description: originalPrompt.description,
+      userId: user.id,
+      folderId: originalPrompt.folderId,
+      tags: {
+        connect: originalPrompt.tags.map((tag) => ({
+          id: tag.id,
+        })),
+      },
+    },
+    include: {
+      tags: true,
+    },
+  });
+
+  revalidatePath("/prompts");
+  return duplicatedPrompt;
+}
+
+export async function updatePromptLastUsed(promptId: string) {
+  const user = await requireAuth();
+
+  await db.prompt.update({
+    where: {
+      id: promptId,
+      userId: user.id,
+    },
+    data: {
+      lastUsedAt: new Date(),
+    },
+  });
+}
+
+export async function getRecentlyUsedPrompts(limit: number = 10) {
+  const user = await requireAuth();
+
+  const prompts = await db.prompt.findMany({
+    where: {
+      userId: user.id,
+      lastUsedAt: {
+        not: null,
+      },
+    },
+    include: {
+      tags: true,
+      _count: {
+        select: {
+          likes: true,
+        },
+      },
+    },
+    orderBy: {
+      lastUsedAt: 'desc',
+    },
+    take: limit,
+  });
+
+  return prompts;
 }

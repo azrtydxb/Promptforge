@@ -26,6 +26,9 @@ model User {
   avatarType    AvatarType   @default(INITIALS)
   profilePicture String?
   gravatarEmail String?
+  // Admin and role management
+  role          UserRole     @default(USER)
+  isActive      Boolean      @default(true)
   // Reputation system
   reputationScore Int        @default(0)
   badges        UserBadge[]
@@ -38,6 +41,7 @@ model User {
   folders       Folder[]
   prompts       Prompt[]
   promptLikes   PromptLike[]
+  promptFavorites PromptFavorite[]
   promptComments PromptComment[]
   promptViews   PromptView[]
   promptCopies  PromptCopy[]
@@ -150,14 +154,17 @@ model Prompt {
   tags        Tag[]
   versions    PromptVersion[]
   likes       PromptLike[]
+  favorites   PromptFavorite[]
   // Marketplace publishing
   sharedPrompt SharedPrompt?
   order       Int?
+  lastUsedAt  DateTime?       // Track when prompt was last accessed/used
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
   @@index([userId])
   @@index([folderId])
+  @@index([lastUsedAt])
 }
 
 model SharedPrompt {
@@ -321,6 +328,19 @@ model PromptLike {
   @@index([userId])
 }
 
+model PromptFavorite {
+  id       String   @id @default(cuid())
+  promptId String
+  prompt   Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([promptId, userId])
+  @@index([promptId])
+  @@index([userId])
+}
+
 // Content moderation models
 model ModerationRule {
   id          String              @id @default(cuid())
@@ -363,4 +383,36 @@ model ModerationLog {
 
   @@index([contentType, contentId])
   @@index([createdAt])
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+// AI Configuration Settings
+model AISettings {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "primary", "fallback"
+  provider    String   // e.g., "openai", "anthropic", "google"
+  model       String   // e.g., "gpt-4", "claude-3", "gemini-pro"
+  apiKey      String   // Encrypted API key
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false)
+  // Configuration
+  maxTokens   Int?     @default(4096)
+  temperature Float?   @default(0.7)
+  topP        Float?   @default(1.0)
+  // Rate limits
+  rateLimit   Int?     // Requests per minute
+  monthlyQuota Int?    // Total requests per month
+  usageCount  Int      @default(0) // Current month usage
+  // Metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastUsedAt  DateTime?
+  
+  @@index([provider])
+  @@index([isActive, isDefault])
 }

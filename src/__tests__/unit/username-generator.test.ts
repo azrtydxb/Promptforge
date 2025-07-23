@@ -33,8 +33,6 @@ describe('Username Generator', () => {
 
     it('should contain valid animal names', () => {
       const username = generateAnimalUsername()
-      const animalPart = username.match(/[A-Z][a-z]+$/)?.[0]?.slice(0, -1).toLowerCase()
-      const animals = ['tiger', 'eagle', 'dolphin', 'wolf', 'fox', 'lion', 'bear', 'owl', 'hawk', 'deer']
       // Check if the username contains at least part of an animal name
       expect(username).toBeTruthy()
     })

@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/ui/icons";
 import { getAllTags } from "@/app/actions/tag-management.actions";
+import { Download, Upload } from "lucide-react";
+import { exportPrompts, importPrompts } from "@/app/actions/prompt-export-import.actions";
+import { useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Tag {
   id: string;
@@ -23,6 +27,8 @@ interface PromptFiltersProps {
   searchValue: string;
   selectedTagIds: string[];
   onNewPrompt: () => void;
+  folderId?: string;
+  onImportComplete?: () => void;
 }
 
 export function PromptFilters({
@@ -31,10 +37,16 @@ export function PromptFilters({
   searchValue,
   selectedTagIds,
   onNewPrompt,
+  folderId,
+  onImportComplete,
 }: PromptFiltersProps) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [tagSearchValue, setTagSearchValue] = useState("");
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -84,13 +96,83 @@ export function PromptFilters({
 
   const hasActiveFilters = searchValue || selectedTagIds.length > 0;
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const exportData = await exportPrompts();
+      
+      // Create a blob and download it
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `prompts-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Export successful",
+        description: `Exported ${exportData.prompts.length} prompts`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      const result = await importPrompts(data, folderId);
+      
+      toast({
+        title: "Import complete",
+        description: `Imported ${result.imported} prompts, skipped ${result.skipped} duplicates`,
+      });
+      
+      if (result.errors.length > 0) {
+        console.error("Import errors:", result.errors);
+      }
+      
+      // Refresh the prompt list
+      onImportComplete?.();
+    } catch (error) {
+      toast({
+        title: "Import failed",
+        description: error instanceof Error ? error.message : "Invalid file format",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
-    <div className="space-y-3 p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div className="space-y-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
       {/* Main horizontal bar with search inputs and buttons */}
       <div className="flex items-center gap-4">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" aria-hidden="true" />
+          <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600 dark:text-gray-400" aria-hidden="true" />
           <Input
             placeholder="Search prompts..."
             value={searchValue}
@@ -101,7 +183,7 @@ export function PromptFilters({
 
         {/* Tag Search Input */}
         <div className="relative flex-1">
-          <Icons.Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" aria-hidden="true" />
+          <Icons.Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600 dark:text-gray-400" aria-hidden="true" />
           <Input
             placeholder="Filter by tags..."
             value={tagSearchValue}
@@ -120,9 +202,9 @@ export function PromptFilters({
           
           {/* Custom dropdown that doesn't interfere with typing */}
           {isTagDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
               {filteredTags.length === 0 ? (
-                <div className="px-4 py-2 text-sm text-gray-700">
+                <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
                   No tags found
                 </div>
               ) : (
@@ -130,23 +212,23 @@ export function PromptFilters({
                   <div
                     key={tag.id}
                     onClick={() => handleTagSelect(tag.id)}
-                    className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-gray-50"
+                    className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     <div className="flex items-center gap-2">
                       <div
                         className={`w-3 h-3 rounded border ${
                           selectedTagIds.includes(tag.id)
                             ? "bg-blue-600 border-blue-600"
-                            : "border-gray-300"
+                            : "border-gray-300 dark:border-gray-600"
                         }`}
                       >
                         {selectedTagIds.includes(tag.id) && (
                           <Icons.Check className="w-2 h-2 text-white m-0.5" />
                         )}
                       </div>
-                      <span className="text-sm">{tag.name}</span>
+                      <span className="text-sm dark:text-gray-200">{tag.name}</span>
                     </div>
-                    <span className="text-xs text-gray-700">
+                    <span className="text-xs text-gray-700 dark:text-gray-400">
                       {tag._count.prompts}
                     </span>
                   </div>
@@ -169,6 +251,38 @@ export function PromptFilters({
               Clear
             </Button>
           )}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
+            title="Export all prompts"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? "Exporting..." : "Export"}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isImporting}
+            className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
+            title="Import prompts from file"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {isImporting ? "Importing..." : "Import"}
+          </Button>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleImport}
+            className="hidden"
+          />
           
           <Button
             onClick={onNewPrompt}

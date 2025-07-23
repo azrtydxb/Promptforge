@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { Icons } from "../ui/icons";
 import { Button } from "../ui/button";
-import { getPromptsByFolder, movePrompt, togglePromptLike } from "@/app/actions/prompt.actions";
+import { getPromptsByFolder, movePrompt, togglePromptLike, duplicatePrompt } from "@/app/actions/prompt.actions";
+import { FavoriteButton } from "./favorite-button";
 import type { Prompt, Tag } from "@/generated/prisma";
 import Link from "next/link";
 import { useModal } from "@/hooks/use-modal-store";
@@ -37,9 +38,11 @@ type PromptWithTags = Prompt & {
   tags: Tag[];
   likeCount: number;
   isLikedByUser: boolean;
+  favoriteCount?: number;
+  isFavoritedByUser?: boolean;
 };
 
-const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: () => void }) => {
+const PromptItem = ({ prompt, onConfirm, onDuplicate }: { prompt: PromptWithTags, onConfirm: () => void, onDuplicate: () => void }) => {
   const { onOpen } = useModal();
   const [isLiking, setIsLiking] = useState(false);
   const [localLikeCount, setLocalLikeCount] = useState(prompt.likeCount);
@@ -138,7 +141,7 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
           {/* Sticky note header with title, like/share buttons, and menu */}
           <div className="flex justify-between items-start mb-3 flex-shrink-0">
             <div
-              className="flex-grow text-lg font-medium text-gray-800 hover:text-dell-blue-600 transition-colors line-clamp-2 mr-2"
+              className="flex-grow text-lg font-medium text-gray-800 dark:text-gray-800 hover:text-dell-blue-600 transition-colors line-clamp-2 mr-2"
               {...listeners}
             >
               {prompt.title}
@@ -153,7 +156,7 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
               className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
                 localIsLiked
                   ? 'bg-white/90 text-red-500 shadow-md'
-                  : 'bg-white/80 text-gray-600 hover:bg-white hover:shadow-md'
+                  : 'bg-white/80 text-gray-600 dark:text-gray-600 hover:bg-white hover:shadow-md'
               } ${isLiking ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
               title={`${localLikeCount} likes`}
               aria-label={localIsLiked ? 'Unlike this prompt' : 'Like this prompt'}
@@ -162,10 +165,21 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
               <Icons.Heart className={`h-3 w-3 ${localIsLiked ? 'fill-current' : ''}`} aria-hidden="true" />
             </button>
 
+            {/* Favorite button */}
+            <div className="w-6 h-6">
+              <FavoriteButton
+                promptId={prompt.id}
+                isFavorited={prompt.isFavoritedByUser || false}
+                size="sm"
+                variant="ghost"
+                className="!w-6 !h-6 !p-0 rounded-full bg-white/80 hover:bg-white hover:shadow-md"
+              />
+            </div>
+
             {/* Share button */}
             <button
               onClick={handleShare}
-              className="w-6 h-6 rounded-full bg-white/80 text-gray-600 hover:bg-white hover:shadow-md flex items-center justify-center transition-all duration-200 hover:scale-110"
+              className="w-6 h-6 rounded-full bg-white/80 text-gray-600 dark:text-gray-600 hover:bg-white hover:shadow-md flex items-center justify-center transition-all duration-200 hover:scale-110"
               title="Share this prompt"
               aria-label="Share this prompt"
             >
@@ -188,7 +202,7 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
                   <Icons.MoreVertical className="h-3 w-3" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white z-50">
+              <DropdownMenuContent align="end" className="z-50">
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.preventDefault();
@@ -206,6 +220,21 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
                   }}
                 >
                   Move to Folder
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    try {
+                      await duplicatePrompt(prompt.id);
+                      onDuplicate();
+                    } catch (error) {
+                      console.error("Failed to duplicate prompt:", error);
+                    }
+                  }}
+                >
+                  <Icons.Copy className="mr-2 h-4 w-4" />
+                  Duplicate
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -439,7 +468,12 @@ export const PromptList = ({
       <SortableContext items={filteredPrompts} strategy={rectSortingStrategy}>
         <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-12 p-4">
           {filteredPrompts.map((prompt) => (
-            <PromptItem key={prompt.id} prompt={prompt} onConfirm={() => removePromptFromState(prompt.id)} />
+            <PromptItem 
+              key={prompt.id} 
+              prompt={prompt} 
+              onConfirm={() => removePromptFromState(prompt.id)} 
+              onDuplicate={fetchPrompts}
+            />
           ))}
         </div>
       </SortableContext>

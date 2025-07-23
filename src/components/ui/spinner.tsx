@@ -37,7 +37,7 @@ export function LoadingSpinner({ label, size = "md", className, ...props }: Load
   )
 }
 
-interface FullPageSpinnerProps extends LoadingSpinnerProps {}
+type FullPageSpinnerProps = LoadingSpinnerProps
 
 export function FullPageSpinner(props: FullPageSpinnerProps) {
   return (

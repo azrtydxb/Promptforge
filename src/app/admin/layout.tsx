@@ -1,0 +1,33 @@
+import React from 'react';
+import { requireAdmin } from '@/lib/admin-auth';
+import { Sidebar } from '@/components/layout/sidebar';
+import { Header } from '@/components/layout/header';
+import { Footer } from '@/components/layout/footer';
+import { PageErrorBoundary } from '@/components/error-boundary';
+
+const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
+  await requireAdmin(); // This will redirect if not admin
+  
+  return (
+    <PageErrorBoundary>
+      <div className="grid min-h-screen w-full md:grid-cols-[196px_1fr] lg:grid-cols-[224px_1fr] bg-background">
+        <Sidebar />
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex flex-1 flex-col gap-6 p-6 lg:gap-8 lg:p-8 bg-background">
+            <div className="mx-auto w-full max-w-7xl">
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+                <p className="text-muted-foreground">Manage users and AI settings</p>
+              </div>
+              {children}
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </div>
+    </PageErrorBoundary>
+  );
+};
+
+export default AdminLayout;

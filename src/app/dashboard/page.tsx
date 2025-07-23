@@ -163,6 +163,76 @@ const getDashboardData = cache(async (userId: string) => {
     createdAt: prompt.createdAt.toISOString()
   }));
 
+  // Get recently used prompts
+  const recentlyUsedPrompts = await db.prompt.findMany({
+    where: {
+      userId,
+      NOT: {
+        lastUsedAt: null,
+      },
+    },
+    include: {
+      tags: true,
+      _count: {
+        select: {
+          likes: true,
+        },
+      },
+    },
+    orderBy: {
+      lastUsedAt: 'desc',
+    },
+    take: 5,
+  });
+
+  // Get prompts with like counts
+  const promptsWithLikes = await db.prompt.findMany({
+    where: { userId },
+    include: {
+      _count: {
+        select: { likes: true }
+      }
+    }
+  });
+  
+  // Sort by likes manually
+  const mostLikedPrompts = promptsWithLikes
+    .sort((a, b) => b._count.likes - a._count.likes)
+    .slice(0, 5)
+    .filter(p => p._count.likes > 0);
+
+  // Get prompts with version counts
+  const promptsWithVersions = await db.prompt.findMany({
+    where: { userId },
+    include: {
+      _count: {
+        select: { versions: true }
+      }
+    }
+  });
+  
+  // Sort by versions manually
+  const mostVersionedPrompts = promptsWithVersions
+    .sort((a, b) => b._count.versions - a._count.versions)
+    .slice(0, 5)
+    .filter(p => p._count.versions > 0);
+
+  // Get prompts with favorite counts
+  const promptsWithFavorites = await db.prompt.findMany({
+    where: { userId },
+    include: {
+      _count: {
+        select: { favorites: true }
+      }
+    }
+  });
+  
+  // Sort by favorites manually
+  const mostFavoritedPrompts = promptsWithFavorites
+    .sort((a, b) => b._count.favorites - a._count.favorites)
+    .slice(0, 5)
+    .filter(p => p._count.favorites > 0);
+
   return {
     totalPrompts,
     totalFolders,
@@ -172,7 +242,11 @@ const getDashboardData = cache(async (userId: string) => {
     promptsByFolder,
     topTags,
     recentActivity,
-    promptGrowth
+    promptGrowth,
+    recentlyUsedPrompts,
+    mostLikedPrompts,
+    mostVersionedPrompts,
+    mostFavoritedPrompts
   };
 });
 

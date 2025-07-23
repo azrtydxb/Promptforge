@@ -171,7 +171,8 @@ const TaggedPromptItem = ({ prompt }: { prompt: TaggedPrompt }) => {
                         userId: '',
                         order: null,
                         content: '',
-                        folderId: null
+                        folderId: null,
+                        lastUsedAt: null
                       }
                     });
                   }}
@@ -188,7 +189,8 @@ const TaggedPromptItem = ({ prompt }: { prompt: TaggedPrompt }) => {
                         userId: '',
                         order: null,
                         content: '',
-                        folderId: null
+                        folderId: null,
+                        lastUsedAt: null
                       }
                     });
                   }}
@@ -205,7 +207,8 @@ const TaggedPromptItem = ({ prompt }: { prompt: TaggedPrompt }) => {
                         userId: '',
                         order: null,
                         content: '',
-                        folderId: null
+                        folderId: null,
+                        lastUsedAt: null
                       }
                     });
                   }}

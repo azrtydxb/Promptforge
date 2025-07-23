@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getPromptById } from "@/app/actions/prompt.actions.cached";
-import { updatePrompt, createPrompt } from "@/app/actions/prompt.actions";
+import { updatePrompt, createPrompt, updatePromptLastUsed } from "@/app/actions/prompt.actions";
 import { Editor } from "@/components/editor/editor";
 import type { Prompt, Tag, PromptVersion } from "@/generated/prisma";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Save, ArrowLeft } from "lucide-react";
+import { ChevronDown, Save, ArrowLeft, Copy, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 
@@ -34,6 +34,7 @@ export default function PromptPage({
   const [tags, setTags] = useState<string[]>([]);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
   const debouncedContent = useDebounce(content, 500);
   const debouncedDescription = useDebounce(description, 500);
   const router = useRouter();
@@ -72,6 +73,11 @@ export default function PromptPage({
       setTitle(fetchedPrompt?.title || "");
       setDescription(fetchedPrompt?.description || "");
       setTags(fetchedPrompt?.tags?.map(tag => tag.name) || []);
+      
+      // Update lastUsedAt timestamp
+      if (fetchedPrompt) {
+        updatePromptLastUsed(promptId).catch(console.error);
+      }
     };
     fetchPrompt();
   }, [promptId, isCreateMode]);
@@ -162,6 +168,16 @@ export default function PromptPage({
     }
   };
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
+  };
+
   if (!promptId || (!prompt && !isCreateMode)) {
     return <div>Loading...</div>;
   }
@@ -244,11 +260,32 @@ export default function PromptPage({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            {!isCreateMode && prompt?.versions?.[0]?.version && (
-              <span className="text-sm text-gray-500">
-                Version: {prompt.versions[0].version}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleCopy}
+                variant="outline"
+                size="sm"
+                className="h-8 flex items-center gap-2"
+                title="Copy prompt content to clipboard"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3 w-3" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3 w-3" />
+                    Copy
+                  </>
+                )}
+              </Button>
+              {!isCreateMode && prompt?.versions?.[0]?.version && (
+                <span className="text-sm text-gray-500">
+                  Version: {prompt.versions[0].version}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         

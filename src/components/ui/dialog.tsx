@@ -86,7 +86,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
   }
 
   // Handle focus trap and keyboard navigation
-  useFocusTrap(contentRef, context.open);
+  useFocusTrap(contentRef as React.RefObject<HTMLElement>, context.open);
 
   // Handle Escape key
   React.useEffect(() => {
@@ -121,7 +121,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
       <div
         ref={contentRef}
         className={cn(
-          "relative z-[61] bg-white rounded-lg shadow-lg border border-gray-200 w-full max-w-lg max-h-[90vh] overflow-y-auto",
+          "relative z-[61] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-lg max-h-[90vh] overflow-y-auto",
           className
         )}
         onClick={(e) => e.stopPropagation()}
@@ -183,7 +183,7 @@ export function DialogTitle({ className, children }: DialogTitleProps) {
   }, [dialogTitleId]);
   
   return (
-    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900", className)}>
+    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-gray-100", className)}>
       {children}
     </h2>
   );
