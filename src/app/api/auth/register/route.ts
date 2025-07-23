@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { generateRandomUsername } from "@/lib/username-generator"
+import { checkApiRateLimit } from "@/lib/rate-limit"
 
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -11,6 +12,12 @@ const registerSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  // Check rate limit for auth endpoints
+  const rateLimitResponse = await checkApiRateLimit(request, 'auth');
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json()
     const { name, email, password } = registerSchema.parse(body)
