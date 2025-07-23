@@ -87,11 +87,14 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
               e.stopPropagation();
               node.toggle();
             }}
+            aria-label={node.isOpen ? "Collapse folder" : "Expand folder"}
+            aria-expanded={node.isOpen}
           >
             <Icons.ChevronRight
               className={`h-3 w-3 transition-transform duration-200 ${
                 node.isOpen ? "rotate-90" : ""
               }`}
+              aria-hidden="true"
             />
           </Button>
         )}
@@ -125,8 +128,9 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
             isHovered || node.isSelected ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={handleCreateSubfolder}
+          aria-label="Add subfolder"
         >
-          <Icons.Plus className="h-3 w-3" />
+          <Icons.Plus className="h-3 w-3" aria-hidden="true" />
         </Button>
       )}
 
@@ -142,8 +146,9 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
                 e.preventDefault();
                 e.stopPropagation();
               }}
+              aria-label="More folder options"
             >
-              <Icons.MoreVertical className="h-3 w-3" />
+              <Icons.MoreVertical className="h-3 w-3" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="bg-white">

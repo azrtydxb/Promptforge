@@ -43,6 +43,7 @@ export default async function TagsPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <h1 className="sr-only">Tags Management</h1>
       <Card>
         <CardContent>
           <Suspense fallback={<div>Loading tags...</div>}>

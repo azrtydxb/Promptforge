@@ -78,7 +78,7 @@ export const AuthUserButton = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0" aria-label="User menu" aria-haspopup="true">
           {isLoading ? (
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted animate-pulse">
               <div className="h-4 w-4 bg-muted-foreground/20 rounded-full" />

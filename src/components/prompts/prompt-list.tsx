@@ -133,8 +133,8 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
       {...attributes}
       className="mb-6"
     >
-      <Link href={`/prompts/${prompt.id}`} className="block">
-        <div className={stickyNoteCard(stickyColor, "group relative cursor-pointer flex flex-col")}>
+      <Link href={`/prompts/${prompt.id}`} className="block" aria-label={`View prompt: ${prompt.title}`}>
+        <article className={stickyNoteCard(stickyColor, "group relative cursor-pointer flex flex-col")} role="article">
           {/* Sticky note header with title, like/share buttons, and menu */}
           <div className="flex justify-between items-start mb-3 flex-shrink-0">
             <div
@@ -156,8 +156,10 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
                   : 'bg-white/80 text-gray-600 hover:bg-white hover:shadow-md'
               } ${isLiking ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
               title={`${localLikeCount} likes`}
+              aria-label={localIsLiked ? 'Unlike this prompt' : 'Like this prompt'}
+              aria-pressed={localIsLiked}
             >
-              <Icons.Heart className={`h-3 w-3 ${localIsLiked ? 'fill-current' : ''}`} />
+              <Icons.Heart className={`h-3 w-3 ${localIsLiked ? 'fill-current' : ''}`} aria-hidden="true" />
             </button>
 
             {/* Share button */}
@@ -165,8 +167,9 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
               onClick={handleShare}
               className="w-6 h-6 rounded-full bg-white/80 text-gray-600 hover:bg-white hover:shadow-md flex items-center justify-center transition-all duration-200 hover:scale-110"
               title="Share this prompt"
+              aria-label="Share this prompt"
             >
-              <Icons.Share2 className="h-3 w-3" />
+              <Icons.Share2 className="h-3 w-3" aria-hidden="true" />
             </button>
 
             {/* Menu button */}
@@ -180,8 +183,9 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
                     e.preventDefault();
                     e.stopPropagation();
                   }}
+                  aria-label="More prompt options"
                 >
-                  <Icons.MoreVertical className="h-3 w-3" />
+                  <Icons.MoreVertical className="h-3 w-3" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white z-50">
@@ -257,7 +261,7 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
                   style={{ zIndex: 9999 }}
                 >
                   <div className="p-2">
-                    <div className="text-xs font-medium text-gray-500 mb-2">All Tags</div>
+                    <div className="text-xs font-medium text-gray-700 mb-2">All Tags</div>
                     <div className="flex flex-wrap gap-1">
                       {prompt.tags.map((tag) => (
                         <span
@@ -277,12 +281,12 @@ const PromptItem = ({ prompt, onConfirm }: { prompt: PromptWithTags, onConfirm: 
 
           {/* Like count display at bottom */}
           {localLikeCount > 0 && (
-            <div className="mt-2 text-xs text-gray-500 font-medium">
+            <div className="mt-2 text-xs text-gray-700 font-medium">
               {localLikeCount} {localLikeCount === 1 ? 'like' : 'likes'}
             </div>
           )}
         </div>
-      </div>
+      </article>
       </Link>
     </div>
   );
@@ -411,9 +415,9 @@ export const PromptList = ({
   if (filteredPrompts.length === 0 && prompts.length > 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Icons.Search className="h-12 w-12 text-gray-400 mb-4" />
+        <Icons.Search className="h-12 w-12 text-gray-600 mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No prompts found</h3>
-        <p className="text-gray-500 max-w-md">
+        <p className="text-gray-700 max-w-md">
           {searchQuery && selectedTagIds.length > 0
             ? `No prompts match your search "${searchQuery}" and selected tags.`
             : searchQuery
