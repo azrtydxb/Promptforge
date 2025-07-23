@@ -16,6 +16,8 @@ import { keymap } from "@codemirror/view";
 import { bracketMatching } from "@codemirror/language";
 import { closeBrackets } from "@codemirror/autocomplete";
 import { highlightSelectionMatches } from "@codemirror/search";
+import { ComponentErrorBoundary } from "@/components/error-boundary";
+import { MinimalErrorFallback } from "@/components/error-boundary/error-fallbacks";
 
 interface EditorProps {
   value: string;
@@ -97,7 +99,7 @@ const xmlLinter = linter((view) => {
   return diagnostics;
 });
 
-export const Editor = ({ value, onChange, language = "Text" }: EditorProps) => {
+const EditorComponent = ({ value, onChange, language = "Text" }: EditorProps) => {
   // Get language-specific extensions
   const getLanguageExtensions = () => {
     const baseExtensions = [
@@ -184,3 +186,13 @@ export const Editor = ({ value, onChange, language = "Text" }: EditorProps) => {
     />
   );
 };
+
+// Export the Editor wrapped in an error boundary
+export const Editor = (props: EditorProps) => (
+  <ComponentErrorBoundary
+    fallback={<MinimalErrorFallback />}
+    resetKeys={[props.language || 'text', props.value]}
+  >
+    <EditorComponent {...props} />
+  </ComponentErrorBoundary>
+);
