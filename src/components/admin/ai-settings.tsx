@@ -11,7 +11,8 @@ import {
   getEmbeddingStats,
   getEmbeddingQueueStatus,
   getSemanticSearchEnabled,
-  fetchOpenAIModels
+  fetchOpenAIModels,
+  fetchOpenAIModelsFromSettings
 } from "@/app/actions/admin-ai.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -317,13 +318,22 @@ export function AISettings() {
   const fetchModels = async (apiKey: string) => {
     if (!apiKey || apiKey.length < 10) return;
     
+    console.log("Fetching models with API key length:", apiKey.length);
     setLoadingModels(true);
     try {
       const result = await fetchOpenAIModels(apiKey);
+      console.log("Fetch models result:", result);
+      
       if (result.success) {
         setAvailableModels({
           chatModels: result.chatModels || [],
           embeddingModels: result.embeddingModels || []
+        });
+        
+        // Show success message
+        toast({
+          title: "Models loaded",
+          description: `Found ${result.chatModels?.length || 0} chat models and ${result.embeddingModels?.length || 0} embedding models`
         });
       } else {
         toast({
@@ -332,7 +342,8 @@ export function AISettings() {
           variant: "destructive"
         });
       }
-    } catch {
+    } catch (error) {
+      console.error("Error fetching models:", error);
       toast({
         title: "Error",
         description: "Failed to fetch available models",
@@ -342,6 +353,51 @@ export function AISettings() {
       setLoadingModels(false);
     }
   };
+
+  const fetchModelsFromSettings = async (configType: "general" | "embedding") => {
+    console.log(`Fetching models from saved ${configType} settings`);
+    setLoadingModels(true);
+    try {
+      const result = await fetchOpenAIModelsFromSettings(configType);
+      console.log("Fetch models from settings result:", result);
+      
+      if (result.success) {
+        setAvailableModels({
+          chatModels: result.chatModels || [],
+          embeddingModels: result.embeddingModels || []
+        });
+        
+        // Show success message
+        toast({
+          title: "Models loaded",
+          description: `Found ${result.chatModels?.length || 0} chat models and ${result.embeddingModels?.length || 0} embedding models`
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to fetch models",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching models from settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch available models",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingModels(false);
+    }
+  };
+
+  // Check if we should fetch models on mount if settings exist
+  useEffect(() => {
+    if (settings.general?.provider === "openai") {
+      fetchModelsFromSettings("general");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.general?.id]);
 
   const handleSemanticSearchToggle = async (checked: boolean) => {
     setLoadingSemanticSearch(true);
@@ -560,11 +616,35 @@ export function AISettings() {
                       value={generalForm.apiKey}
                       onChange={(e) => {
                         setGeneralForm({ ...generalForm, apiKey: e.target.value });
-                        if (e.target.value.length > 40 && generalForm.provider === "openai") {
-                          fetchModels(e.target.value);
-                        }
                       }}
                     />
+                    {generalForm.provider === "openai" && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          // Use new API key if provided, otherwise fetch from saved settings
+                          if (generalForm.apiKey) {
+                            fetchModels(generalForm.apiKey);
+                          } else if (settings.general) {
+                            fetchModelsFromSettings("general");
+                          } else {
+                            toast({
+                              title: "API Key Required",
+                              description: "Please enter an API key to fetch available models",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                        disabled={(!generalForm.apiKey && !settings.general) || loadingModels}
+                        title="Refresh available models"
+                      >
+                        {loadingModels ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => handleTest("general")}
@@ -580,6 +660,7 @@ export function AISettings() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Your API key is encrypted and stored securely
+                    {generalForm.provider === "openai" && " • Click refresh to load available models"}
                   </p>
                 </div>
 
@@ -737,11 +818,35 @@ export function AISettings() {
                       value={embeddingForm.apiKey}
                       onChange={(e) => {
                         setEmbeddingForm({ ...embeddingForm, apiKey: e.target.value });
-                        if (e.target.value.length > 40 && embeddingForm.provider === "openai") {
-                          fetchModels(e.target.value);
-                        }
                       }}
                     />
+                    {embeddingForm.provider === "openai" && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          // Use new API key if provided, otherwise fetch from saved settings
+                          if (embeddingForm.apiKey) {
+                            fetchModels(embeddingForm.apiKey);
+                          } else if (settings.embedding) {
+                            fetchModelsFromSettings("embedding");
+                          } else {
+                            toast({
+                              title: "API Key Required",
+                              description: "Please enter an API key to fetch available models",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                        disabled={(!embeddingForm.apiKey && !settings.embedding) || loadingModels}
+                        title="Refresh available models"
+                      >
+                        {loadingModels ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => handleTest("embedding")}
@@ -757,6 +862,7 @@ export function AISettings() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Uses the same OpenAI account as general AI
+                    {embeddingForm.provider === "openai" && " • Click refresh to load available models"}
                   </p>
                 </div>
 

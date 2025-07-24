@@ -220,6 +220,40 @@ export async function testAIConnection(provider: string, configType: string = "g
   }
 }
 
+// Fetch available models from OpenAI using stored settings
+export async function fetchOpenAIModelsFromSettings(configType: "general" | "embedding") {
+  await requireAdmin();
+  
+  try {
+    // Get the stored settings
+    const settings = await db.aISettings.findFirst({
+      where: {
+        provider: "openai",
+        name: configType
+      }
+    });
+    
+    if (!settings) {
+      return {
+        success: false,
+        error: "No OpenAI configuration found. Please save your API key first."
+      };
+    }
+    
+    // Decrypt the API key
+    const apiKey = decryptApiKey(settings.apiKey);
+    
+    // Fetch models using the decrypted key
+    return fetchOpenAIModels(apiKey);
+  } catch (error) {
+    logger.error("Error fetching OpenAI models from settings", { error });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch models"
+    };
+  }
+}
+
 // Fetch available models from OpenAI
 export async function fetchOpenAIModels(apiKey: string) {
   await requireAdmin();
@@ -228,30 +262,52 @@ export async function fetchOpenAIModels(apiKey: string) {
     const openai = new OpenAI({ apiKey });
     const response = await openai.models.list();
     
-    // Filter and categorize models
-    const models = response.data
-      .filter(model => {
-        // Only include relevant models
-        return model.id.includes('gpt') || 
-               model.id.includes('text-embedding') ||
-               model.id.includes('davinci') ||
-               model.id.includes('curie') ||
-               model.id.includes('babbage') ||
-               model.id.includes('ada');
-      })
-      .sort((a, b) => b.created - a.created);
+    // Log all available models for debugging
+    logger.info("Available OpenAI models", { 
+      count: response.data.length,
+      models: response.data.map(m => m.id)
+    });
     
-    // Categorize models
-    const chatModels = models.filter(m => 
-      m.id.includes('gpt') || 
-      m.id.includes('davinci') || 
-      m.id.includes('curie') ||
-      m.id.includes('babbage')
-    );
+    // Filter models into categories
+    const allModels = response.data.sort((a, b) => {
+      // Sort by model ID to group similar models together
+      if (a.id.startsWith('gpt-4') && !b.id.startsWith('gpt-4')) return -1;
+      if (!a.id.startsWith('gpt-4') && b.id.startsWith('gpt-4')) return 1;
+      if (a.id.startsWith('gpt-3.5') && !b.id.startsWith('gpt-3.5')) return -1;
+      if (!a.id.startsWith('gpt-3.5') && b.id.startsWith('gpt-3.5')) return 1;
+      return b.created - a.created;
+    });
     
-    const embeddingModels = models.filter(m => 
-      m.id.includes('embedding')
-    );
+    // Categorize models more precisely
+    const chatModels = allModels.filter(m => {
+      const id = m.id.toLowerCase();
+      
+      // Include GPT models
+      if (id.includes('gpt-4') || id.includes('gpt-3.5')) {
+        // Exclude specific non-chat variants
+        return !id.includes('instruct') && !id.includes('0125') && !id.includes('0301');
+      }
+      
+      // Include o1 models
+      if (id.startsWith('o1-')) return true;
+      
+      // Include chat models
+      if (id.includes('chat')) return true;
+      
+      // Exclude embeddings, whisper, tts, dall-e
+      const excludePatterns = ['embedding', 'embed', 'whisper', 'tts', 'dall-e', 'davinci-002', 'babbage-002', 'ada-002'];
+      return !excludePatterns.some(pattern => id.includes(pattern));
+    });
+    
+    const embeddingModels = allModels.filter(m => {
+      const id = m.id.toLowerCase();
+      return id.includes('embedding') || id.includes('embed');
+    });
+    
+    logger.info("Filtered models", {
+      chatModels: chatModels.map(m => m.id),
+      embeddingModels: embeddingModels.map(m => m.id)
+    });
     
     return {
       success: true,
