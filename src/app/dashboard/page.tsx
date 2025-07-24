@@ -267,17 +267,7 @@ export default async function Dashboard() {
     const user = await requireAuth();
     const dashboardData = await getCachedDashboardData(user.id);
 
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview of your prompt management activity and analytics.
-          </p>
-        </div>
-        <DashboardAnalytics data={dashboardData} />
-      </div>
-    );
+    return <DashboardAnalytics data={dashboardData} />;
   } catch {
     redirect("/sign-in");
   }

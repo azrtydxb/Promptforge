@@ -12,7 +12,7 @@ import {
   Calendar,
   MoreHorizontal
 } from 'lucide-react';
-import { stickyNoteCard } from '@/lib/styles';
+import { stickyNoteCard, dellIconButton } from '@/lib/styles';
 import { togglePromptLike } from '@/app/actions/likes-comments.actions';
 import { copySharedPrompt } from '@/app/actions/shared-prompts.actions';
 import {
@@ -155,11 +155,11 @@ export function SharedPromptCard({
             <button
               onClick={handleLike}
               disabled={isLiking}
-              className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
+              className={`${dellIconButton('overlay', 'sm')} ${
                 isLiked
-                  ? 'bg-white/90 text-red-500 shadow-md'
-                  : 'bg-white/80 text-gray-600 hover:bg-white hover:shadow-md'
-              } ${isLiking ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+                  ? 'text-red-500 bg-background/90 shadow-md'
+                  : ''
+              } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
               title={`${likeCount} likes`}
             >
               <Heart className={`h-3 w-3 ${isLiked ? 'fill-current' : ''}`} />
@@ -169,7 +169,7 @@ export function SharedPromptCard({
             <button
               onClick={handleCopy}
               disabled={isCopying}
-              className="w-6 h-6 rounded-full bg-white/80 text-gray-600 hover:bg-white hover:shadow-md flex items-center justify-center transition-all duration-200 hover:scale-110"
+              className={dellIconButton('overlay', 'sm')}
               title="Copy to My Library"
             >
               <Copy className="h-3 w-3" />

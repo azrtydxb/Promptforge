@@ -85,13 +85,7 @@ export default function AdminMonitoringPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">System Monitoring</h1>
-          <p className="text-muted-foreground">
-            Real-time PostgreSQL and Redis performance metrics
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-4">
           {lastUpdated && (
             <div className="text-sm text-muted-foreground">

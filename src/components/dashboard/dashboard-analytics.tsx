@@ -58,7 +58,14 @@ interface DashboardAnalyticsProps {
   data: DashboardData;
 }
 
-const COLORS = ['#007DB8', '#0F8CE6', '#40A9FF', '#69C0FF', '#91D5FF'];
+// Professional color palette for charts - using CSS variable colors
+const COLORS = [
+  'hsl(207, 90%, 44%)', // Primary accent
+  'hsl(207, 80%, 54%)', // Lighter variant
+  'hsl(207, 70%, 64%)', // Even lighter
+  'hsl(207, 60%, 74%)', // Light
+  'hsl(207, 50%, 84%)'  // Very light
+];
 
 export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
   return (
@@ -148,14 +155,14 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                 <Line
                   type="monotone"
                   dataKey="prompts"
-                  stroke="#007DB8"
+                  stroke="hsl(207, 90%, 44%)"
                   strokeWidth={2}
                   name="New Prompts"
                 />
                 <Line
                   type="monotone"
                   dataKey="cumulative"
-                  stroke="#0F8CE6"
+                  stroke="hsl(207, 80%, 54%)"
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   name="Total Prompts"
@@ -182,7 +189,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   labelLine={false}
                   label={false}
                   outerRadius={70}
-                  fill="#8884d8"
+                  fill="hsl(207, 90%, 44%)"
                   dataKey="count"
                 >
                   {data.promptsByFolder.map((entry, index) => (
@@ -221,7 +228,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   tickFormatter={(value) => `${value}`}
                 />
                 <Tooltip />
-                <Bar dataKey="count" fill="#007DB8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="hsl(207, 90%, 44%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </SectionErrorBoundary>
@@ -237,15 +244,15 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             <div className="space-y-2 max-h-[180px] overflow-y-auto">
               {data.topTags.map((tag) => (
                 <div key={tag.name} className="flex items-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mr-2 flex-shrink-0" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-medium leading-none truncate pr-1">{tag.name}</p>
                       <p className="text-xs text-muted-foreground whitespace-nowrap">{tag.count}</p>
                     </div>
-                    <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="mt-1 h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-blue-500 transition-all duration-300"
+                        className="h-full bg-primary transition-all duration-300"
                         style={{
                           width: `${(tag.count / Math.max(...data.topTags.map(t => t.count))) * 100}%`
                         }}
@@ -280,7 +287,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                       {prompt.tags.length > 0 && (
                         <div className="flex gap-1">
                           {prompt.tags.slice(0, 2).map((tag, idx) => (
-                            <span key={idx} className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                            <span key={idx} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
                               {tag.name}
                             </span>
                           ))}
@@ -313,7 +320,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   <div key={prompt.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-blue-600 transition-colors">
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-[hsl(var(--accent))] transition-colors">
                         {prompt.title}
                       </a>
                     </div>
@@ -340,7 +347,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   <div key={prompt.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-blue-600 transition-colors">
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-[hsl(var(--accent))] transition-colors">
                         {prompt.title}
                       </a>
                     </div>
@@ -367,7 +374,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   <div key={prompt.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-blue-600 transition-colors">
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-[hsl(var(--accent))] transition-colors">
                         {prompt.title}
                       </a>
                     </div>
@@ -392,7 +399,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
           <div className="space-y-4">
             {data.recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-center space-x-4">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <div className="w-2 h-2 rounded-full bg-primary" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{activity.title}</p>
                   <p className="text-xs text-muted-foreground">

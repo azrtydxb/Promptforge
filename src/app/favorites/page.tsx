@@ -34,28 +34,19 @@ async function FavoritesList() {
 
 export default function FavoritesPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Favorite Prompts</h1>
-        <p className="text-muted-foreground">
-          Your favorite prompts for quick access
-        </p>
-      </div>
-
-      <Suspense
-        fallback={
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="h-48 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse"
-              />
-            ))}
-          </div>
-        }
-      >
-        <FavoritesList />
-      </Suspense>
-    </div>
+    <Suspense
+      fallback={
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="h-48 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse"
+            />
+          ))}
+        </div>
+      }
+    >
+      <FavoritesList />
+    </Suspense>
   );
 }

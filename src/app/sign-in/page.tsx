@@ -82,9 +82,6 @@ export default function SignInPage() {
             <CardTitle className="text-2xl text-center text-white font-semibold">
               Welcome Back
             </CardTitle>
-            <CardDescription className="text-center text-gray-300">
-              Sign in to access your prompt workspace
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">

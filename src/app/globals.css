@@ -146,18 +146,18 @@
 
 @layer base {
   :root {
-    /* Dell Technologies Design System */
+    /* Professional Enterprise Design System */
     --background: 0 0% 98%; /* #FAFAFA - clean background */
-    --foreground: 218 47% 12%; /* #1A1E23 - Dell dark text */
+    --foreground: 222 32% 14%; /* #1A2332 - professional dark text */
 
     --card: 0 0% 100%; /* #FFFFFF - white cards */
-    --card-foreground: 218 47% 12%;
+    --card-foreground: 222 32% 14%;
  
     --popover: 0 0% 100%;
-    --popover-foreground: 218 47% 12%;
+    --popover-foreground: 222 32% 14%;
  
-    --primary: 201 100% 36%; /* #007DB8 - Dell Blue */
-    --primary-foreground: 0 0% 100%;
+    --primary: 210 16% 96%; /* #F4F5F7 - light gray for sidebar in light mode */
+    --primary-foreground: 222 32% 14%; /* #1A2332 - dark text for contrast */
  
     --secondary: 213 13% 93%; /* #F0F2F4 - Dell light gray */
     --secondary-foreground: 218 47% 12%;
@@ -165,13 +165,17 @@
     --muted: 210 14% 97%; /* #F8F9FA - very light gray */
     --muted-foreground: 215 16% 47%; /* #6B7280 - muted text */
  
-    --accent: 201 89% 48%; /* #0F8CE6 - Dell accent blue */
+    --accent: 207 90% 44%; /* #0C6FC2 - professional accent blue */
     --accent-foreground: 0 0% 100%;
+    
+    /* Gradient variables for professional buttons */
+    --accent-gradient-start: 207 90% 34%; /* #0A5A9C */
+    --accent-gradient-end: 207 90% 44%; /* #0C6FC2 */
 
-    /* Dell Interactive state colors */
-    --dell-blue-hover: 201 100% 95%; /* Very light Dell blue for hover */
-    --dell-blue-selected: 201 100% 90%; /* Light Dell blue for selection */
-    --dell-blue-border: 201 100% 36%; /* Dell blue border */
+    /* Professional Interactive state colors */
+    --dell-blue-hover: 207 90% 95%; /* Very light blue for hover */
+    --dell-blue-selected: 207 90% 90%; /* Light blue for selection */
+    --dell-blue-border: 207 90% 34%; /* Professional blue border */
     --dell-gray-hover: 210 14% 95%; /* Light gray hover */
  
     --destructive: 0 84.2% 60.2%; /* #EF4444 */
@@ -179,40 +183,44 @@
 
     --border: 213 13% 87%; /* #DDE1E5 - Dell subtle borders */
     --input: 0 0% 100%; /* #FFFFFF - white inputs */
-    --ring: 201 100% 36%; /* #007DB8 - Dell blue focus ring */
+    --ring: 207 90% 44%; /* #0C6FC2 - professional blue focus ring */
 
     --radius: 0.5rem; /* 8px for cleaner, more corporate look */
   }
  
   .dark {
-    /* Keep dark mode for users who prefer it */
-    --background: 224 71% 4%; /* #0F0F14 */
-    --foreground: 210 20% 98%; /* #F8F9FA */
+    /* Professional dark mode with subtle blue accents */
+    --background: 224 14% 8%; /* #111318 - dark charcoal */
+    --foreground: 210 11% 85%; /* #D6DBE0 - light gray text */
  
-    --card: 224 71% 10%; /* #1A1A1F */
-    --card-foreground: 210 20% 98%;
+    --card: 222 15% 13%; /* #1B1F26 - slightly lighter card */
+    --card-foreground: 210 11% 85%;
  
-    --popover: 224 71% 10%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 222 15% 13%;
+    --popover-foreground: 210 11% 85%;
  
-    --primary: 262 83% 66%; /* #8B5CF6 */
-    --primary-foreground: 210 20% 98%;
+    --primary: 220 20% 14%; /* #1C2333 - darker for better contrast */
+    --primary-foreground: 210 11% 92%; /* #E8EAED - lighter text for better contrast */
  
-    --secondary: 224 71% 10%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 217 15% 18%; /* #262B33 - secondary dark */
+    --secondary-foreground: 210 11% 85%;
  
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
+    --muted: 217 15% 18%;
+    --muted-foreground: 215 13% 55%; /* #7D8B9A - muted text */
  
-    --accent: 262 83% 66%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 201 74% 48%; /* #1F8FDB - professional blue accent */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Dark mode gradient variables - subtle blue gradient */
+    --accent-gradient-start: 201 74% 48%; /* #1F8FDB */
+    --accent-gradient-end: 201 64% 58%; /* #4FA3E3 */
  
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive: 0 72% 51%; /* #E53E3E - softer red */
+    --destructive-foreground: 210 11% 85%;
  
-    --border: 215 27.9% 16.9%;
-    --input: 224 71% 4%;
-    --ring: 262 83% 66%;
+    --border: 217 15% 21%; /* #2E333B - subtle borders */
+    --input: 222 15% 13%;
+    --ring: 201 74% 48%;
   }
 
   * {

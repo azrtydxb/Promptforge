@@ -69,21 +69,21 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
   const navigationItems = getNavigationItems(isAdmin)
 
   return (
-    <div className="hidden border-r bg-gray-800 shadow-xl md:block overflow-hidden">
+    <div className="hidden border-r border-border bg-[hsl(var(--primary))] shadow-sm md:block overflow-hidden">
       <div className="flex h-full max-h-screen flex-col gap-2">
-        {/* Enhanced Header with gradient and glow effect */}
-        <div className="flex h-14 items-center border-b border-gray-700 px-4 lg:h-[60px] lg:px-6 bg-gradient-to-r from-gray-800 to-gray-900 relative">
+        {/* Enhanced Header with gradient and professional styling */}
+        <div className="flex h-14 items-center border-b border-primary/10 px-4 lg:h-[60px] lg:px-6 bg-[hsl(var(--primary))] relative">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 font-semibold text-white group transition-colors duration-200"
+            className="flex items-center gap-2 font-semibold text-primary-foreground group transition-colors duration-200"
           >
-            <div className="p-1 rounded-md bg-white/10 group-hover:bg-white/20 transition-colors duration-200">
-              <Zap className="h-5 w-5 text-white" />
+            <div className="p-1 rounded-md bg-primary-foreground/10 group-hover:bg-primary-foreground/20 transition-colors duration-200">
+              <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-white tracking-wide">PromptForge</span>
+            <span className="text-primary-foreground tracking-wide">PromptForge</span>
           </Link>
           {/* Subtle glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         </div>
         
         {/* Enhanced Navigation */}
@@ -97,24 +97,24 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`${dellNavItem(isActive, true)} !text-white`}
+                  className={dellNavItem(isActive, true)}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className={`
                       p-1.5 rounded-md transition-all duration-200
                       ${isActive
-                        ? 'bg-white/20 shadow-sm'
-                        : 'bg-white/10 group-hover:bg-white/15'
+                        ? 'bg-[hsl(var(--accent))]/15 shadow-sm'
+                        : 'bg-primary-foreground/5 group-hover:bg-primary-foreground/10'
                       }
                     `}>
-                      <Icon className="h-4 w-4 flex-shrink-0 !text-white" />
+                      <Icon className="h-4 w-4 flex-shrink-0 text-primary-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate !text-white" style={{ color: '#ffffff', fontWeight: 'bold' }}>{item.label}</div>
+                      <div className="font-semibold truncate text-primary-foreground">{item.label}</div>
                       <div className={`
-                        text-xs opacity-70 truncate transition-opacity duration-200 !text-white
-                        ${isActive ? 'opacity-90' : 'group-hover:opacity-80'}
-                      `} style={{ color: '#ffffff', opacity: '0.9' }}>
+                        text-xs truncate transition-opacity duration-200 text-primary-foreground
+                        ${isActive ? 'opacity-80' : 'opacity-60 group-hover:opacity-70'}
+                      `}>
                         {item.description}
                       </div>
                     </div>
@@ -122,7 +122,7 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                   
                   {/* Active indicator with smooth animation */}
                   <ChevronRight className={`
-                    h-3 w-3 flex-shrink-0 transition-all duration-200 !text-white
+                    h-3 w-3 flex-shrink-0 transition-all duration-200 text-primary-foreground
                     ${isActive
                       ? 'opacity-100 translate-x-0'
                       : 'opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0'

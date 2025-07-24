@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils';
 import { validateUsername } from '@/lib/username-generator';
 import { Separator } from '@/components/ui/separator';
 import { AvatarType } from '@/generated/prisma';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingStates } from '@/components/ui/loading-state';
 
 interface ProfileData {
   id: string;
@@ -283,57 +283,7 @@ export default function ProfilePage() {
   };
 
   if (status === 'loading' || isLoading) {
-    return (
-      <div className="space-y-6">
-        {/* Header skeleton */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-9 w-48 mb-2" />
-            <Skeleton className="h-5 w-64" />
-          </div>
-        </div>
-
-        {/* Profile info card skeleton */}
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-32 mb-2" />
-            <Skeleton className="h-4 w-48" />
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-6">
-              <Skeleton className="h-24 w-24 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-4 w-40" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Settings card skeleton */}
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-40 mb-2" />
-            <Skeleton className="h-4 w-64" />
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Skeleton className="h-5 w-24 mb-2" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-            <div>
-              <Skeleton className="h-5 w-32 mb-2" />
-              <div className="flex gap-4">
-                <Skeleton className="h-16 w-16 rounded" />
-                <Skeleton className="h-16 w-16 rounded" />
-                <Skeleton className="h-16 w-16 rounded" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <LoadingStates.DetailPage />;
   }
 
   if (!session?.user) {
@@ -361,35 +311,29 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your account settings and preferences
-          </p>
+      <div className="flex items-center justify-end">
+        <div className="flex items-center gap-2">
+          {hasChanges && (
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving || usernameCheck.isChecking || !usernameCheck.isAvailable}
+              className="bg-[#007DB8] hover:bg-[#007DB8]/90"
+            >
+              {isSaving ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          )}
         </div>
-          <div className="flex items-center gap-2">
-            {hasChanges && (
-              <Button 
-                onClick={handleSave} 
-                disabled={isSaving || usernameCheck.isChecking || !usernameCheck.isAvailable}
-                className="bg-[#007DB8] hover:bg-[#007DB8]/90"
-              >
-                {isSaving ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </div>
+      </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Picture */}
@@ -399,9 +343,6 @@ export default function ProfilePage() {
                 <Camera className="w-5 h-5" />
                 Profile Picture
               </CardTitle>
-              <CardDescription>
-                Choose how you want to display your profile picture
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-center">
@@ -489,9 +430,6 @@ export default function ProfilePage() {
                 <User className="w-5 h-5" />
                 Profile Information
               </CardTitle>
-              <CardDescription>
-                Update your personal information and preferences
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Account Information */}

@@ -30,6 +30,9 @@ import {
 import { getPromptTemplates, createPromptFromTemplate } from "@/app/actions/template.actions";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { dellCard } from "@/lib/styles";
+import { LoadingStates } from "@/components/ui/loading-state";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface TemplateData {
   id: string;
@@ -134,21 +137,15 @@ export function PromptTemplatesContainer() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-6">
+        <LoadingStates.CardGrid count={6} />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Prompt Templates</h1>
-          <p className="text-muted-foreground mt-2">
-            Start with pre-built templates to accelerate your workflow
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <Button
           onClick={() => router.push("/templates/new")}
           className="flex items-center gap-2"
@@ -194,7 +191,7 @@ export function PromptTemplatesContainer() {
           return (
             <Card
               key={template.id}
-              className="hover:shadow-md transition-all duration-200 cursor-pointer group border-gray-200 dark:border-gray-800"
+              className={cn(dellCard('interactive'), "bg-card/50 dark:bg-card/30")}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -277,9 +274,12 @@ export function PromptTemplatesContainer() {
       </div>
 
       {filteredTemplates.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No templates found matching your criteria.</p>
-        </div>
+        <EmptyState
+          type="noResults"
+          title="No templates found"
+          description={searchQuery || selectedCategory !== "all" ? "Try adjusting your search or filters" : "No templates available yet"}
+          size="md"
+        />
       )}
 
     </div>

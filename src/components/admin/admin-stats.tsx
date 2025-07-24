@@ -11,7 +11,8 @@ import {
   UserPlus,
   Activity
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingStates } from "@/components/ui/loading-state";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface UserStats {
   totalUsers: number;
@@ -42,26 +43,18 @@ export function AdminStats() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {[...Array(6)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-16" />
-              <Skeleton className="h-3 w-32 mt-1" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
+    return <LoadingStates.CardGrid count={6} />;
   }
 
   if (!stats) {
-    return <div>Failed to load statistics</div>;
+    return (
+      <EmptyState
+        type="error"
+        title="Failed to load statistics"
+        description="Unable to retrieve user statistics. Please try again later."
+        size="sm"
+      />
+    );
   }
 
   const statCards = [

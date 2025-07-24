@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { NetworkErrorFallback } from '@/components/error-boundary/error-fallbacks';
+import { LoadingStates } from '@/components/ui/loading-state';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface SharedPrompt {
   id: string;
@@ -200,11 +202,8 @@ export default function SharedPromptsPage() {
   const renderMainContent = () => {
     if (loading && prompts.length === 0) {
       return (
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#007DB8]" />
-            <p className="text-muted-foreground">Loading marketplace...</p>
-          </div>
+        <div className="space-y-6">
+          <LoadingStates.CardGrid count={6} />
         </div>
       );
     }
@@ -228,15 +227,17 @@ export default function SharedPromptsPage() {
 
     if (prompts.length === 0) {
       return (
-        <div className="text-center py-12">
-          <Share2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-medium mb-2">No prompts found</h3>
-          <p className="text-sm text-muted-foreground">
-            {searchQuery || selectedTags.length > 0 
-              ? 'Try adjusting your search or filters'
-              : 'Be the first to share a prompt with the community!'
+        <div className="space-y-6">
+          <EmptyState
+            type={searchQuery || selectedTags.length > 0 ? "noResults" : "noData"}
+            icon={Share2}
+            title="No prompts found"
+            description={
+              searchQuery || selectedTags.length > 0 
+                ? 'Try adjusting your search or filters'
+                : 'Be the first to share a prompt with the community!'
             }
-          </p>
+          />
         </div>
       );
     }
@@ -244,19 +245,13 @@ export default function SharedPromptsPage() {
     return (
       <div className="space-y-6">
         {/* Header with stats */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Shared Prompts</h1>
-            <p className="text-muted-foreground">
-              Discover and share amazing prompts with the community
-            </p>
-          </div>
-          {pagination && (
+        {pagination && (
+          <div className="flex items-center justify-end">
             <div className="text-sm text-muted-foreground">
               {pagination.total} prompts
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Prompts Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

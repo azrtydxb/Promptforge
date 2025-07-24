@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Skeleton } from "../ui/skeleton";
+import { LoadingStates } from "../ui/loading-state";
+import { EmptyStates } from "../ui/empty-state";
 
 type FolderNode = {
   id: string;
@@ -104,11 +106,11 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
       <Icons.Folder
         className={`h-2.5 w-2.5 mr-1.5 ${
           node.isSelected
-            ? 'text-dell-blue-600'
+            ? 'text-[hsl(var(--accent))]'
             : node.isOpen
-              ? 'text-dell-blue-500'
+              ? 'text-[hsl(var(--accent))]/80'
               : 'text-gray-500'
-        } ${node.data.isDefault && !node.isSelected ? 'text-dell-blue-600' : ''} transition-colors duration-200`}
+        } ${node.data.isDefault && !node.isSelected ? 'text-[hsl(var(--accent))]' : ''} transition-colors duration-200`}
       />
 
       {/* Folder Name */}
@@ -207,6 +209,7 @@ export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarP
   const [isLoading, setIsLoading] = useState(true);
   const treeRef = useRef<TreeApi<FolderNode>>(null);
   const [initialFolderSelected, setInitialFolderSelected] = useState(false);
+  const { onOpen } = useModal();
 
   const fetchFolders = async () => {
     try {
@@ -330,6 +333,8 @@ export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarP
               </div>
             ))}
           </div>
+        ) : data.length === 0 || (data.length === 1 && data[0].children?.length === 0) ? (
+          <EmptyStates.NoFolders onCreateFolder={() => onOpen("createFolder")} />
         ) : (
           <Tree
           ref={treeRef}

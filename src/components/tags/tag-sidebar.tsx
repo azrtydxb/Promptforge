@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingStates } from "@/components/ui/loading-state";
+import { EmptyStates } from "@/components/ui/empty-state";
 
 interface Tag {
   id: string;
@@ -51,36 +53,7 @@ export const TagSidebar = ({ onSelectTag, selectedTag }: TagSidebarProps) => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="h-full flex flex-col">
-        <div className="p-4 border-b">
-          <Skeleton className="h-6 w-16 mb-2" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-        
-        <div className="p-4 space-y-2">
-          {/* All prompts skeleton */}
-          <div className="p-3 rounded-lg border">
-            <div className="flex items-center justify-between mb-1">
-              <Skeleton className="h-5 w-24" />
-              <Skeleton className="h-5 w-8 rounded-full" />
-            </div>
-            <Skeleton className="h-4 w-48" />
-          </div>
-          
-          {/* Tag skeletons */}
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="p-3 rounded-lg border">
-              <div className="flex items-center justify-between mb-1">
-                <Skeleton className="h-5 w-20" />
-                <Skeleton className="h-5 w-6 rounded-full" />
-              </div>
-              <Skeleton className="h-4 w-40" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingStates.Sidebar />;
   }
 
   return (
@@ -136,10 +109,7 @@ export const TagSidebar = ({ onSelectTag, selectedTag }: TagSidebarProps) => {
           ))}
 
           {tags.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No tags found</p>
-              <p className="text-sm mt-1">Create some tags to organize your prompts</p>
-            </div>
+            <EmptyStates.NoTags />
           )}
         </div>
       </ScrollArea>

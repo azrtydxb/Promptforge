@@ -56,8 +56,9 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
+import { LoadingStates } from "@/components/ui/loading-state";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface User {
   id: string;
@@ -156,33 +157,8 @@ export function UserManagement() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-10 w-full max-w-sm" />
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Stats</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...Array(5)].map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-8 w-48" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-8 w-8" /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <LoadingStates.Inline width="w-full max-w-sm" height="h-10" />
+        <LoadingStates.Table rows={5} columns={6} />
       </div>
     );
   }
@@ -303,6 +279,16 @@ export function UserManagement() {
             ))}
           </TableBody>
         </Table>
+        {users.length === 0 && (
+          <div className="py-8">
+            <EmptyState
+              type={searchQuery ? "noResults" : "noData"}
+              title={searchQuery ? "No users found" : "No users yet"}
+              description={searchQuery ? "Try adjusting your search query" : "Users will appear here once they sign up"}
+              size="sm"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between">

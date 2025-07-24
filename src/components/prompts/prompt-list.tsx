@@ -11,6 +11,8 @@ import Link from "next/link";
 import { useModal } from "@/hooks/use-modal-store";
 import { stickyNoteCard } from "@/lib/styles";
 import { SkeletonPromptCard } from "../ui/skeleton";
+import { LoadingStates } from "../ui/loading-state";
+import { EmptyStates } from "../ui/empty-state";
 import { PromptGrid } from "./prompt-grid";
 import { LayoutGrid, List } from "lucide-react";
 import {
@@ -144,7 +146,7 @@ const PromptItem = ({ prompt, onConfirm, onDuplicate }: { prompt: PromptWithTags
           {/* Sticky note header with title, like/share buttons, and menu */}
           <div className="flex justify-between items-start mb-3 flex-shrink-0">
             <div
-              className="flex-grow text-lg font-medium text-gray-800 dark:text-gray-800 hover:text-dell-blue-600 transition-colors line-clamp-2 mr-2"
+              className="flex-grow text-lg font-medium text-gray-800 dark:text-gray-800 hover:text-[hsl(var(--accent))] transition-colors line-clamp-2 mr-2"
               {...listeners}
             >
               {prompt.title}
@@ -449,32 +451,17 @@ export const PromptList = ({
 
   // Show loading state
   if (isLoading) {
-    return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonPromptCard key={i} />
-        ))}
-      </div>
-    );
+    return <LoadingStates.CardGrid />;
   }
 
   // Show message when no prompts match the filters
   if (filteredPrompts.length === 0 && prompts.length > 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Icons.Search className="h-12 w-12 text-gray-600 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No prompts found</h3>
-        <p className="text-gray-700 max-w-md">
-          {searchQuery && selectedTagIds.length > 0
-            ? `No prompts match your search "${searchQuery}" and selected tags.`
-            : searchQuery
-            ? `No prompts match your search "${searchQuery}".`
-            : selectedTagIds.length > 0
-            ? "No prompts match your selected tags."
-            : "No prompts found."}
-        </p>
-      </div>
-    );
+    return <EmptyStates.NoSearchResults query={searchQuery || selectedTagIds.length > 0 ? searchQuery : undefined} />;
+  }
+  
+  // Show empty state when no prompts exist
+  if (prompts.length === 0) {
+    return <EmptyStates.NoPrompts />;
   }
 
   return (
@@ -510,7 +497,7 @@ export const PromptList = ({
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={filteredPrompts} strategy={rectSortingStrategy}>
-            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-12 p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-10 xl:gap-12 p-2 sm:p-3 md:p-4">
               {filteredPrompts.map((prompt) => (
                 <PromptItem 
                   key={prompt.id} 

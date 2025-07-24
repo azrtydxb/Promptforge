@@ -110,9 +110,6 @@ export default function SignUpPage() {
             <CardTitle className="text-2xl text-center text-white font-semibold">
               Join PromptForge
             </CardTitle>
-            <CardDescription className="text-center text-gray-300">
-              Create your account and start crafting amazing prompts
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">

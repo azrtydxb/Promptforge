@@ -167,12 +167,12 @@ export function PromptFilters({
   };
 
   return (
-    <div className="space-y-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+    <div className="space-y-3 p-4 bg-background border border-border rounded-lg shadow-sm">
       {/* Main horizontal bar with search inputs and buttons */}
       <div className="flex items-center gap-4">
         {/* Search Input */}
         <div className="relative flex-1">
-          <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600 dark:text-gray-400" aria-hidden="true" />
+          <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
             placeholder="Search prompts..."
             value={searchValue}
@@ -183,7 +183,7 @@ export function PromptFilters({
 
         {/* Tag Search Input */}
         <div className="relative flex-1">
-          <Icons.Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600 dark:text-gray-400" aria-hidden="true" />
+          <Icons.Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <Input
             placeholder="Filter by tags..."
             value={tagSearchValue}
@@ -202,9 +202,9 @@ export function PromptFilters({
           
           {/* Custom dropdown that doesn't interfere with typing */}
           {isTagDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
               {filteredTags.length === 0 ? (
-                <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                <div className="px-4 py-2 text-sm text-muted-foreground">
                   No tags found
                 </div>
               ) : (
@@ -212,23 +212,23 @@ export function PromptFilters({
                   <div
                     key={tag.id}
                     onClick={() => handleTagSelect(tag.id)}
-                    className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-accent hover:text-accent-foreground"
                   >
                     <div className="flex items-center gap-2">
                       <div
                         className={`w-3 h-3 rounded border ${
                           selectedTagIds.includes(tag.id)
-                            ? "bg-blue-600 border-blue-600"
-                            : "border-gray-300 dark:border-gray-600"
+                            ? "bg-primary border-primary"
+                            : "border-input"
                         }`}
                       >
                         {selectedTagIds.includes(tag.id) && (
-                          <Icons.Check className="w-2 h-2 text-white m-0.5" />
+                          <Icons.Check className="w-2 h-2 text-primary-foreground m-0.5" />
                         )}
                       </div>
-                      <span className="text-sm dark:text-gray-200">{tag.name}</span>
+                      <span className="text-sm">{tag.name}</span>
                     </div>
-                    <span className="text-xs text-gray-700 dark:text-gray-400">
+                    <span className="text-xs text-muted-foreground">
                       {tag._count.prompts}
                     </span>
                   </div>
@@ -245,7 +245,7 @@ export function PromptFilters({
               variant="outline"
               size="sm"
               onClick={clearAllFilters}
-              className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
+              className="whitespace-nowrap"
             >
               <Icons.FilterX className="h-4 w-4 mr-2" />
               Clear
@@ -257,7 +257,7 @@ export function PromptFilters({
             size="sm"
             onClick={handleExport}
             disabled={isExporting}
-            className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
+            className="whitespace-nowrap"
             title="Export all prompts"
           >
             <Download className="h-4 w-4 mr-2" />
@@ -269,7 +269,7 @@ export function PromptFilters({
             size="sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={isImporting}
-            className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
+            className="whitespace-nowrap"
             title="Import prompts from file"
           >
             <Upload className="h-4 w-4 mr-2" />
@@ -301,12 +301,12 @@ export function PromptFilters({
             <Badge
               key={tag.id}
               variant="secondary"
-              className="flex items-center gap-1 bg-blue-50 text-blue-700 border-blue-200"
+              className="flex items-center gap-1"
             >
               {tag.name}
               <button
                 onClick={() => handleTagRemove(tag.id)}
-                className="ml-1 hover:bg-blue-200 rounded-full p-0.5"
+                className="ml-1 hover:bg-accent rounded-full p-0.5 transition-colors"
               >
                 <Icons.X className="h-3 w-3" />
               </button>

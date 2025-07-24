@@ -100,12 +100,6 @@ export default function NewTemplatePage() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Create Template</h1>
-          <p className="text-muted-foreground mt-1">
-            Create a reusable prompt template for your team
-          </p>
-        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

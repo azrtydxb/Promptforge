@@ -55,12 +55,12 @@ export const dellComponents = {
     premium: "bg-gradient-to-br from-white to-dell-blue-50 border-dell-blue-200 hover:shadow-xl",
   },
   
-  // Professional Navigation with smooth animations
+  // Professional Navigation with smooth animations (theme-aware)
   navItem: {
     base: "flex items-center gap-1.5 rounded pl-0.5 pr-1 py-0.5 mr-3 transition-all duration-200 group relative",
-    default: "!text-white hover:bg-white/10 hover:!text-white",
-    active: "bg-white/20 !text-white before:absolute before:left-0 before:w-0.5 before:h-full before:bg-white before:rounded-r",
-    indicator: "after:absolute after:right-1 after:w-0 after:h-0 after:transition-all after:duration-200 group-hover:after:w-0.5 group-hover:after:h-0.5 group-hover:after:bg-white group-hover:after:rounded-full",
+    default: "text-primary-foreground hover:bg-primary-foreground/5 hover:text-primary-foreground",
+    active: "bg-primary-foreground/10 text-primary-foreground before:absolute before:left-0 before:w-0.5 before:h-full before:bg-[hsl(var(--accent))] before:rounded-r",
+    indicator: "after:absolute after:right-1 after:w-0 after:h-0 after:transition-all after:duration-200 group-hover:after:w-0.5 group-hover:after:h-0.5 group-hover:after:bg-primary-foreground group-hover:after:rounded-full",
   },
   
   // Enhanced Buttons with professional interactions
@@ -69,6 +69,9 @@ export const dellComponents = {
     secondary: "bg-dell-gray-100 hover:bg-dell-gray-200 hover:shadow-md hover:scale-[1.02] text-dell-gray-900 transition-all duration-200",
     ghost: "hover:bg-dell-blue-50 hover:text-dell-blue-600 hover:shadow-sm hover:scale-[1.02] transition-all duration-200",
     gradient: "bg-gradient-to-r from-dell-blue-500 to-dell-blue-600 hover:from-dell-blue-600 hover:to-dell-blue-700 hover:shadow-lg hover:scale-[1.02] text-white transition-all duration-200",
+    // Icon buttons for overlays and sticky notes
+    iconOverlay: "rounded-full bg-background/80 text-foreground hover:bg-background hover:shadow-md transition-all duration-200 hover:scale-110 border border-border/50",
+    iconSolid: "rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg transition-all duration-200 hover:scale-110",
   },
   
   // Professional Form elements with enhanced feedback
@@ -151,6 +154,26 @@ export function dellButton(variant: 'primary' | 'secondary' | 'ghost' | 'gradien
 }
 
 /**
+ * Dell icon button for actions on cards and overlays
+ */
+export function dellIconButton(variant: 'overlay' | 'solid' = 'overlay', size: 'sm' | 'md' | 'lg' = 'md', className?: ClassValue) {
+  const sizeClasses = {
+    sm: 'w-6 h-6',
+    md: 'w-8 h-8', 
+    lg: 'w-10 h-10'
+  }
+  
+  const baseClasses = "inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+  
+  return cn(
+    baseClasses,
+    sizeClasses[size],
+    variant === 'overlay' ? dellComponents.button.iconOverlay : dellComponents.button.iconSolid,
+    className
+  )
+}
+
+/**
  * Professional Dell input with enhanced focus states
  */
 export function dellInput(state: 'default' | 'error' | 'success' = 'default', className?: ClassValue) {
@@ -195,7 +218,7 @@ export function stickyNoteCard(color: 'yellow' | 'blue' | 'green' | 'pink' | 'or
     // Base sticky note styling - compact post-it size
     "relative transform transition-all duration-200 ease-in-out",
     "border-2 rounded-sm p-3",
-    "w-96 h-96", // Fixed post-it note dimensions - doubled size
+    "w-full max-w-sm sm:w-80 md:w-96 aspect-square", // Responsive post-it note dimensions
     "shadow-lg hover:shadow-xl",
     // Slight rotation for authentic look
     "rotate-1 hover:rotate-0",

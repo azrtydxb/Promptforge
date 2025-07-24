@@ -19,7 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingStates } from "@/components/ui/loading-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Dialog,
   DialogContent,
@@ -195,10 +196,8 @@ export function PromptHistoryTimeline({
             Version History
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full" />
-          ))}
+        <CardContent>
+          <LoadingStates.List count={3} />
         </CardContent>
       </Card>
     );
@@ -214,12 +213,13 @@ export function PromptHistoryTimeline({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              No version history available yet. Versions are created when you save changes to your prompt.
-            </AlertDescription>
-          </Alert>
+          <EmptyState
+            type="noData"
+            icon={Clock}
+            title="No version history yet"
+            description="Versions are created when you save changes to your prompt."
+            size="sm"
+          />
         </CardContent>
       </Card>
     );

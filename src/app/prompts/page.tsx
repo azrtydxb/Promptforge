@@ -120,26 +120,29 @@ export default function Prompts() {
       leftPanel={sidebar}
       rightPanel={
         <div className="pb-4 px-4">
-          <div className="flex justify-between items-center mb-4 pt-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 pt-4">
             <h1 className="sr-only">Prompts Management</h1>
-            <div className="flex items-center gap-4">
-              <Tabs value={viewMode} onValueChange={(v) => handleViewModeChange(v as ViewMode)}>
-                <TabsList>
-                  <TabsTrigger value="folders" className="flex items-center gap-2">
-                    <Folder className="h-4 w-4" />
-                    Folders
-                  </TabsTrigger>
-                  <TabsTrigger value="tags" className="flex items-center gap-2">
-                    <Tag className="h-4 w-4" />
-                    Tags
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-              <span className="font-medium">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">View by:</span>
+                <Tabs value={viewMode} onValueChange={(v) => handleViewModeChange(v as ViewMode)}>
+                  <TabsList>
+                    <TabsTrigger value="folders" className="flex items-center gap-1 sm:gap-2">
+                      <Folder className="h-4 w-4" />
+                      <span className="hidden sm:inline">Folders</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="tags" className="flex items-center gap-1 sm:gap-2">
+                      <Tag className="h-4 w-4" />
+                      <span className="hidden sm:inline">Tags</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+              <span className="font-medium text-sm sm:text-base">
                 {viewMode === "folders" ? (
-                  <>Selected folder: <span className="text-blue-500">{selectedFolder.name}</span></>
+                  <>Selected: <span className="text-[hsl(var(--accent))]">{selectedFolder.name}</span></>
                 ) : (
-                  <>Selected tag: <span className="text-blue-500">{selectedTag.name}</span></>
+                  <>Selected: <span className="text-[hsl(var(--accent))]">{selectedTag.name}</span></>
                 )}
               </span>
             </div>

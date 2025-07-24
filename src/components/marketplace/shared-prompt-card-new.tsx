@@ -118,7 +118,8 @@ export function SharedPromptCardNew({
   return (
     <Card
       className={cn(
-        "hover:shadow-md transition-all duration-200 cursor-pointer group border-gray-200 dark:border-gray-800",
+        "hover:shadow-md transition-all duration-200 cursor-pointer group",
+        "bg-card/50 dark:bg-card/30",
         className
       )}
     >

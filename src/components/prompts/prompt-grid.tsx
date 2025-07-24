@@ -26,7 +26,7 @@ export function PromptGrid({
   onPromptClick
 }: PromptGridProps) {
   return (
-    <div className={`grid gap-6 md:grid-cols-2 lg:grid-cols-3 ${className}`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 ${className}`}>
       {prompts.map((prompt) => (
         <PromptCard
           key={prompt.id}

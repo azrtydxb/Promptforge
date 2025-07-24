@@ -112,7 +112,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
   if (!context.open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4" role="dialog" aria-modal="true">
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={() => context.onOpenChange(false)}
@@ -121,7 +121,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
       <div
         ref={contentRef}
         className={cn(
-          "relative z-[61] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-lg max-h-[90vh] overflow-y-auto",
+          "relative z-[61] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto",
           className
         )}
         onClick={(e) => e.stopPropagation()}

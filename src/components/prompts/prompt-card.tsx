@@ -19,6 +19,7 @@ import {
 import { FavoriteButton } from "./favorite-button";
 import { PinButton } from "./pin-button";
 import { cn } from "@/lib/utils";
+import { dellCard, dellButton } from "@/lib/styles";
 
 interface PromptCardProps {
   prompt: {
@@ -82,8 +83,9 @@ export function PromptCard({
     >
       <Card
         className={cn(
-          "hover:shadow-md transition-all duration-200 cursor-pointer group",
-          prompt.isPinned ? "border-primary/50 bg-primary/5" : "border-gray-200 dark:border-gray-800",
+          dellCard('interactive'),
+          "bg-card/50 dark:bg-card/30",
+          prompt.isPinned ? "border-primary/50 bg-primary/5" : "",
           className
         )}
       >
@@ -181,7 +183,7 @@ export function PromptCard({
           <Button
             size="sm"
             variant="ghost"
-            className="group-hover:bg-primary group-hover:text-primary-foreground"
+            className={dellButton('ghost', "group-hover:bg-primary group-hover:text-primary-foreground")}
           >
             Open
             <ArrowRight className="h-3 w-3 ml-1" />
