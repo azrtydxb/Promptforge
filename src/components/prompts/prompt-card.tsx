@@ -14,8 +14,10 @@ import {
   ArrowRight,
   Clock,
   Hash,
+  Pin,
 } from "lucide-react";
 import { FavoriteButton } from "./favorite-button";
+import { PinButton } from "./pin-button";
 import { cn } from "@/lib/utils";
 
 interface PromptCardProps {
@@ -29,6 +31,8 @@ interface PromptCardProps {
     lastUsedAt?: Date | null;
     favoritedAt?: Date;
     isFavorited?: boolean;
+    pinnedAt?: Date | null;
+    isPinned?: boolean;
     tags?: Array<{ id: string; name: string }>;
     _count?: {
       likes?: number;
@@ -65,7 +69,8 @@ export function PromptCard({
   return (
     <Card
       className={cn(
-        "hover:shadow-md transition-all duration-200 cursor-pointer group border-gray-200 dark:border-gray-800",
+        "hover:shadow-md transition-all duration-200 cursor-pointer group",
+        prompt.isPinned ? "border-primary/50 bg-primary/5" : "border-gray-200 dark:border-gray-800",
         className
       )}
     >
@@ -101,19 +106,35 @@ export function PromptCard({
               )}
             </div>
           </div>
-          {showFavoriteButton && (
+          <div className="flex items-center gap-1">
+            {prompt.isPinned && (
+              <Badge variant="secondary" className="text-xs">
+                <Pin className="h-3 w-3 mr-1" />
+                Pinned
+              </Badge>
+            )}
             <div onClick={(e) => e.stopPropagation()}>
-              <FavoriteButton
+              <PinButton
                 promptId={prompt.id}
-                isFavorited={isFavorited || prompt.isFavorited || false}
-                favoriteCount={prompt._count?.favorites}
+                isPinned={prompt.isPinned || false}
                 size="sm"
                 variant="ghost"
-                showCount={false}
-                iconClasses="h-4 w-4"
               />
             </div>
-          )}
+            {showFavoriteButton && (
+              <div onClick={(e) => e.stopPropagation()}>
+                <FavoriteButton
+                  promptId={prompt.id}
+                  isFavorited={isFavorited || prompt.isFavorited || false}
+                  favoriteCount={prompt._count?.favorites}
+                  size="sm"
+                  variant="ghost"
+                  showCount={false}
+                  iconClasses="h-4 w-4"
+                />
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

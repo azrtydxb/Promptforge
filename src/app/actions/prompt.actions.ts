@@ -37,9 +37,10 @@ export async function getPromptsByFolder(folderId?: string) {
         },
       },
     },
-    orderBy: {
-      order: "asc",
-    },
+    orderBy: [
+      { pinnedAt: { sort: 'desc', nulls: 'last' } },
+      { order: "asc" },
+    ],
   });
 
   // Add computed fields for easier frontend consumption
@@ -49,6 +50,7 @@ export async function getPromptsByFolder(folderId?: string) {
     favoriteCount: prompt._count.favorites,
     isLikedByUser: prompt.likes.some((like: { userId: string }) => like.userId === user.id),
     isFavoritedByUser: prompt.favorites.length > 0,
+    isPinned: !!prompt.pinnedAt,
   }));
 
   return promptsWithLikeData;
@@ -85,9 +87,10 @@ export async function getAllPrompts() {
         },
       },
     },
-    orderBy: {
-      updatedAt: "desc",
-    },
+    orderBy: [
+      { pinnedAt: { sort: 'desc', nulls: 'last' } },
+      { updatedAt: "desc" },
+    ],
   });
 
   // Add computed fields for easier frontend consumption
@@ -97,6 +100,7 @@ export async function getAllPrompts() {
     favoriteCount: prompt._count.favorites,
     isLikedByUser: prompt.likes.some((like: { userId: string }) => like.userId === user.id),
     isFavoritedByUser: prompt.favorites.length > 0,
+    isPinned: !!prompt.pinnedAt,
   }));
 
   return promptsWithLikeData;
@@ -644,4 +648,83 @@ export async function getRecentlyUsedPrompts(limit: number = 10) {
   });
 
   return prompts;
+}
+
+// Pin/Unpin functionality
+export async function pinPrompt(promptId: string) {
+  const user = await requireAuth();
+
+  try {
+    const prompt = await db.prompt.findFirst({
+      where: {
+        id: promptId,
+        userId: user.id,
+      },
+    });
+
+    if (!prompt) {
+      throw new Error("Prompt not found or you don't have permission");
+    }
+
+    // Toggle pin status
+    const updatedPrompt = await db.prompt.update({
+      where: {
+        id: promptId,
+      },
+      data: {
+        pinnedAt: prompt.pinnedAt ? null : new Date(),
+      },
+    });
+
+    revalidatePath("/prompts");
+    return { 
+      success: true, 
+      isPinned: !!updatedPrompt.pinnedAt 
+    };
+  } catch (error) {
+    console.error("Error pinning/unpinning prompt:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Failed to update pin status" 
+    };
+  }
+}
+
+export async function getPinnedPrompts() {
+  const user = await requireAuth();
+
+  const prompts = await db.prompt.findMany({
+    where: {
+      userId: user.id,
+      pinnedAt: {
+        not: null,
+      },
+    },
+    include: {
+      tags: true,
+      favorites: {
+        where: {
+          userId: user.id,
+        },
+      },
+      _count: {
+        select: {
+          likes: true,
+          favorites: true,
+        },
+      },
+    },
+    orderBy: {
+      pinnedAt: 'desc',
+    },
+  });
+
+  // Add computed fields
+  const promptsWithData = prompts.map(prompt => ({
+    ...prompt,
+    isFavorited: prompt.favorites.length > 0,
+    isPinned: true,
+  }));
+
+  return promptsWithData;
 }

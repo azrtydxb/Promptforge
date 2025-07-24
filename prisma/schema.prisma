@@ -162,6 +162,7 @@ model Prompt {
   sharedPrompt SharedPrompt?
   order       Int?
   lastUsedAt  DateTime?       // Track when prompt was last accessed/used
+  pinnedAt    DateTime?       // Track when prompt was pinned
   // AI Enhancement fields
   enhancedContent String?     // AI-enhanced version of the prompt
   enhancementSuggestions Json? // Stored suggestions from AI
@@ -179,6 +180,7 @@ model Prompt {
   @@index([userId])
   @@index([folderId])
   @@index([lastUsedAt])
+  @@index([pinnedAt])
 }
 
 model SharedPrompt {
