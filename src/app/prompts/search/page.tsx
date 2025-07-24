@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import { searchPrompts } from "@/app/actions/prompt.actions.cached";
+import { searchPrompts } from "@/app/actions/prompt.actions";
 import type { Prompt, Tag } from "@/generated/prisma";
 import { PromptList } from "@/components/prompts/prompt-list";
 

@@ -33,9 +33,10 @@ export const getPromptsByFolder = unstable_cache(
           },
         },
       },
-      orderBy: {
-        order: "asc",
-      },
+      orderBy: [
+        { pinnedAt: "desc" },
+        { order: "asc" },
+      ],
     });
 
     // Add computed fields for easier frontend consumption
@@ -81,9 +82,10 @@ export const getAllPrompts = unstable_cache(
           },
         },
       },
-      orderBy: {
-        updatedAt: "desc",
-      },
+      orderBy: [
+        { pinnedAt: "desc" },
+        { updatedAt: "desc" },
+      ],
     });
 
     // Add computed fields for easier frontend consumption
