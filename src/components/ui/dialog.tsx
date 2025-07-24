@@ -121,7 +121,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
       <div
         ref={contentRef}
         className={cn(
-          "relative z-50 bg-background rounded-lg shadow-2xl border border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto isolate",
+          "relative z-50 bg-card rounded-lg shadow-2xl border border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto",
           className
         )}
         onClick={(e) => e.stopPropagation()}
