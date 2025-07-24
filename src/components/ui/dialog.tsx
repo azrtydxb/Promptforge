@@ -115,7 +115,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 z-[100] bg-black/70" 
+        className="fixed inset-0 z-[100] bg-black/80" 
         onClick={() => context.onOpenChange(false)}
         aria-hidden="true"
       />
@@ -125,7 +125,8 @@ export function DialogContent({ className, children }: DialogContentProps) {
         <div
           ref={contentRef}
           className={cn(
-            "relative bg-background rounded-lg shadow-2xl border-2 border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
+            "relative rounded-lg shadow-2xl border-2 border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
+            "bg-white dark:bg-gray-900",
             className
           )}
           onClick={(e) => e.stopPropagation()}

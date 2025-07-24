@@ -49,7 +49,7 @@ export function ModalWrapper({
         </DialogHeader>
         <div className="px-6 pb-2">{children}</div>
         {footer && (
-          <DialogFooter className="px-6 pb-6 pt-4 border-t bg-muted/30">
+          <DialogFooter className="px-6 pb-6 pt-4 border-t bg-muted">
             {footer}
           </DialogFooter>
         )}
