@@ -125,8 +125,8 @@ export function DialogContent({ className, children }: DialogContentProps) {
         <div
           ref={contentRef}
           className={cn(
-            "relative rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
-            "bg-white dark:bg-gray-800",
+            "relative rounded-lg shadow-2xl border-2 border-[hsl(var(--accent))]/20 w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
+            "bg-white dark:bg-white",
             className
           )}
           onClick={(e) => e.stopPropagation()}
@@ -189,7 +189,7 @@ export function DialogTitle({ className, children }: DialogTitleProps) {
   }, [dialogTitleId]);
   
   return (
-    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-gray-100", className)}>
+    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900", className)}>
       {children}
     </h2>
   );
@@ -214,7 +214,7 @@ export function DialogDescription({ className, children }: DialogDescriptionProp
   }, [dialogDescId]);
   
   return (
-    <p id={dialogDescId} className={cn("text-sm text-gray-600 dark:text-gray-400", className)}>
+    <p id={dialogDescId} className={cn("text-sm text-gray-600", className)}>
       {children}
     </p>
   );
