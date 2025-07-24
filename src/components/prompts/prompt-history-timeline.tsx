@@ -11,7 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
-  AlertCircle
+  AlertCircle,
+  GitCompare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,7 @@ import {
   restorePromptVersion,
   deletePromptVersion
 } from "@/app/actions/prompt-version.actions";
+import { PromptDiffModal } from "./prompt-diff-modal";
 
 interface PromptVersion {
   id: string;
@@ -52,11 +54,14 @@ interface PromptVersion {
 interface PromptHistoryTimelineProps {
   promptId: string;
   currentContent: string;
+  currentTitle?: string;
   onRestore?: () => void;
 }
 
 export function PromptHistoryTimeline({ 
   promptId,
+  currentContent,
+  currentTitle = "Current Version",
   onRestore 
 }: PromptHistoryTimelineProps) {
   const [versions, setVersions] = useState<PromptVersion[]>([]);
@@ -67,6 +72,7 @@ export function PromptHistoryTimeline({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [expandedVersions, setExpandedVersions] = useState<Set<string>>(new Set());
   const [processingAction, setProcessingAction] = useState<string | null>(null);
+  const [diffVersion, setDiffVersion] = useState<PromptVersion | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -352,6 +358,23 @@ export function PromptHistoryTimeline({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => {
+                                      setDiffVersion(version);
+                                    }}
+                                  >
+                                    <GitCompare className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Compare with current</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
                                       setSelectedVersion(version);
                                       setShowRestoreDialog(true);
                                     }}
@@ -479,6 +502,30 @@ export function PromptHistoryTimeline({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diff Comparison Modal */}
+      {diffVersion && (
+        <PromptDiffModal
+          open={!!diffVersion}
+          onOpenChange={(open) => !open && setDiffVersion(null)}
+          leftPrompt={{
+            id: "current",
+            title: currentTitle,
+            content: currentContent,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }}
+          rightPrompt={{
+            id: diffVersion.id,
+            title: diffVersion.version || `Version from ${formatDistanceToNow(new Date(diffVersion.createdAt), { addSuffix: true })}`,
+            content: diffVersion.content,
+            createdAt: new Date(diffVersion.createdAt),
+            updatedAt: new Date(diffVersion.createdAt),
+          }}
+          leftTitle="Current Version"
+          rightTitle={diffVersion.version || "Previous Version"}
+        />
+      )}
     </>
   );
 }

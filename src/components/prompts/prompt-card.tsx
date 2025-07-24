@@ -43,11 +43,13 @@ interface PromptCardProps {
   showFavoriteButton?: boolean;
   isFavorited?: boolean;
   className?: string;
+  onPromptClick?: (promptId: string) => void;
 }
 
 export function PromptCard({ 
   prompt, 
   showFavoriteButton = true,
+  onPromptClick,
   isFavorited = false,
   className 
 }: PromptCardProps) {
@@ -66,14 +68,25 @@ export function PromptCard({
 
   const timeDisplay = getTimeDisplay();
 
+  const handleCardClick = () => {
+    if (onPromptClick) {
+      onPromptClick(prompt.id);
+    }
+  };
+
   return (
-    <Card
-      className={cn(
-        "hover:shadow-md transition-all duration-200 cursor-pointer group",
-        prompt.isPinned ? "border-primary/50 bg-primary/5" : "border-gray-200 dark:border-gray-800",
-        className
-      )}
+    <Link 
+      href={`/prompts/${prompt.id}`}
+      onClick={handleCardClick}
+      className="block"
     >
+      <Card
+        className={cn(
+          "hover:shadow-md transition-all duration-200 cursor-pointer group",
+          prompt.isPinned ? "border-primary/50 bg-primary/5" : "border-gray-200 dark:border-gray-800",
+          className
+        )}
+      >
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -165,19 +178,14 @@ export function PromptCard({
               </div>
             )}
           </div>
-          <Link
-            href={`/prompts/${prompt.id}`}
-            onClick={(e) => e.stopPropagation()}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="group-hover:bg-primary group-hover:text-primary-foreground"
           >
-            <Button
-              size="sm"
-              variant="ghost"
-              className="group-hover:bg-primary group-hover:text-primary-foreground"
-            >
-              Open
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </Button>
-          </Link>
+            Open
+            <ArrowRight className="h-3 w-3 ml-1" />
+          </Button>
         </div>
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
@@ -185,6 +193,7 @@ export function PromptCard({
           <span>{timeDisplay.text}</span>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </Link>
   );
 }

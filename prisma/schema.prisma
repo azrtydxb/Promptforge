@@ -53,6 +53,7 @@ model User {
   promptTemplates PromptTemplate[]
   aiUsageLogs AIUsageLog[]
   shareLinks  PromptShareLink[]
+  searchHistory SearchHistory[]
 }
 
 enum AvatarType {
@@ -174,6 +175,7 @@ model Prompt {
   template    PromptTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   aiUsageLogs AIUsageLog[]
   shareLinks  PromptShareLink[]
+  searchHistoryClicks SearchHistory[] @relation("ClickedPrompt")
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -531,4 +533,22 @@ model PromptShareView {
   viewedAt     DateTime @default(now())
 
   @@index([shareLinkId])
+}
+
+// Search History
+model SearchHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query       String
+  searchType  String   @default("hybrid") // "semantic", "hybrid", "keyword"
+  filters     Json?    // Store selected tags, folders, etc.
+  resultCount Int      @default(0)
+  clickedPromptId String? // Track which result was clicked
+  clickedPrompt Prompt? @relation("ClickedPrompt", fields: [clickedPromptId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([query])
 }

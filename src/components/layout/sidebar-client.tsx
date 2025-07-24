@@ -8,7 +8,6 @@ import {
   Tag,
   Zap,
   Users,
-  Tags,
   ChevronRight,
   Shield,
   Star,
@@ -56,12 +55,6 @@ const getNavigationItems = (isAdmin: boolean) => [
     icon: Tag,
     label: "Tags",
     description: "Organize by categories"
-  },
-  {
-    href: "/group-by-tags",
-    icon: Tags,
-    label: "Group by Tags",
-    description: "Tag-based view"
   },
   ...(isAdmin ? [{
     href: "/admin",

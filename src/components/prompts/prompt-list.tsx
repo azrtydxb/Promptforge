@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { Icons } from "../ui/icons";
 import { Button } from "../ui/button";
-import { getPromptsByFolder, movePrompt, togglePromptLike, duplicatePrompt } from "@/app/actions/prompt.actions";
+import { getPromptsByFolder, getAllPrompts, movePrompt, togglePromptLike, duplicatePrompt } from "@/app/actions/prompt.actions";
+import { getTagsWithPrompts } from "@/app/actions/tag-management.actions";
 import { FavoriteButton } from "./favorite-button";
 import type { Prompt, Tag } from "@/generated/prisma";
 import Link from "next/link";
@@ -325,6 +326,7 @@ const PromptItem = ({ prompt, onConfirm, onDuplicate }: { prompt: PromptWithTags
 
 interface PromptListProps {
   folderId?: string;
+  tagId?: string;
   prompts?: PromptWithTags[];
   searchQuery?: string;
   selectedTagIds?: string[];
@@ -332,6 +334,7 @@ interface PromptListProps {
 
 export const PromptList = ({
   folderId,
+  tagId,
   prompts: initialPrompts,
   searchQuery = "",
   selectedTagIds = []
@@ -380,7 +383,19 @@ export const PromptList = ({
   const fetchPrompts = useCallback(async () => {
     setIsLoading(true);
     try {
-      if (folderId !== undefined) {
+      if (tagId !== undefined) {
+        // Fetch prompts by tag
+        if (tagId === null) {
+          // Show all prompts when "All Prompts" is selected
+          const allPrompts = await getAllPrompts();
+          setPrompts(allPrompts as PromptWithTags[]);
+        } else {
+          // Show prompts for specific tag
+          const tagsWithPrompts = await getTagsWithPrompts();
+          const selectedTag = tagsWithPrompts.find(tag => tag.id === tagId);
+          setPrompts((selectedTag?.prompts || []) as PromptWithTags[]);
+        }
+      } else if (folderId !== undefined) {
         const fetchedPrompts = await getPromptsByFolder(folderId);
         setPrompts(fetchedPrompts as PromptWithTags[]);
       } else if (initialPrompts) {
@@ -393,7 +408,7 @@ export const PromptList = ({
     } finally {
       setIsLoading(false);
     }
-  }, [folderId, initialPrompts]);
+  }, [folderId, tagId, initialPrompts]);
 
   useEffect(() => {
     fetchPrompts();

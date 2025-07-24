@@ -16,12 +16,14 @@ interface PromptGridProps {
   }>;
   showFavoriteButton?: boolean;
   className?: string;
+  onPromptClick?: (promptId: string) => void;
 }
 
 export function PromptGrid({ 
   prompts, 
   showFavoriteButton = true,
-  className = ""
+  className = "",
+  onPromptClick
 }: PromptGridProps) {
   return (
     <div className={`grid gap-6 md:grid-cols-2 lg:grid-cols-3 ${className}`}>
@@ -30,6 +32,7 @@ export function PromptGrid({
           key={prompt.id}
           prompt={prompt}
           showFavoriteButton={showFavoriteButton}
+          onPromptClick={onPromptClick}
         />
       ))}
     </div>

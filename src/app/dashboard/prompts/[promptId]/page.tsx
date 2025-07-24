@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { getPromptById, updatePrompt, createPrompt } from "@/app/actions/prompt.actions";
-import { Editor } from "@/components/editor/editor";
+import { EditorWithHistory } from "@/components/editor/editor-with-history";
 import type { Prompt, Tag } from "@/generated/prisma";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useAutoSaveDraft } from "@/hooks/use-auto-save-draft";
+import { SaveStatusIndicator } from "@/components/editor/save-status-indicator";
+import { DraftRecoveryDialog } from "@/components/editor/draft-recovery-dialog";
+import type { Draft } from "@/services/draft-storage";
 import { TagInput } from "@/components/prompts/tag-input";
 import {
   DropdownMenu,
@@ -35,12 +39,28 @@ export default function PromptPage({
   const [isSaving, setIsSaving] = useState(false);
   const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">("edit");
   const [copied, setCopied] = useState(false);
+  const [showDraftRecovery, setShowDraftRecovery] = useState(false);
+  const [recoveredDraft, setRecoveredDraft] = useState<Draft | null>(null);
   const debouncedContent = useDebounce(content, 500);
   const debouncedDescription = useDebounce(description, 500);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const languageOptions = ["Markdown", "Text", "Yaml", "Json", "XML"];
+  
+  // Auto-save draft hook
+  const {
+    saveDraft,
+    loadDraft,
+    clearDraft,
+    hasDraft,
+    draftStatus,
+    lastSaved,
+  } = useAutoSaveDraft({
+    promptId: isCreateMode ? null : promptId,
+    isNew: isCreateMode,
+    enabled: true,
+  });
 
   useEffect(() => {
     const initializeParams = async () => {
@@ -62,6 +82,15 @@ export default function PromptPage({
       setTitle("");
       setDescription("");
       setTags([]);
+      
+      // Check for draft
+      if (hasDraft) {
+        const draft = loadDraft();
+        if (draft) {
+          setRecoveredDraft(draft);
+          setShowDraftRecovery(true);
+        }
+      }
       return;
     }
     
@@ -72,9 +101,32 @@ export default function PromptPage({
       setTitle(fetchedPrompt?.title || "");
       setDescription(fetchedPrompt?.description || "");
       setTags(fetchedPrompt?.tags?.map(tag => tag.name) || []);
+      
+      // Check for draft after loading prompt
+      if (fetchedPrompt && hasDraft) {
+        const draft = loadDraft();
+        if (draft && (
+          draft.content !== fetchedPrompt.content ||
+          draft.title !== fetchedPrompt.title ||
+          draft.description !== fetchedPrompt.description
+        )) {
+          setRecoveredDraft(draft);
+          setShowDraftRecovery(true);
+        }
+      }
     };
     fetchPrompt();
-  }, [promptId, isCreateMode]);
+  }, [promptId, isCreateMode, hasDraft, loadDraft]);
+
+  // Auto-save draft on content changes
+  useEffect(() => {
+    saveDraft({
+      content,
+      title,
+      description,
+      tags,
+    });
+  }, [content, title, description, tags, saveDraft]);
 
   useEffect(() => {
     if (!promptId || isCreateMode || debouncedContent === prompt?.content) return;
@@ -119,6 +171,9 @@ export default function PromptPage({
         tags,
       });
 
+      // Clear draft after successful creation
+      clearDraft();
+      
       // Navigate to the newly created prompt
       router.push(`/prompts/${newPrompt.id}`);
     } catch (error) {
@@ -271,6 +326,11 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
             </div>
             
             <div className="flex items-center gap-2">
+              <SaveStatusIndicator
+                status={draftStatus}
+                lastSaved={lastSaved}
+                onClear={clearDraft}
+              />
               {!isCreateMode && (
                 <>
                   <DropdownMenu>
@@ -323,7 +383,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
         {/* Editor/Preview taking remaining space */}
         <div className="flex-grow overflow-hidden">
           {viewMode === "edit" && (
-            <Editor value={content} onChange={setContent} language={selectedLanguage} />
+            <EditorWithHistory value={content} onChange={setContent} language={selectedLanguage} />
           )}
           {viewMode === "preview" && (
             <div className="h-full overflow-auto bg-gray-900">
@@ -333,7 +393,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
           {viewMode === "split" && (
             <div className="flex h-full">
               <div className="w-1/2 border-r border-gray-700">
-                <Editor value={content} onChange={setContent} language={selectedLanguage} />
+                <EditorWithHistory value={content} onChange={setContent} language={selectedLanguage} />
               </div>
               <div className="w-1/2 overflow-auto bg-gray-900">
                 <MarkdownPreview content={content} />
@@ -392,6 +452,31 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
           </div>
         )}
       </div>
+      
+      {/* Draft Recovery Dialog */}
+      {recoveredDraft && (
+        <DraftRecoveryDialog
+          draft={recoveredDraft}
+          currentData={{
+            title: prompt?.title || title,
+            content: prompt?.content || content,
+            description: prompt?.description || description,
+            tags: prompt?.tags?.map(t => t.name) || tags,
+          }}
+          open={showDraftRecovery}
+          onOpenChange={setShowDraftRecovery}
+          onRecover={() => {
+            setTitle(recoveredDraft.title);
+            setContent(recoveredDraft.content);
+            setDescription(recoveredDraft.description);
+            setTags(recoveredDraft.tags);
+            clearDraft();
+          }}
+          onDiscard={() => {
+            clearDraft();
+          }}
+        />
+      )}
     </div>
   );
 }

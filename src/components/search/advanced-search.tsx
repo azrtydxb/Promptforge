@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Search, Filter, X, Sparkles, Hash, FolderOpen } from "lucide-react";
+import { Search, Filter, X, Sparkles, Hash, FolderOpen, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { searchPrompts, searchPromptsHybrid, triggerEmbeddingUpdate } from "@/ap
 import { getAllTags } from "@/app/actions/tag-management.actions";
 import { getFolders } from "@/app/actions/folder.actions";
 import { canUseSemanticSearch } from "@/app/actions/semantic-search.actions";
+import { saveSearchToHistory, updateSearchClick } from "@/app/actions/search-history.actions";
+import { SearchHistoryPanel } from "@/components/search/search-history-panel";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import {
@@ -43,6 +45,8 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
     hasEmbeddings: boolean;
     message?: string;
   }>({ enabled: false, hasEmbeddings: false });
+  const [currentSearchId, setCurrentSearchId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   
   // Filters
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -121,7 +125,29 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
       }
 
       setResults(searchResults);
-      onResultsChange?.(searchResults.prompts.length + (searchResults.templates?.length || 0));
+      const totalCount = searchResults.prompts.length + (searchResults.templates?.length || 0);
+      onResultsChange?.(totalCount);
+      
+      // Save to search history if there's a query
+      if (debouncedQuery.trim()) {
+        const historyResult = await saveSearchToHistory({
+          query: debouncedQuery,
+          searchType: searchMode,
+          filters: {
+            tags: selectedTags,
+            folder: selectedFolder,
+            includeEnhanced,
+            includeTemplates,
+            threshold,
+            keywordWeight,
+          },
+          resultCount: totalCount,
+        });
+        
+        if (historyResult.success && historyResult.searchEntry) {
+          setCurrentSearchId(historyResult.searchEntry.id);
+        }
+      }
     } catch (error) {
       console.error('Search error:', error);
       setResults({ prompts: [], templates: [] });
@@ -163,6 +189,27 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
     );
   };
 
+  // Handle prompt click to track in history
+  const handlePromptClick = async (promptId: string) => {
+    if (currentSearchId) {
+      await updateSearchClick(currentSearchId, promptId);
+    }
+  };
+
+  // Handle search selection from history
+  const handleHistorySelect = (historyQuery: string, filters?: Record<string, unknown>) => {
+    setQuery(historyQuery);
+    if (filters) {
+      setSelectedTags((filters.tags as string[]) || []);
+      setSelectedFolder((filters.folder as string) || null);
+      setIncludeEnhanced((filters.includeEnhanced as boolean) || false);
+      setIncludeTemplates((filters.includeTemplates as boolean) || false);
+      setThreshold((filters.threshold as number) || 0.7);
+      setKeywordWeight((filters.keywordWeight as number) || 0.3);
+    }
+    setShowHistory(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Search Bar */}
@@ -171,10 +218,20 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setShowHistory(true)}
           placeholder="Search prompts semantically..."
-          className="pl-10 pr-24"
+          className="pl-10 pr-32"
         />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setShowHistory(!showHistory)}
+            className="h-7 px-2"
+            title="Search history"
+          >
+            <Clock className="h-3 w-3" />
+          </Button>
           <Button
             size="sm"
             variant="ghost"
@@ -194,6 +251,28 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
           </Button>
         </div>
       </div>
+      
+      {/* Search History Panel */}
+      {showHistory && (
+        <div className="relative">
+          <div className="absolute top-0 left-0 right-0 z-10 rounded-lg border bg-background shadow-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-medium">Search History</h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowHistory(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <SearchHistoryPanel
+              onSearchSelect={handleHistorySelect}
+              currentQuery={query}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Search Mode Tabs */}
       <div className="space-y-4">
@@ -398,6 +477,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
                 <PromptGrid 
                   prompts={results.prompts} 
                   showFavoriteButton={true}
+                  onPromptClick={handlePromptClick}
                 />
               </div>
             )}
