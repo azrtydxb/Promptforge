@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, useMemo } from "react";
 import { getPromptsByFolder, getAllPrompts } from "@/app/actions/prompt.actions";
 import { getTagsWithPrompts } from "@/app/actions/tag-management.actions";
 import type { Prompt, Tag } from "@/generated/prisma";
+import { useModal } from "@/hooks/use-modal-store";
 import { LoadingStates } from "../ui/loading-state";
 import { EmptyStates } from "../ui/empty-state";
 import { PromptGrid } from "./prompt-grid";
