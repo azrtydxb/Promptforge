@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Save, ArrowLeft } from "lucide-react";
+import { ChevronDown, Save, ArrowLeft, Eye, Split, Code2, Copy, Check } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { MarkdownPreview } from "@/components/editor/markdown-preview";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PromptPage({
   params,
@@ -31,6 +33,8 @@ export default function PromptPage({
   const [tags, setTags] = useState<string[]>([]);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">("edit");
+  const [copied, setCopied] = useState(false);
   const debouncedContent = useDebounce(content, 500);
   const debouncedDescription = useDebounce(description, 500);
   const router = useRouter();
@@ -129,6 +133,40 @@ export default function PromptPage({
     router.push('/prompts');
   };
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
+  };
+
+  const handleCopyAsMarkdown = async () => {
+    try {
+      // Format the prompt as markdown
+      const markdownContent = `# ${title || "Untitled Prompt"}
+
+${description ? `> ${description}\n\n` : ''}## Prompt
+
+\`\`\`${selectedLanguage.toLowerCase()}
+${content}
+\`\`\`
+
+${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : ''}
+
+---
+*Created with [PromptForge](${window.location.origin})*`;
+
+      await navigator.clipboard.writeText(markdownContent);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy as markdown:", error);
+    }
+  };
+
   if (!promptId || (!prompt && !isCreateMode)) {
     return <div>Loading...</div>;
   }
@@ -183,47 +221,125 @@ export default function PromptPage({
           </div>
         </div>
 
-        {/* Language dropdown above editor */}
+        {/* Language dropdown and view mode toggles */}
         <div className="p-3 border-b bg-gray-50">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Language:</span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8">
-                    {selectedLanguage}
-                    <ChevronDown className="ml-2 h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {languageOptions.map((language) => (
-                    <DropdownMenuItem
-                      key={language}
-                      onClick={() => setSelectedLanguage(language)}
-                    >
-                      {language}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Language:</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8">
+                      {selectedLanguage}
+                      <ChevronDown className="ml-2 h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {languageOptions.map((language) => (
+                      <DropdownMenuItem
+                        key={language}
+                        onClick={() => setSelectedLanguage(language)}
+                      >
+                        {language}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              
+              {/* View mode toggles - only show for Markdown language */}
+              {selectedLanguage === "Markdown" && (
+                <div className="flex items-center">
+                  <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "edit" | "preview" | "split")}>
+                    <TabsList className="h-8">
+                      <TabsTrigger value="edit" className="h-7 px-3 text-xs">
+                        <Code2 className="h-3 w-3 mr-1" />
+                        Edit
+                      </TabsTrigger>
+                      <TabsTrigger value="split" className="h-7 px-3 text-xs">
+                        <Split className="h-3 w-3 mr-1" />
+                        Split
+                      </TabsTrigger>
+                      <TabsTrigger value="preview" className="h-7 px-3 text-xs">
+                        <Eye className="h-3 w-3 mr-1" />
+                        Preview
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+              )}
             </div>
-            {!isCreateMode && (
-              <Button
-                onClick={handleBack}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-            )}
+            
+            <div className="flex items-center gap-2">
+              {!isCreateMode && (
+                <>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4" />
+                            Copy
+                            <ChevronDown className="h-3 w-3" />
+                          </>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleCopy}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy Content
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleCopyAsMarkdown}>
+                        <Code2 className="h-4 w-4 mr-2" />
+                        Copy as Markdown
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    onClick={handleBack}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
         
-        {/* Editor taking remaining space */}
-        <div className="flex-grow">
-          <Editor value={content} onChange={setContent} />
+        {/* Editor/Preview taking remaining space */}
+        <div className="flex-grow overflow-hidden">
+          {viewMode === "edit" && (
+            <Editor value={content} onChange={setContent} language={selectedLanguage} />
+          )}
+          {viewMode === "preview" && (
+            <div className="h-full overflow-auto bg-gray-900">
+              <MarkdownPreview content={content} />
+            </div>
+          )}
+          {viewMode === "split" && (
+            <div className="flex h-full">
+              <div className="w-1/2 border-r border-gray-700">
+                <Editor value={content} onChange={setContent} language={selectedLanguage} />
+              </div>
+              <div className="w-1/2 overflow-auto bg-gray-900">
+                <MarkdownPreview content={content} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
