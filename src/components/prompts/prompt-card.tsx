@@ -84,7 +84,7 @@ export function PromptCard({
       <Card
         className={cn(
           dellCard('interactive'),
-          "bg-card/50 dark:bg-card/30",
+          "bg-card",
           prompt.isPinned ? "border-primary/50 bg-primary/5" : "",
           className
         )}

@@ -155,7 +155,7 @@ export function UnifiedPromptCardClean({
       <Card
         className={cn(
           dellCard('interactive'),
-          "bg-card/50 dark:bg-card/30 h-full flex flex-col min-h-[200px]",
+          "bg-card h-full flex flex-col min-h-[200px]",
           className
         )}
       >
