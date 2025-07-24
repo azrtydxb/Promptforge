@@ -114,14 +114,14 @@ export function DialogContent({ className, children }: DialogContentProps) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4" role="dialog" aria-modal="true">
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm"
         onClick={() => context.onOpenChange(false)}
         aria-hidden="true"
       />
       <div
         ref={contentRef}
         className={cn(
-          "relative z-[61] bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto",
+          "relative z-[61] bg-background rounded-lg shadow-xl border border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto",
           className
         )}
         onClick={(e) => e.stopPropagation()}
@@ -129,7 +129,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
       >
         <button
           onClick={() => context.onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-muted-foreground hover:text-foreground"
           aria-label="Close dialog"
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -183,7 +183,7 @@ export function DialogTitle({ className, children }: DialogTitleProps) {
   }, [dialogTitleId]);
   
   return (
-    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-gray-100", className)}>
+    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-foreground", className)}>
       {children}
     </h2>
   );
@@ -208,7 +208,7 @@ export function DialogDescription({ className, children }: DialogDescriptionProp
   }, [dialogDescId]);
   
   return (
-    <p id={dialogDescId} className={cn("text-sm text-gray-600", className)}>
+    <p id={dialogDescId} className={cn("text-sm text-muted-foreground", className)}>
       {children}
     </p>
   );
