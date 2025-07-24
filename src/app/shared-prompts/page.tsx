@@ -1,7 +1,7 @@
 "use client";
 
 import { MarketplaceFilters } from '@/components/marketplace/marketplace-filters';
-import { UnifiedPromptCardFinal as UnifiedPromptCard } from '@/components/ui/unified-prompt-card-final';
+import { UnifiedPromptCardClean as UnifiedPromptCard } from '@/components/ui/unified-prompt-card-clean';
 import { ResizablePanels } from '@/components/ui/resizable-panels';
 import { useState, useEffect, useCallback } from 'react';
 import { getSharedPrompts } from '@/app/actions/shared-prompts.actions';

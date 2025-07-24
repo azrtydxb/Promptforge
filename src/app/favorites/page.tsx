@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getFavoritePrompts } from "@/app/actions/prompt-favorites.actions";
-import { UnifiedPromptCardFinal as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-final";
+import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
 import { Star } from "lucide-react";
 
 async function FavoritesList() {
@@ -25,7 +25,6 @@ async function FavoritesList() {
           key={prompt.id}
           variant="personal"
           data={prompt}
-          showFavoriteButton
         />
       ))}
     </div>

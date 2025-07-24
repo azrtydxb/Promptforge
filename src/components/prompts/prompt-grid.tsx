@@ -1,6 +1,6 @@
 "use client";
 
-import { UnifiedPromptCardFinal as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-final";
+import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
 import type { Prompt, Tag } from "@/generated/prisma";
 
 interface PromptGridProps {
@@ -32,7 +32,6 @@ export function PromptGrid({
           key={prompt.id}
           variant="personal"
           data={prompt}
-          showFavoriteButton={showFavoriteButton}
           onPromptClick={onPromptClick}
         />
       ))}

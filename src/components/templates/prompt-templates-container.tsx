@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { getPromptTemplates, createPromptFromTemplate } from "@/app/actions/template.actions";
 import { useRouter } from "next/navigation";
-import { UnifiedPromptCardFinal as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-final";
+import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
 import { LoadingStates } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/ui/empty-state";
 
