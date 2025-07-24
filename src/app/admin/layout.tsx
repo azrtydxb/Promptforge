@@ -16,10 +16,6 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
           <Header />
           <main className="flex flex-1 flex-col gap-6 p-6 lg:gap-8 lg:p-8 bg-background">
             <div className="mx-auto w-full max-w-7xl">
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                <p className="text-muted-foreground">Manage users and AI settings</p>
-              </div>
               {children}
             </div>
           </main>
