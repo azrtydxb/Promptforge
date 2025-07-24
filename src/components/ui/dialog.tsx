@@ -112,21 +112,25 @@ export function DialogContent({ className, children }: DialogContentProps) {
   if (!context.open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4" role="dialog" aria-modal="true">
-      <div
-        className="fixed inset-0 bg-black/60"
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-[100] bg-black/70" 
         onClick={() => context.onOpenChange(false)}
         aria-hidden="true"
       />
-      <div
-        ref={contentRef}
-        className={cn(
-          "relative z-50 bg-card rounded-lg shadow-2xl border border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto",
-          className
-        )}
-        onClick={(e) => e.stopPropagation()}
-        role="document"
-      >
+      
+      {/* Dialog Container */}
+      <div className="fixed inset-0 z-[101] flex items-center justify-center p-2 sm:p-4 pointer-events-none" role="dialog" aria-modal="true">
+        <div
+          ref={contentRef}
+          className={cn(
+            "relative bg-background rounded-lg shadow-2xl border-2 border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
+            className
+          )}
+          onClick={(e) => e.stopPropagation()}
+          role="document"
+        >
         <button
           onClick={() => context.onOpenChange(false)}
           className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none text-muted-foreground hover:text-foreground"
@@ -137,7 +141,8 @@ export function DialogContent({ className, children }: DialogContentProps) {
         </button>
         {children}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
