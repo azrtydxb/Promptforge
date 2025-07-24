@@ -214,16 +214,18 @@ export function UnifiedPromptCardClean({
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               {/* Only show likes for shared prompts */}
               {variant === "shared" && isShared(data) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 gap-1"
+                <button
+                  className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all cursor-pointer"
                   onClick={handleLike}
                   disabled={isLiking}
+                  type="button"
                 >
-                  <Heart className={cn("h-3 w-3", data.isLiked && "fill-current text-red-500")} />
+                  <Heart className={cn(
+                    "h-3 w-3 transition-colors",
+                    data.isLiked ? "fill-red-500 text-red-500" : "hover:text-red-500"
+                  )} />
                   <span>{data.likeCount}</span>
-                </Button>
+                </button>
               )}
               
               {/* Author for shared/template */}
