@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,26 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Filter,
-  Code,
-  FileText,
-  MessageSquare,
-  Briefcase,
-  GraduationCap,
-  Palette,
-  TrendingUp,
   Plus,
-  Star,
-  Copy,
-  ArrowRight,
 } from "lucide-react";
 import { getPromptTemplates, createPromptFromTemplate } from "@/app/actions/template.actions";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { dellCard } from "@/lib/styles";
+import { UnifiedPromptCardFinal as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-final";
 import { LoadingStates } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -56,15 +43,6 @@ interface TemplateData {
   } | null;
 }
 
-const categoryIcons: Record<string, React.ElementType> = {
-  coding: Code,
-  writing: FileText,
-  chat: MessageSquare,
-  business: Briefcase,
-  education: GraduationCap,
-  creative: Palette,
-  analysis: TrendingUp,
-};
 
 export function PromptTemplatesContainer() {
   const [templates, setTemplates] = useState<TemplateData[]>([]);
@@ -130,10 +108,6 @@ export function PromptTemplatesContainer() {
     }
   };
 
-  const getTemplateIcon = (category: string) => {
-    const Icon = categoryIcons[category] || FileText;
-    return Icon;
-  };
 
   if (loading) {
     return (
@@ -185,90 +159,33 @@ export function PromptTemplatesContainer() {
       </div>
 
       {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
         {filteredTemplates.map((template) => {
-          const Icon = getTemplateIcon(template.category);
+          // Convert template variables to array format
+          const variables = template.variables && typeof template.variables === 'object' 
+            ? Object.keys(template.variables)
+            : [];
+            
+          // Convert category to tag format for unified display
+          const categoryTag = {
+            id: `category-${template.category}`,
+            name: template.category.charAt(0).toUpperCase() + template.category.slice(1)
+          };
+          
+          const templateData = {
+            ...template,
+            title: template.name,
+            variables,
+            tags: [categoryTag],
+          };
+          
           return (
-            <Card
+            <UnifiedPromptCard
               key={template.id}
-              className={cn(dellCard('interactive'), "bg-card/50 dark:bg-card/30")}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={cn(
-                        "p-2 rounded-lg",
-                        "bg-muted",
-                        "group-hover:bg-primary/10",
-                        "transition-colors"
-                      )}
-                    >
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
-                      <Badge variant="secondary" className="mt-1">
-                        {template.category}
-                      </Badge>
-                    </div>
-                  </div>
-                  {template.rating && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Star className="h-3 w-3 fill-current text-yellow-500" />
-                      {template.rating.toFixed(1)}
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {template.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {template.description}
-                  </p>
-                )}
-                
-                {template.variables && typeof template.variables === 'object' && Object.keys(template.variables).length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2">
-                      Variables:
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {Object.keys(template.variables).map((variable) => (
-                        <Badge key={variable} variant="outline" className="text-xs">
-                          {`{{${variable}}}`}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {template.example && (
-                  <div className="p-3 bg-muted/50 rounded-md">
-                    <p className="text-xs font-medium text-muted-foreground mb-1">
-                      Example:
-                    </p>
-                    <p className="text-xs text-foreground/80 line-clamp-2">
-                      {template.example}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Copy className="h-3 w-3" />
-                    <span>{template.usageCount} uses</span>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleUseTemplate(template.id)}
-                  >
-                    Use Template
-                    <ArrowRight className="h-3 w-3 ml-1" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+              variant="template"
+              data={templateData}
+              onUseTemplate={() => handleUseTemplate(template.id)}
+            />
           );
         })}
       </div>

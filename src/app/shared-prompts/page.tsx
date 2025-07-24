@@ -1,7 +1,7 @@
 "use client";
 
 import { MarketplaceFilters } from '@/components/marketplace/marketplace-filters';
-import { SharedPromptCardNew as SharedPromptCard } from '@/components/marketplace/shared-prompt-card-new';
+import { UnifiedPromptCardFinal as UnifiedPromptCard } from '@/components/ui/unified-prompt-card-final';
 import { ResizablePanels } from '@/components/ui/resizable-panels';
 import { useState, useEffect, useCallback } from 'react';
 import { getSharedPrompts } from '@/app/actions/shared-prompts.actions';
@@ -254,11 +254,12 @@ export default function SharedPromptsPage() {
         )}
 
         {/* Prompts Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
           {prompts.map((prompt) => (
-            <SharedPromptCard
+            <UnifiedPromptCard
               key={prompt.id}
-              sharedPrompt={prompt}
+              variant="shared"
+              data={prompt}
               onLikeToggle={handleLikeToggle}
               onCopy={handleCopy}
             />

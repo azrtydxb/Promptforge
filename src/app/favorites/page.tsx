@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getFavoritePrompts } from "@/app/actions/prompt-favorites.actions";
-import { PromptCard } from "@/components/prompts/prompt-card";
+import { UnifiedPromptCardFinal as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-final";
 import { Star } from "lucide-react";
 
 async function FavoritesList() {
@@ -19,13 +19,13 @@ async function FavoritesList() {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
       {favorites.map((prompt) => (
-        <PromptCard
+        <UnifiedPromptCard
           key={prompt.id}
-          prompt={prompt}
+          variant="personal"
+          data={prompt}
           showFavoriteButton
-          isFavorited={true}
         />
       ))}
     </div>
@@ -36,7 +36,7 @@ export default function FavoritesPage() {
   return (
     <Suspense
       fallback={
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getSimilarPrompts } from "@/app/actions/search.actions";
-import { PromptCard } from "./prompt-card";
+import { UnifiedPromptCardFinal as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-final";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,8 +89,9 @@ export function SimilarPrompts({ promptId, className }: SimilarPromptsProps) {
       <div className="grid gap-4 md:grid-cols-2">
         {displayedPrompts.map((prompt) => (
           <div key={prompt.id} className="relative">
-            <PromptCard
-              prompt={{
+            <UnifiedPromptCard
+              variant="personal"
+              data={{
                 ...prompt,
                 likeCount: 0,
                 isLikedByUser: false,
