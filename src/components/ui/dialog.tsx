@@ -114,14 +114,14 @@ export function DialogContent({ className, children }: DialogContentProps) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4" role="dialog" aria-modal="true">
       <div
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50"
         onClick={() => context.onOpenChange(false)}
         aria-hidden="true"
       />
       <div
         ref={contentRef}
         className={cn(
-          "relative z-[61] bg-background rounded-lg shadow-xl border border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto",
+          "relative z-[61] bg-card rounded-lg shadow-2xl border border-border w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto",
           className
         )}
         onClick={(e) => e.stopPropagation()}

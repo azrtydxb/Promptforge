@@ -2,14 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ModalWrapper } from "@/components/ui/modal-wrapper";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,51 +59,52 @@ export function EditTagModal() {
   };
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Edit Tag</DialogTitle>
-          <DialogDescription>
-            Update the tag name and description.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Tag Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., JavaScript, AI, Tutorial"
-                disabled={isLoading}
-                maxLength={50}
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe what this tag is used for..."
-                disabled={isLoading}
-                maxLength={500}
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading || !formData.name.trim()}>
-              {isLoading ? "Updating..." : "Update Tag"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <ModalWrapper
+      open={isModalOpen}
+      onOpenChange={handleClose}
+      title="Edit Tag"
+      description="Update the tag name and description."
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isLoading || !formData.name.trim()}
+            onClick={handleSubmit as any}
+          >
+            {isLoading ? "Updating..." : "Update Tag"}
+          </Button>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="grid gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="name">Tag Name *</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="e.g., JavaScript, AI, Tutorial"
+            disabled={isLoading}
+            maxLength={50}
+            required
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="description">Description (Optional)</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="Describe what this tag is used for..."
+            disabled={isLoading}
+            maxLength={500}
+            rows={3}
+          />
+        </div>
+      </form>
+    </ModalWrapper>
   );
 }
