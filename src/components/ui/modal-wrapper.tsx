@@ -40,7 +40,7 @@ export function ModalWrapper({
 }: ModalWrapperProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(sizeMap[size], "p-0", className)}>
+      <DialogContent className={cn(sizeMap[size], "p-0 bg-background", className)}>
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>{title}</DialogTitle>
           {description && (
