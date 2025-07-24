@@ -57,7 +57,7 @@ export function DeleteTagModal() {
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4">
+          <div className="rounded-lg border border-red-300 bg-red-100 p-4">
             <p className="text-sm text-muted-foreground">
               <strong>Warning:</strong> Deleting this tag will remove it from all prompts that currently use it.
             </p>

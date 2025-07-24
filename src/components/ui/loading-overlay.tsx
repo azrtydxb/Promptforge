@@ -26,8 +26,7 @@ export function LoadingOverlay({
         <>
           <div 
             className={cn(
-              "absolute inset-0 z-10 bg-background/80",
-              blur && "backdrop-blur-sm"
+              "absolute inset-0 z-10 bg-white"
             )} 
           />
           <div className="absolute inset-0 z-20 flex items-center justify-center">

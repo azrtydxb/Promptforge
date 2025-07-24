@@ -95,7 +95,7 @@ export function EditorWithHistory({
   return (
     <div className={cn("relative h-full", className)}>
       {showHistoryControls && (
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-background/80 backdrop-blur-sm rounded-md p-1">
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-white rounded-md p-1 border border-gray-200">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

@@ -72,18 +72,18 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
     <div className="hidden border-r border-border bg-[hsl(var(--primary))] shadow-sm md:block overflow-hidden">
       <div className="flex h-full max-h-screen flex-col gap-2">
         {/* Enhanced Header with gradient and professional styling */}
-        <div className="flex h-14 items-center border-b border-primary/10 px-4 lg:h-[60px] lg:px-6 bg-[hsl(var(--primary))] relative">
+        <div className="flex h-14 items-center border-b border-gray-300 px-4 lg:h-[60px] lg:px-6 bg-[hsl(var(--primary))] relative">
           <Link
             href="/dashboard"
             className="flex items-center gap-2 font-semibold text-primary-foreground group transition-colors duration-200"
           >
-            <div className="p-1 rounded-md bg-primary-foreground/10 group-hover:bg-primary-foreground/20 transition-colors duration-200">
+            <div className="p-1 rounded-md bg-white group-hover:bg-gray-100 transition-colors duration-200">
               <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="text-primary-foreground tracking-wide">PromptForge</span>
           </Link>
           {/* Subtle glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent hidden group-hover:block transition-all duration-300 pointer-events-none" />
         </div>
         
         {/* Enhanced Navigation */}
@@ -103,8 +103,8 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                     <div className={`
                       p-1.5 rounded-md transition-all duration-200
                       ${isActive
-                        ? 'bg-[hsl(var(--accent))]/15 shadow-sm'
-                        : 'bg-primary-foreground/5 group-hover:bg-primary-foreground/10'
+                        ? 'bg-blue-100 shadow-sm'
+                        : 'bg-gray-100 group-hover:bg-gray-200'
                       }
                     `}>
                       <Icon className="h-4 w-4 flex-shrink-0 text-primary-foreground" />
@@ -113,7 +113,7 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                       <div className="font-semibold truncate text-primary-foreground">{item.label}</div>
                       <div className={`
                         text-xs truncate transition-opacity duration-200 text-primary-foreground
-                        ${isActive ? 'opacity-80' : 'opacity-60 group-hover:opacity-70'}
+                        ${isActive ? 'text-gray-700' : 'text-gray-500 group-hover:text-gray-600'}
                       `}>
                         {item.description}
                       </div>
@@ -124,8 +124,8 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                   <ChevronRight className={`
                     h-3 w-3 flex-shrink-0 transition-all duration-200 text-primary-foreground
                     ${isActive
-                      ? 'opacity-100 translate-x-0'
-                      : 'opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0'
+                      ? 'block translate-x-0'
+                      : 'hidden -translate-x-2 group-hover:block group-hover:translate-x-0'
                     }
                   `} />
                 </Link>

@@ -178,7 +178,7 @@ export function CollectionsManager({
       {collections.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {collections.map((collection) => (
-            <Card key={collection.id} className="bg-gray-800/50 border-gray-700 hover:border-gray-600 transition-colors">
+            <Card key={collection.id} className="bg-gray-100 border-gray-300 hover:border-gray-400 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -238,7 +238,7 @@ export function CollectionsManager({
                       variant="outline"
                       size="sm"
                       onClick={() => onDeleteCollection?.(collection.id)}
-                      className="border-red-600 text-red-400 hover:bg-red-900/20"
+                      className="border-red-600 text-red-400 hover:bg-red-100"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -249,7 +249,7 @@ export function CollectionsManager({
           ))}
         </div>
       ) : (
-        <Card className="bg-gray-800/30 border-gray-700">
+        <Card className="bg-gray-100 border-gray-300">
           <CardContent className="pt-12 pb-12">
             <div className="text-center text-gray-400">
               <Folder className="w-12 h-12 mx-auto mb-4 text-gray-600" />
@@ -296,7 +296,7 @@ export function CollectionPromptCard({
   className 
 }: CollectionPromptCardProps) {
   return (
-    <Card className={cn("bg-gray-800/50 border-gray-700 hover:border-gray-600 transition-colors", className)}>
+    <Card className={cn("bg-gray-100 border-gray-300 hover:border-gray-400 transition-colors", className)}>
       <CardContent className="p-4">
         <div className="space-y-3">
           <div className="flex items-start justify-between">

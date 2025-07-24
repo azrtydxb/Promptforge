@@ -77,7 +77,7 @@ export function DraftRecoveryDialog({
             </div>
 
             {draft.content && (
-              <ScrollArea className="h-32 w-full rounded border bg-muted/30 p-3">
+              <ScrollArea className="h-32 w-full rounded border bg-gray-100 p-3">
                 <pre className="text-sm whitespace-pre-wrap font-mono">
                   {draft.content.slice(0, 500)}
                   {draft.content.length > 500 && "..."}
@@ -114,7 +114,7 @@ export function DraftRecoveryDialog({
           </div>
 
           {hasChanges && (
-            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3">
+            <div className="rounded-lg bg-amber-100 border border-amber-300 p-3">
               <p className="text-sm text-amber-600 dark:text-amber-400">
                 Warning: The current prompt has unsaved changes that will be
                 overwritten if you recover this draft.
@@ -136,11 +136,11 @@ export function DraftRecoveryDialog({
                 <div>
                   <span className="font-medium">Title:</span>
                   <div className="grid grid-cols-2 gap-2 mt-1">
-                    <div className="rounded border p-2 bg-red-500/5">
+                    <div className="rounded border p-2 bg-red-50">
                       <span className="text-xs text-muted-foreground">Current:</span>
                       <p>{currentData?.title || "Untitled"}</p>
                     </div>
-                    <div className="rounded border p-2 bg-green-500/5">
+                    <div className="rounded border p-2 bg-green-50">
                       <span className="text-xs text-muted-foreground">Draft:</span>
                       <p>{draft.title || "Untitled"}</p>
                     </div>

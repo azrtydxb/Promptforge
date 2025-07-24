@@ -130,7 +130,7 @@ export function SharedPromptCardNew({
               className={cn(
                 "p-2 rounded-lg",
                 "bg-muted",
-                "group-hover:bg-primary/10",
+                "group-hover:bg-blue-100",
                 "transition-colors"
               )}
             >

@@ -157,7 +157,7 @@ export function SharedPromptCard({
               disabled={isLiking}
               className={`${dellIconButton('overlay', 'sm')} ${
                 isLiked
-                  ? 'text-red-500 bg-background/90 shadow-md'
+                  ? 'text-red-500 bg-white shadow-md'
                   : ''
               } ${isLiking ? 'opacity-50 cursor-not-allowed' : ''}`}
               title={`${likeCount} likes`}
@@ -241,14 +241,14 @@ export function SharedPromptCard({
             {sharedPrompt.prompt.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag.id}
-                className="inline-block px-2 py-1 text-xs bg-white/60 rounded-full text-gray-700 font-medium"
+                className="inline-block px-2 py-1 text-xs bg-gray-200 rounded-full text-gray-700 font-medium"
                 title={tag.name}
               >
                 {tag.name}
               </span>
             ))}
             {sharedPrompt.prompt.tags.length > 2 && (
-              <span className="inline-block px-2 py-1 text-xs bg-white/40 rounded-full text-gray-600">
+              <span className="inline-block px-2 py-1 text-xs bg-gray-300 rounded-full text-gray-600">
                 +{sharedPrompt.prompt.tags.length - 2}
               </span>
             )}

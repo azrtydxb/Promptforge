@@ -29,16 +29,16 @@ export const dellColors = {
   // Interactive states with professional polish
   interactive: {
     hover: "hover:bg-dell-blue-50 hover:text-dell-blue-600 hover:shadow-md hover:scale-[1.02] transition-all duration-200",
-    focus: "focus:ring-2 focus:ring-dell-blue-500 focus:ring-offset-2 focus:ring-opacity-50 focus:outline-none",
+    focus: "focus:ring-2 focus:ring-dell-blue-500 focus:ring-offset-2 focus:outline-none",
     active: "active:bg-dell-blue-600 active:text-white active:scale-[0.98] transition-all duration-100",
-    disabled: "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100",
+    disabled: "disabled:cursor-not-allowed disabled:hover:scale-100",
   },
   // Professional shadow system
   shadows: {
     soft: "shadow-sm hover:shadow-md transition-shadow duration-200",
     medium: "shadow-md hover:shadow-lg transition-shadow duration-200",
     large: "shadow-lg hover:shadow-xl transition-shadow duration-200",
-    glow: "hover:shadow-dell-blue-500/25 hover:shadow-lg transition-all duration-200",
+    glow: "hover:shadow-lg transition-all duration-200",
   }
 } as const
 
@@ -58,8 +58,8 @@ export const dellComponents = {
   // Professional Navigation with smooth animations (theme-aware)
   navItem: {
     base: "flex items-center gap-1.5 rounded pl-0.5 pr-1 py-0.5 mr-3 transition-all duration-200 group relative",
-    default: "text-primary-foreground hover:bg-primary-foreground/5 hover:text-primary-foreground",
-    active: "bg-primary-foreground/10 text-primary-foreground before:absolute before:left-0 before:w-0.5 before:h-full before:bg-[hsl(var(--accent))] before:rounded-r",
+    default: "text-primary-foreground hover:bg-gray-100 hover:text-primary-foreground",
+    active: "bg-gray-100 text-primary-foreground before:absolute before:left-0 before:w-0.5 before:h-full before:bg-[hsl(var(--accent))] before:rounded-r",
     indicator: "after:absolute after:right-1 after:w-0 after:h-0 after:transition-all after:duration-200 group-hover:after:w-0.5 group-hover:after:h-0.5 group-hover:after:bg-primary-foreground group-hover:after:rounded-full",
   },
   
@@ -70,16 +70,16 @@ export const dellComponents = {
     ghost: "hover:bg-dell-blue-50 hover:text-dell-blue-600 hover:shadow-sm hover:scale-[1.02] transition-all duration-200",
     gradient: "bg-gradient-to-r from-dell-blue-500 to-dell-blue-600 hover:from-dell-blue-600 hover:to-dell-blue-700 hover:shadow-lg hover:scale-[1.02] text-white transition-all duration-200",
     // Icon buttons for overlays and sticky notes
-    iconOverlay: "rounded-full bg-background/80 text-foreground hover:bg-background hover:shadow-md transition-all duration-200 hover:scale-110 border border-border/50",
-    iconSolid: "rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg transition-all duration-200 hover:scale-110",
+    iconOverlay: "rounded-full bg-white text-foreground hover:bg-gray-50 hover:shadow-md transition-all duration-200 hover:scale-110 border border-gray-300",
+    iconSolid: "rounded-full bg-primary text-primary-foreground hover:bg-primary hover:shadow-lg transition-all duration-200 hover:scale-110",
   },
   
   // Professional Form elements with enhanced feedback
   input: {
     base: "border border-dell-gray-300 rounded-md px-3 py-2 transition-all duration-200 hover:border-dell-blue-300",
-    focus: "focus:ring-2 focus:ring-dell-blue-500 focus:border-dell-blue-500 focus:ring-opacity-50 focus:outline-none focus:shadow-lg",
-    error: "border-red-500 focus:ring-red-500 focus:ring-opacity-50 hover:border-red-400",
-    success: "border-green-500 focus:ring-green-500 focus:ring-opacity-50 hover:border-green-400",
+    focus: "focus:ring-2 focus:ring-dell-blue-500 focus:border-dell-blue-500 focus:outline-none focus:shadow-lg",
+    error: "border-red-500 focus:ring-red-500 hover:border-red-400",
+    success: "border-green-500 focus:ring-green-500 hover:border-green-400",
   },
   
   // Enhanced Layout with professional spacing
@@ -102,12 +102,12 @@ export const dellComponents = {
   loading: {
     spinner: "animate-spin h-4 w-4 border-2 border-dell-blue-500 border-t-transparent rounded-full",
     skeleton: "animate-pulse bg-dell-gray-200 rounded",
-    overlay: "absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center backdrop-blur-sm",
+    overlay: "absolute inset-0 bg-white flex items-center justify-center",
   },
   
   // Tooltips and feedback
   tooltip: {
-    base: "absolute z-50 px-2 py-1 text-xs text-white bg-dell-gray-900 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200",
+    base: "absolute z-50 px-2 py-1 text-xs text-white bg-dell-gray-900 rounded shadow-lg hidden group-hover:block transition-all duration-200",
     arrow: "absolute w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-dell-gray-900",
   }
 } as const
@@ -163,7 +163,7 @@ export function dellIconButton(variant: 'overlay' | 'solid' = 'overlay', size: '
     lg: 'w-10 h-10'
   }
   
-  const baseClasses = "inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+  const baseClasses = "inline-flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:cursor-not-allowed"
   
   return cn(
     baseClasses,
@@ -207,11 +207,11 @@ export function dellFolderItem(isSelected: boolean, isDefault?: boolean, classNa
  */
 export function stickyNoteCard(color: 'yellow' | 'blue' | 'green' | 'pink' | 'orange' = 'yellow', className?: ClassValue) {
   const colorClasses = {
-    yellow: "bg-yellow-100 border-yellow-200 shadow-yellow-200/50",
-    blue: "bg-blue-100 border-blue-200 shadow-blue-200/50",
-    green: "bg-green-100 border-green-200 shadow-green-200/50",
-    pink: "bg-pink-100 border-pink-200 shadow-pink-200/50",
-    orange: "bg-orange-100 border-orange-200 shadow-orange-200/50"
+    yellow: "bg-yellow-100 border-yellow-200",
+    blue: "bg-blue-100 border-blue-200",
+    green: "bg-green-100 border-green-200",
+    pink: "bg-pink-100 border-pink-200",
+    orange: "bg-orange-100 border-orange-200"
   }
   
   return cn(
@@ -228,7 +228,7 @@ export function stickyNoteCard(color: 'yellow' | 'blue' | 'green' | 'pink' | 'or
     colorClasses[color],
     // Tape effect at top
     "before:absolute before:top-0 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2",
-    "before:w-6 before:h-3 before:bg-gray-200/80 before:rounded-sm before:shadow-sm",
+    "before:w-6 before:h-3 before:bg-gray-200 before:rounded-sm before:shadow-sm",
     className
   )
 }

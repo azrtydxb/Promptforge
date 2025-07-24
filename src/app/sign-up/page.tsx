@@ -84,7 +84,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4 relative">
       {/* Subtle background pattern */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
         }} />
@@ -94,27 +94,27 @@ export default function SignUpPage() {
         {/* Logo/Brand Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-              <Zap className="h-8 w-8 text-white" />
+            <div className="p-3 rounded-xl bg-gray-200 border border-gray-300">
+              <Zap className="h-8 w-8 text-gray-700" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-wide">PromptForge</h1>
-              <p className="text-gray-300 text-sm">Craft Your Perfect Prompts</p>
+              <h1 className="text-3xl font-bold text-gray-900 tracking-wide">PromptForge</h1>
+              <p className="text-gray-600 text-sm">Craft Your Perfect Prompts</p>
             </div>
           </div>
         </div>
 
         {/* Sign Up Card */}
-        <Card className="backdrop-blur-sm bg-white/10 border-white/20 shadow-2xl">
+        <Card className="bg-white border-gray-200 shadow-2xl">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl text-center text-white font-semibold">
+            <CardTitle className="text-2xl text-center text-gray-900 font-semibold">
               Join PromptForge
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-gray-200 font-medium">
+                <Label htmlFor="name" className="text-gray-700 font-medium">
                   Full Name
                 </Label>
                 <div className="relative">
@@ -128,13 +128,13 @@ export default function SignUpPage() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-white/40 focus:ring-white/20"
+                    className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-gray-300"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-200 font-medium">
+                <Label htmlFor="email" className="text-gray-700 font-medium">
                   Email Address
                 </Label>
                 <div className="relative">
@@ -148,13 +148,13 @@ export default function SignUpPage() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-white/40 focus:ring-white/20"
+                    className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-gray-300"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-200 font-medium">
+                <Label htmlFor="password" className="text-gray-700 font-medium">
                   Password
                 </Label>
                 <div className="relative">
@@ -169,13 +169,13 @@ export default function SignUpPage() {
                     required
                     minLength={6}
                     disabled={isLoading}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-white/40 focus:ring-white/20"
+                    className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-gray-300"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-200 font-medium">
+                <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">
                   Confirm Password
                 </Label>
                 <div className="relative">
@@ -189,20 +189,20 @@ export default function SignUpPage() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-white/40 focus:ring-white/20"
+                    className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-gray-300"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm text-center backdrop-blur-sm">
+                <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm text-center">
                   {error}
                 </div>
               )}
 
               <Button 
                 type="submit" 
-                className="w-full bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200 font-medium py-3 group"
+                className="w-full bg-gray-200 hover:bg-gray-100 text-gray-900 border border-gray-300 hover:border-gray-400 transition-all duration-200 font-medium py-3 group"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -221,7 +221,7 @@ export default function SignUpPage() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-white/20" />
+                <span className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-transparent px-2 text-gray-400">Already have an account?</span>
@@ -231,7 +231,7 @@ export default function SignUpPage() {
             <div className="text-center">
               <Link 
                 href="/sign-in" 
-                className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors duration-200 font-medium group"
+                className="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium group"
               >
                 Sign in to your account
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

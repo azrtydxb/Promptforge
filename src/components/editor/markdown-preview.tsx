@@ -43,7 +43,7 @@ const MarkdownPreviewComponent = ({ content, className = "" }: MarkdownPreviewPr
             );
           },
           pre: ({ children }) => (
-            <pre className="bg-muted/50 p-4 rounded-md overflow-x-auto mb-4 border">
+            <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto mb-4 border">
               {children}
             </pre>
           ),

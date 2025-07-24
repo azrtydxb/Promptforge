@@ -115,7 +115,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 z-[100] bg-black/80" 
+        className="fixed inset-0 z-[100] bg-white" 
         onClick={() => context.onOpenChange(false)}
         aria-hidden="true"
       />

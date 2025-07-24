@@ -100,7 +100,7 @@ export function PromptDiffModal({
 
           {/* Metadata Diff */}
           {showMetadata && (
-            <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+            <div className="border rounded-lg p-4 space-y-3 bg-gray-100">
               {/* Title Changes */}
               {leftPrompt.title !== rightPrompt.title && (
                 <div className="space-y-1">
@@ -109,10 +109,10 @@ export function PromptDiffModal({
                     Title
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="bg-red-500/10 text-red-600 dark:text-red-400 p-2 rounded">
+                    <div className="bg-red-100 text-red-600 dark:text-red-700 p-2 rounded">
                       - {leftPrompt.title}
                     </div>
-                    <div className="bg-green-500/10 text-green-600 dark:text-green-400 p-2 rounded">
+                    <div className="bg-green-100 text-green-600 dark:text-green-700 p-2 rounded">
                       + {rightPrompt.title}
                     </div>
                   </div>
@@ -124,10 +124,10 @@ export function PromptDiffModal({
                 <div className="space-y-1">
                   <div className="text-sm font-medium">Description</div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="bg-red-500/10 text-red-600 dark:text-red-400 p-2 rounded">
+                    <div className="bg-red-100 text-red-600 dark:text-red-700 p-2 rounded">
                       {leftPrompt.description || "(empty)"}
                     </div>
-                    <div className="bg-green-500/10 text-green-600 dark:text-green-400 p-2 rounded">
+                    <div className="bg-green-100 text-green-600 dark:text-green-700 p-2 rounded">
                       {rightPrompt.description || "(empty)"}
                     </div>
                   </div>
@@ -146,7 +146,7 @@ export function PromptDiffModal({
                       <Badge
                         key={tag}
                         variant="outline"
-                        className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
+                        className="bg-red-100 text-red-600 dark:text-red-700 border-red-300"
                       >
                         - {tag}
                       </Badge>
@@ -160,7 +160,7 @@ export function PromptDiffModal({
                       <Badge
                         key={tag}
                         variant="outline"
-                        className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
+                        className="bg-green-100 text-green-600 dark:text-green-700 border-green-300"
                       >
                         + {tag}
                       </Badge>

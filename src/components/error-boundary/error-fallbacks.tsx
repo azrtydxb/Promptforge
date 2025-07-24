@@ -27,7 +27,7 @@ export function NetworkErrorFallback({ onReset }: BaseErrorFallbackProps) {
     <div className="flex items-center justify-center min-h-[300px] p-4">
       <Card className="max-w-md w-full p-6">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="rounded-full bg-warning/10 p-3">
+          <div className="rounded-full bg-yellow-100 p-3">
             <Wifi className="h-8 w-8 text-warning" />
           </div>
           <div className="space-y-2">
@@ -52,7 +52,7 @@ export function DatabaseErrorFallback({ onReset }: BaseErrorFallbackProps) {
     <div className="flex items-center justify-center min-h-[300px] p-4">
       <Card className="max-w-md w-full p-6">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="rounded-full bg-destructive/10 p-3">
+          <div className="rounded-full bg-red-100 p-3">
             <Database className="h-8 w-8 text-destructive" />
           </div>
           <div className="space-y-2">
@@ -82,7 +82,7 @@ export function AuthErrorFallback({ error }: BaseErrorFallbackProps) {
     <div className="flex items-center justify-center min-h-[300px] p-4">
       <Card className="max-w-md w-full p-6">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="rounded-full bg-warning/10 p-3">
+          <div className="rounded-full bg-yellow-100 p-3">
             <Lock className="h-8 w-8 text-warning" />
           </div>
           <div className="space-y-2">
@@ -142,7 +142,7 @@ export function ServerErrorFallback({ onReset }: BaseErrorFallbackProps) {
     <div className="flex items-center justify-center min-h-[300px] p-4">
       <Card className="max-w-md w-full p-6">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="rounded-full bg-destructive/10 p-3">
+          <div className="rounded-full bg-red-100 p-3">
             <ServerCrash className="h-8 w-8 text-destructive" />
           </div>
           <div className="space-y-2">
@@ -170,7 +170,7 @@ export function DevelopmentErrorFallback({ error, onReset }: BaseErrorFallbackPr
     <div className="flex items-center justify-center min-h-[300px] p-4">
       <Card className="max-w-2xl w-full p-6">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="rounded-full bg-destructive/10 p-3">
+          <div className="rounded-full bg-red-100 p-3">
             <Bug className="h-8 w-8 text-destructive" />
           </div>
           <div className="space-y-2">
@@ -210,7 +210,7 @@ export function DevelopmentErrorFallback({ error, onReset }: BaseErrorFallbackPr
 // Minimal Error Fallback for small components
 export function MinimalErrorFallback({ onReset }: BaseErrorFallbackProps) {
   return (
-    <div className="flex items-center justify-center p-4 border border-destructive/20 rounded-md bg-destructive/5">
+    <div className="flex items-center justify-center p-4 border border-red-300 rounded-md bg-red-50">
       <div className="flex items-center gap-3">
         <AlertCircle className="h-5 w-5 text-destructive" />
         <span className="text-sm">Failed to load</span>

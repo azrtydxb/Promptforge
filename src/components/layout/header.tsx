@@ -24,7 +24,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="shrink-0 md:hidden hover:scale-[1.02] transition-transform duration-200 text-primary-foreground hover:bg-primary-foreground/10"
+            className="shrink-0 md:hidden hover:scale-[1.02] transition-transform duration-200 text-primary-foreground hover:bg-gray-100"
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle navigation menu</span>
@@ -34,9 +34,9 @@ export function Header() {
           <nav id="main-navigation" className="grid gap-2 text-lg font-medium" role="navigation" aria-label="Main navigation">
             <Link
               href="/dashboard"
-              className="flex items-center gap-2 text-lg font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent))]/80 transition-colors duration-200"
+              className="flex items-center gap-2 text-lg font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent))] transition-colors duration-200"
             >
-              <div className="p-1 rounded-md bg-[hsl(var(--accent))]/10">
+              <div className="p-1 rounded-md bg-blue-100">
                 <Zap className="h-5 w-5" aria-hidden="true" />
               </div>
               <span>PromptForge</span>
@@ -45,28 +45,28 @@ export function Header() {
             
             <Link
               href="/dashboard"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/10 transition-all duration-200"
+              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-blue-100 transition-all duration-200"
             >
               <Home className="h-5 w-5" aria-hidden="true" />
               Dashboard
             </Link>
             <Link
               href="/prompts"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/10 transition-all duration-200"
+              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-blue-100 transition-all duration-200"
             >
               <FileText className="h-5 w-5" aria-hidden="true" />
               Prompts
             </Link>
             <Link
               href="/favorites"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/10 transition-all duration-200"
+              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-blue-100 transition-all duration-200"
             >
               <Star className="h-5 w-5" aria-hidden="true" />
               Favorites
             </Link>
             <Link
               href="/tags"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/10 transition-all duration-200"
+              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-blue-100 transition-all duration-200"
             >
               <Tag className="h-5 w-5" aria-hidden="true" />
               Tags

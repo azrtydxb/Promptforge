@@ -140,7 +140,7 @@ function ErrorFallback({
     `}>
       <Card className="max-w-2xl w-full p-6 shadow-lg">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="rounded-full bg-destructive/10 p-3">
+          <div className="rounded-full bg-red-100 p-3">
             <AlertCircle className="h-8 w-8 text-destructive" />
           </div>
           

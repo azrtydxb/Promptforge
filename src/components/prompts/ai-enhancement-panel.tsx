@@ -213,7 +213,7 @@ export function AIEnhancementPanel({
 
           {/* Enhancement Results */}
           {enhancement && (
-            <Card className="bg-blue-50 dark:bg-blue-950/20">
+            <Card className="bg-blue-50 dark:bg-blue-100">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Enhanced Version</h4>
@@ -291,7 +291,7 @@ export function AIEnhancementPanel({
 
           {/* Suggested Tags */}
           {suggestedTags && (
-            <Card className="bg-green-50 dark:bg-green-950/20">
+            <Card className="bg-green-50 dark:bg-green-100">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Suggested Tags</h4>
@@ -349,7 +349,7 @@ export function AIEnhancementPanel({
 
           {/* Similar Prompts Results */}
           {similarPrompts.length > 0 && (
-            <Card className="bg-purple-50 dark:bg-purple-950/20">
+            <Card className="bg-purple-50 dark:bg-purple-100">
               <CardHeader className="pb-3">
                 <h4 className="text-sm font-medium">Similar Prompts</h4>
               </CardHeader>

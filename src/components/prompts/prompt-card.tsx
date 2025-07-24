@@ -85,7 +85,7 @@ export function PromptCard({
         className={cn(
           dellCard('interactive'),
           "bg-card",
-          prompt.isPinned ? "border-primary/50 bg-primary/5" : "",
+          prompt.isPinned ? "border-blue-300 bg-blue-50" : "",
           className
         )}
       >
@@ -96,7 +96,7 @@ export function PromptCard({
               className={cn(
                 "p-2 rounded-lg",
                 "bg-muted",
-                "group-hover:bg-primary/10",
+                "group-hover:bg-blue-100",
                 "transition-colors"
               )}
             >

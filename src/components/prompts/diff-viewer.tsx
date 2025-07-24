@@ -48,7 +48,7 @@ export function DiffViewer({
 
     return (
       <div className={cn("border rounded-lg overflow-hidden", className)}>
-        <div className="flex border-b bg-muted/50">
+        <div className="flex border-b bg-gray-100">
           <div className="flex-1 px-4 py-2 font-medium text-sm">
             {oldTitle}
           </div>
@@ -58,7 +58,7 @@ export function DiffViewer({
           </div>
         </div>
         
-        <div className="flex text-xs text-muted-foreground px-4 py-1 border-b bg-muted/30">
+        <div className="flex text-xs text-muted-foreground px-4 py-1 border-b bg-gray-50">
           {stats}
         </div>
 
@@ -70,8 +70,8 @@ export function DiffViewer({
                   key={index}
                   className={cn(
                     "flex",
-                    item.type === "removed" && "bg-red-500/10",
-                    item.type === "empty" && "bg-muted/20"
+                    item.type === "removed" && "bg-red-100",
+                    item.type === "empty" && "bg-gray-50"
                   )}
                 >
                   {showLineNumbers && (
@@ -99,8 +99,8 @@ export function DiffViewer({
                   key={index}
                   className={cn(
                     "flex",
-                    item.type === "added" && "bg-green-500/10",
-                    item.type === "empty" && "bg-muted/20"
+                    item.type === "added" && "bg-green-100",
+                    item.type === "empty" && "bg-gray-50"
                   )}
                 >
                   {showLineNumbers && (
@@ -128,7 +128,7 @@ export function DiffViewer({
   // Inline or unified diff view
   return (
     <div className={cn("border rounded-lg overflow-hidden", className)}>
-      <div className="px-4 py-2 border-b bg-muted/50">
+      <div className="px-4 py-2 border-b bg-gray-100">
         <div className="font-medium text-sm">{newTitle}</div>
         <div className="text-xs text-muted-foreground">{stats}</div>
       </div>
@@ -142,8 +142,8 @@ export function DiffViewer({
                 key={`${index}-${lineIndex}`}
                 className={cn(
                   "px-4 py-1 whitespace-pre-wrap break-all",
-                  segment.added && "bg-green-500/10 text-green-600 dark:text-green-400",
-                  segment.removed && "bg-red-500/10 text-red-600 dark:text-red-400"
+                  segment.added && "bg-green-100 text-green-600 dark:text-green-700",
+                  segment.removed && "bg-red-100 text-red-600 dark:text-red-700"
                 )}
               >
                 <span className="select-none mr-2">

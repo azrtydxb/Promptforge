@@ -61,8 +61,8 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="animate-pulse">
-          <div className="h-8 w-32 bg-white/10 rounded mb-4"></div>
-          <div className="h-4 w-48 bg-white/10 rounded"></div>
+          <div className="h-8 w-32 bg-gray-200 rounded mb-4"></div>
+          <div className="h-4 w-48 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
@@ -76,7 +76,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden relative">
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
         }} />
@@ -85,13 +85,13 @@ export default function Home() {
       {/* Navigation */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
         isScrolled
-          ? "backdrop-blur-md bg-gray-900/80 border-b border-white/10"
+          ? "bg-gray-900 border-b border-gray-200"
           : "bg-transparent"
       }`}>
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
+              <div className="p-2 rounded-lg bg-gray-200 border border-gray-300">
                 <Zap className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold text-white tracking-wide">PromptForge</span>
@@ -99,13 +99,13 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
-                className="text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                className="text-gray-300 hover:text-white hover:bg-gray-200 transition-colors"
                 onClick={() => router.push("/sign-in")}
               >
                 Sign In
               </Button>
               <Button
-                className="bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200"
+                className="bg-gray-200 hover:bg-gray-100 text-gray-900 border border-gray-300 hover:border-gray-400 transition-all duration-200"
                 onClick={() => router.push("/sign-up")}
               >
                 Get Started
@@ -118,12 +118,12 @@ export default function Home() {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 relative">
         {/* Gradient Orbs */}
-        <div className="absolute top-20 left-1/4 w-72 h-72 bg-[hsl(var(--accent))]/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-[hsl(var(--accent))]/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-1/4 w-72 h-72 bg-blue-100 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-100 rounded-full blur-3xl"></div>
         
         <div className="container mx-auto text-center relative z-10">
           <div className="mb-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-sm text-gray-300 mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-200 border border-gray-300 text-sm text-gray-700 mb-8">
               <Sparkles className="w-4 h-4" />
               Welcome to the future of prompt management
             </div>
@@ -147,7 +147,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <Button
               size="lg"
-              className="w-full sm:w-auto text-base px-8 py-4 bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200 hover:scale-105 group"
+              className="w-full sm:w-auto text-base px-8 py-4 bg-gray-200 hover:bg-gray-100 text-gray-900 border border-gray-300 hover:border-gray-400 transition-all duration-200 hover:scale-105 group"
               onClick={() => router.push("/sign-up")}
             >
               Start Building
@@ -156,7 +156,7 @@ export default function Home() {
             <Button
               variant="ghost"
               size="lg"
-              className="w-full sm:w-auto text-base text-gray-300 hover:text-white hover:bg-white/10"
+              className="w-full sm:w-auto text-base text-gray-300 hover:text-white hover:bg-gray-200"
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Explore Features
@@ -201,7 +201,7 @@ export default function Home() {
 
           <div className="grid lg:grid-cols-3 gap-8 mb-16">
             {/* Feature Card 1 */}
-            <Card className="backdrop-blur-sm bg-white/10 border-white/20 p-8 hover:bg-white/15 transition-all duration-300 hover:scale-105 group">
+            <Card className="bg-white border-gray-200 p-8 hover:bg-gray-50 transition-all duration-300 hover:scale-105 group">
               <div className="bg-gradient-to-br from-blue-500 to-purple-500 p-4 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
                 <Folder className="h-8 w-8 text-white" />
               </div>
@@ -213,7 +213,7 @@ export default function Home() {
             </Card>
 
             {/* Feature Card 2 */}
-            <Card className="backdrop-blur-sm bg-white/10 border-white/20 p-8 hover:bg-white/15 transition-all duration-300 hover:scale-105 group">
+            <Card className="bg-white border-gray-200 p-8 hover:bg-gray-50 transition-all duration-300 hover:scale-105 group">
               <div className="bg-gradient-to-br from-green-500 to-teal-500 p-4 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
                 <History className="h-8 w-8 text-white" />
               </div>
@@ -225,7 +225,7 @@ export default function Home() {
             </Card>
 
             {/* Feature Card 3 */}
-            <Card className="backdrop-blur-sm bg-white/10 border-white/20 p-8 hover:bg-white/15 transition-all duration-300 hover:scale-105 group">
+            <Card className="bg-white border-gray-200 p-8 hover:bg-gray-50 transition-all duration-300 hover:scale-105 group">
               <div className="bg-gradient-to-br from-orange-500 to-red-500 p-4 rounded-xl w-fit mb-6 group-hover:scale-110 transition-transform">
                 <Search className="h-8 w-8 text-white" />
               </div>
@@ -239,22 +239,22 @@ export default function Home() {
 
           {/* Additional Features */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl border border-white/10">
+            <div className="text-center p-6 bg-gray-100 rounded-xl border border-gray-200">
               <Users className="h-8 w-8 text-blue-400 mx-auto mb-4" />
               <h4 className="font-semibold text-white mb-2">Team Collaboration</h4>
               <p className="text-gray-400 text-sm">Share and collaborate on prompts with your team</p>
             </div>
-            <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl border border-white/10">
+            <div className="text-center p-6 bg-gray-100 rounded-xl border border-gray-200">
               <Target className="h-8 w-8 text-green-400 mx-auto mb-4" />
               <h4 className="font-semibold text-white mb-2">Performance Analytics</h4>
               <p className="text-gray-400 text-sm">Track prompt performance and effectiveness</p>
             </div>
-            <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl border border-white/10">
+            <div className="text-center p-6 bg-gray-100 rounded-xl border border-gray-200">
               <Layers className="h-8 w-8 text-purple-400 mx-auto mb-4" />
               <h4 className="font-semibold text-white mb-2">Template Library</h4>
               <p className="text-gray-400 text-sm">Access curated prompt templates and examples</p>
             </div>
-            <div className="text-center p-6 backdrop-blur-sm bg-white/5 rounded-xl border border-white/10">
+            <div className="text-center p-6 bg-gray-100 rounded-xl border border-gray-200">
               <CheckCircle className="h-8 w-8 text-orange-400 mx-auto mb-4" />
               <h4 className="font-semibold text-white mb-2">Quality Assurance</h4>
               <p className="text-gray-400 text-sm">Built-in validation and optimization tools</p>
@@ -265,7 +265,7 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="py-20 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100"></div>
         <div className="container mx-auto text-center relative z-10">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
             Ready to master your prompts?
@@ -277,7 +277,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
               size="lg"
-              className="w-full sm:w-auto text-base px-8 py-4 bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200 hover:scale-105 group"
+              className="w-full sm:w-auto text-base px-8 py-4 bg-gray-200 hover:bg-gray-100 text-gray-900 border border-gray-300 hover:border-gray-400 transition-all duration-200 hover:scale-105 group"
               onClick={() => router.push("/sign-up")}
             >
               Start Your Journey
@@ -286,7 +286,7 @@ export default function Home() {
             <Button
               variant="ghost"
               size="lg"
-              className="w-full sm:w-auto text-base text-gray-300 hover:text-white hover:bg-white/10"
+              className="w-full sm:w-auto text-base text-gray-300 hover:text-white hover:bg-gray-200"
               onClick={() => router.push("/sign-in")}
             >
               Sign In
@@ -296,11 +296,11 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-white/10 relative">
+      <footer className="py-12 px-6 border-t border-gray-200 relative">
         <div className="container mx-auto">
           <div className="text-center">
             <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="p-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
+              <div className="p-2 rounded-lg bg-gray-200 border border-gray-300">
                 <Zap className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold text-white tracking-wide">PromptForge</span>
@@ -308,7 +308,7 @@ export default function Home() {
             <p className="text-gray-400 mb-6">
               Empowering creative workflows with professional prompt management.
             </p>
-            <div className="border-t border-white/10 pt-6">
+            <div className="border-t border-gray-200 pt-6">
               <p className="text-gray-500 text-sm">
                 © 2024 PromptForge. All rights reserved.
               </p>

@@ -175,8 +175,8 @@ export function PublishPromptButton({
           <div className={cn(
             "p-4 rounded-lg border",
             publishResult.success 
-              ? "bg-green-900/20 border-green-800 text-green-400"
-              : "bg-red-900/20 border-red-800 text-red-400"
+              ? "bg-green-100 border-green-300 text-green-700"
+              : "bg-red-100 border-red-300 text-red-700"
           )}>
             <div className="flex items-center gap-2">
               {publishResult.success ? (
@@ -187,7 +187,7 @@ export function PublishPromptButton({
               <span className="font-medium">{publishResult.message}</span>
             </div>
             {publishResult.status && (
-              <p className="text-sm mt-1 opacity-80">
+              <p className="text-sm mt-1 text-gray-600">
                 Status: {publishResult.status === 'APPROVED' ? 'Approved and live' : 'Pending review'}
               </p>
             )}
