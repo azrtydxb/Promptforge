@@ -137,7 +137,7 @@ export function SharePromptModal() {
   const loadAnalytics = async (linkId: string) => {
     try {
       const data = await getShareLinkAnalytics(linkId);
-      setAnalytics(data as any);
+      setAnalytics(data);
     } catch (error) {
       console.error("Error loading analytics:", error);
     }

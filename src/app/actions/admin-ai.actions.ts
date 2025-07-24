@@ -186,23 +186,91 @@ export async function testAIConnection(provider: string, configType: string = "g
     if (provider === "openai") {
       const openai = new OpenAI({ apiKey });
       
-      // Test the connection by creating a small embedding
-      const response = await openai.embeddings.create({
-        model: settings.model,
-        input: "test",
-      });
-      
-      if (response.data && response.data.length > 0) {
-        return { success: true };
+      if (configType === "embedding") {
+        // Test embeddings for embedding configuration
+        const response = await openai.embeddings.create({
+          model: settings.model,
+          input: "test",
+        });
+        
+        if (response.data && response.data.length > 0) {
+          return { success: true };
+        }
+      } else {
+        // Test chat completion for general AI configuration
+        const response = await openai.chat.completions.create({
+          model: settings.model,
+          messages: [{ role: "user", content: "Hello" }],
+          max_tokens: 10
+        });
+        
+        if (response.choices && response.choices.length > 0) {
+          return { success: true };
+        }
       }
     }
     
     return { success: false, error: "Provider not supported" };
   } catch (error) {
-    logger.error("Error testing AI connection", { error, provider });
+    logger.error("Error testing AI connection", { error, provider, configType });
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Connection test failed" 
+    };
+  }
+}
+
+// Fetch available models from OpenAI
+export async function fetchOpenAIModels(apiKey: string) {
+  await requireAdmin();
+  
+  try {
+    const openai = new OpenAI({ apiKey });
+    const response = await openai.models.list();
+    
+    // Filter and categorize models
+    const models = response.data
+      .filter(model => {
+        // Only include relevant models
+        return model.id.includes('gpt') || 
+               model.id.includes('text-embedding') ||
+               model.id.includes('davinci') ||
+               model.id.includes('curie') ||
+               model.id.includes('babbage') ||
+               model.id.includes('ada');
+      })
+      .sort((a, b) => b.created - a.created);
+    
+    // Categorize models
+    const chatModels = models.filter(m => 
+      m.id.includes('gpt') || 
+      m.id.includes('davinci') || 
+      m.id.includes('curie') ||
+      m.id.includes('babbage')
+    );
+    
+    const embeddingModels = models.filter(m => 
+      m.id.includes('embedding')
+    );
+    
+    return {
+      success: true,
+      chatModels: chatModels.map(m => ({
+        id: m.id,
+        name: m.id,
+        created: new Date(m.created * 1000)
+      })),
+      embeddingModels: embeddingModels.map(m => ({
+        id: m.id,
+        name: m.id,
+        created: new Date(m.created * 1000)
+      }))
+    };
+  } catch (error) {
+    logger.error("Error fetching OpenAI models", { error });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to fetch models"
     };
   }
 }

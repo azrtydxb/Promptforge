@@ -10,7 +10,8 @@ import {
   triggerEmbeddingRegeneration,
   getEmbeddingStats,
   getEmbeddingQueueStatus,
-  getSemanticSearchEnabled
+  getSemanticSearchEnabled,
+  fetchOpenAIModels
 } from "@/app/actions/admin-ai.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,6 +130,11 @@ export function AISettings() {
   const [statusRefreshInterval, setStatusRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
   const [loadingSemanticSearch, setLoadingSemanticSearch] = useState(false);
+  const [availableModels, setAvailableModels] = useState<{
+    chatModels: Array<{id: string; name: string}>;
+    embeddingModels: Array<{id: string; name: string}>;
+  }>({ chatModels: [], embeddingModels: [] });
+  const [loadingModels, setLoadingModels] = useState(false);
   const { toast } = useToast();
   
   // Form states for each configuration type
@@ -305,6 +311,35 @@ export function AISettings() {
       console.error("Error fetching semantic search setting:", error);
       // Default to false if there's an error
       setSemanticSearchEnabled(false);
+    }
+  };
+
+  const fetchModels = async (apiKey: string) => {
+    if (!apiKey || apiKey.length < 10) return;
+    
+    setLoadingModels(true);
+    try {
+      const result = await fetchOpenAIModels(apiKey);
+      if (result.success) {
+        setAvailableModels({
+          chatModels: result.chatModels || [],
+          embeddingModels: result.embeddingModels || []
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to fetch models",
+          variant: "destructive"
+        });
+      }
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to fetch available models",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingModels(false);
     }
   };
 
@@ -486,23 +521,31 @@ export function AISettings() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Model</Label>
+                    <Label>Model {loadingModels && <span className="text-sm text-muted-foreground ml-2">(Loading...)</span>}</Label>
                     <Select
                       value={generalForm.model}
                       onValueChange={(value) => setGeneralForm({ ...generalForm, model: value })}
+                      disabled={loadingModels}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {AI_CONFIGS.general.providers
-                          .find(p => p.value === generalForm.provider)
-                          ?.models.map(model => (
-                            <SelectItem key={model} value={model}>
-                              {model}
+                        {generalForm.provider === "openai" && availableModels.chatModels.length > 0 ? (
+                          availableModels.chatModels.map(model => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.name}
                             </SelectItem>
                           ))
-                        }
+                        ) : (
+                          AI_CONFIGS.general.providers
+                            .find(p => p.value === generalForm.provider)
+                            ?.models.map(model => (
+                              <SelectItem key={model} value={model}>
+                                {model}
+                              </SelectItem>
+                            ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -515,7 +558,12 @@ export function AISettings() {
                       type="password"
                       placeholder={settings.general ? "Enter new key to update" : "Enter API key"}
                       value={generalForm.apiKey}
-                      onChange={(e) => setGeneralForm({ ...generalForm, apiKey: e.target.value })}
+                      onChange={(e) => {
+                        setGeneralForm({ ...generalForm, apiKey: e.target.value });
+                        if (e.target.value.length > 40 && generalForm.provider === "openai") {
+                          fetchModels(e.target.value);
+                        }
+                      }}
                     />
                     <Button
                       variant="outline"
@@ -653,14 +701,25 @@ export function AISettings() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {AI_CONFIGS.embedding.providers[0].models.map(model => (
-                          <SelectItem key={model} value={model}>
-                            {model === "text-embedding-3-small" ? "Text Embedding 3 Small (Recommended)" :
-                             model === "text-embedding-3-large" ? "Text Embedding 3 Large (Higher Quality)" :
-                             model === "text-embedding-ada-002" ? "Text Embedding Ada 002 (Legacy)" :
-                             model}
-                          </SelectItem>
-                        ))}
+                        {embeddingForm.provider === "openai" && availableModels.embeddingModels.length > 0 ? (
+                          availableModels.embeddingModels.map(model => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.name === "text-embedding-3-small" ? "Text Embedding 3 Small (Recommended)" :
+                               model.name === "text-embedding-3-large" ? "Text Embedding 3 Large (Higher Quality)" :
+                               model.name === "text-embedding-ada-002" ? "Text Embedding Ada 002 (Legacy)" :
+                               model.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          AI_CONFIGS.embedding.providers[0].models.map(model => (
+                            <SelectItem key={model} value={model}>
+                              {model === "text-embedding-3-small" ? "Text Embedding 3 Small (Recommended)" :
+                               model === "text-embedding-3-large" ? "Text Embedding 3 Large (Higher Quality)" :
+                               model === "text-embedding-ada-002" ? "Text Embedding Ada 002 (Legacy)" :
+                               model}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <p className="text-sm text-muted-foreground">
@@ -676,7 +735,12 @@ export function AISettings() {
                       type="password"
                       placeholder={settings.embedding ? "Enter new key to update" : "Enter API key"}
                       value={embeddingForm.apiKey}
-                      onChange={(e) => setEmbeddingForm({ ...embeddingForm, apiKey: e.target.value })}
+                      onChange={(e) => {
+                        setEmbeddingForm({ ...embeddingForm, apiKey: e.target.value });
+                        if (e.target.value.length > 40 && embeddingForm.provider === "openai") {
+                          fetchModels(e.target.value);
+                        }
+                      }}
                     />
                     <Button
                       variant="outline"
