@@ -41,13 +41,13 @@ export function ModalWrapper({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(sizeMap[size], "p-0", className)}>
-        <DialogHeader className="px-6 pt-6 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle>{title}</DialogTitle>
           {description && (
             <DialogDescription>{description}</DialogDescription>
           )}
         </DialogHeader>
-        <div className="px-6 py-4">{children}</div>
+        <div className="px-6 py-6">{children}</div>
         {footer && (
           <DialogFooter className="px-6 pb-6 pt-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
             {footer}
