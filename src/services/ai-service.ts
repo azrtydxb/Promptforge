@@ -1,5 +1,4 @@
 import { db } from "@/lib/db";
-import { getActiveAISettings } from "@/app/actions/admin-ai.actions";
 import { logger } from "@/lib/logger";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
@@ -27,7 +26,14 @@ class AIService {
   private anthropic: Anthropic | null = null;
 
   private async getClient() {
-    const settings = await getActiveAISettings();
+    // Get active AI settings directly from database
+    const settings = await db.aISettings.findFirst({
+      where: { 
+        isActive: true,
+        name: 'general'
+      }
+    });
+    
     if (!settings) {
       throw new Error("No active AI settings configured");
     }
@@ -372,7 +378,9 @@ Respond in JSON format:
     });
 
     const similarities = prompts.map(prompt => {
-      const promptEmbedding = prompt.embedding as number[];
+      const promptEmbedding = Array.isArray(prompt.embedding) 
+        ? prompt.embedding as number[]
+        : JSON.parse(prompt.embedding as string) as number[];
       const similarity = this.cosineSimilarity(embedding, promptEmbedding);
       return { id: prompt.id, similarity };
     });

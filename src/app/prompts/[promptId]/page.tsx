@@ -6,7 +6,7 @@ import { updatePrompt, createPrompt, updatePromptLastUsed } from "@/app/actions/
 import { Editor } from "@/components/editor/editor";
 import type { Prompt, Tag, PromptVersion } from "@/generated/prisma";
 import { useDebounce } from "@/hooks/use-debounce";
-import { VersionHistorySidebar } from "@/components/prompts/version-history-sidebar";
+import { PromptHistoryTimeline } from "@/components/prompts/prompt-history-timeline";
 import { EnhancedTagInput } from "@/components/prompts/enhanced-tag-input";
 import {
   DropdownMenu,
@@ -348,8 +348,8 @@ export default function PromptPage({
         </div>
       </div>
       
-      {/* Right sidebar: TagInput at top, VersionHistorySidebar below */}
-      <div className="w-80 border-l flex flex-col">
+      {/* Right sidebar: TagInput at top, PromptHistoryTimeline below */}
+      <div className="w-96 border-l flex flex-col">
         <div className="h-32 p-4 border-b">
           <div>
             <label className="text-sm font-medium mb-2 block">Tags</label>
@@ -374,7 +374,13 @@ export default function PromptPage({
                 }}
               />
             </div>
-            <VersionHistorySidebar versions={prompt.versions} onRestore={handleRestore} />
+            <div className="flex-1 overflow-y-auto p-4">
+              <PromptHistoryTimeline 
+                promptId={promptId!} 
+                currentContent={content}
+                onRestore={handleRestore}
+              />
+            </div>
           </div>
         )}
       </div>

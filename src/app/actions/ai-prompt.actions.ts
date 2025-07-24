@@ -44,7 +44,7 @@ export async function enhancePrompt(promptId: string) {
       where: { id: promptId },
       data: {
         enhancedContent: result.enhancedContent,
-        enhancementSuggestions: result.suggestions,
+        enhancementSuggestions: result.suggestions as any,
       },
     });
 
@@ -192,7 +192,7 @@ export async function findSimilarPrompts(promptId: string) {
       // Save embedding
       await db.prompt.update({
         where: { id: promptId },
-        data: { embedding },
+        data: { embedding: JSON.stringify(embedding) },
       });
     }
 

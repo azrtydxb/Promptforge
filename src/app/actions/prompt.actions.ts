@@ -179,6 +179,16 @@ export async function createPrompt({
 
     console.log("SERVER ACTION: Prompt created successfully:", newPrompt);
     
+    // Create initial version
+    await db.promptVersion.create({
+      data: {
+        promptId: newPrompt.id,
+        content: content || "",
+        version: "v1",
+        changeMessage: "Initial version"
+      }
+    });
+    
     // Schedule embedding generation
     await schedulePromptEmbeddingUpdate(newPrompt.id);
     
@@ -252,10 +262,17 @@ export async function updatePrompt(
   });
 
   if (content && content !== existingPrompt.content) {
+    // Get version count for naming
+    const versionCount = await db.promptVersion.count({
+      where: { promptId: id }
+    });
+    
     await db.promptVersion.create({
       data: {
         content: existingPrompt.content || "",
         promptId: id,
+        version: `v${versionCount + 1}`,
+        changeMessage: "Content updated"
       },
     });
   }

@@ -80,7 +80,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
       }
     };
     loadOptions();
-  }, []);
+  }, [searchMode]);
 
   // Perform search
   const performSearch = useCallback(async () => {

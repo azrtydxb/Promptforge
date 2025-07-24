@@ -10,8 +10,7 @@ import {
   triggerEmbeddingRegeneration,
   getEmbeddingStats,
   getEmbeddingQueueStatus,
-  getSemanticSearchEnabled,
-  setSemanticSearchEnabled
+  getSemanticSearchEnabled
 } from "@/app/actions/admin-ai.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -313,12 +312,11 @@ export function AISettings() {
     setLoadingSemanticSearch(true);
     try {
       await setSemanticSearchEnabled(checked);
-      setSemanticSearchEnabled(checked);
       toast({
         title: "Success",
         description: `Semantic search ${checked ? 'enabled' : 'disabled'} successfully`
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to update semantic search setting",
