@@ -44,7 +44,7 @@ export async function enhancePrompt(promptId: string) {
       where: { id: promptId },
       data: {
         enhancedContent: result.enhancedContent,
-        enhancementSuggestions: result.suggestions as any,
+        enhancementSuggestions: result.suggestions,
       },
     });
 

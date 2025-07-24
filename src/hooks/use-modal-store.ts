@@ -13,7 +13,8 @@ export type ModalType =
   | 'editTag'
   | 'deleteTag'
   | 'changePassword'
-  | 'saveVersion';
+  | 'saveVersion'
+  | 'sharePrompt';
 
 // Simple tag interface for modal data
 export interface TagData {

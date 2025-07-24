@@ -52,6 +52,7 @@ model User {
   moderatedPrompts SharedPrompt[] @relation("ModeratedBy")
   promptTemplates PromptTemplate[]
   aiUsageLogs AIUsageLog[]
+  shareLinks  PromptShareLink[]
 }
 
 enum AvatarType {
@@ -171,6 +172,7 @@ model Prompt {
   templateId  String?
   template    PromptTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   aiUsageLogs AIUsageLog[]
+  shareLinks  PromptShareLink[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -487,4 +489,44 @@ model AIUsageLog {
   @@index([userId])
   @@index([operation])
   @@index([createdAt])
+}
+
+// Prompt Share Links
+model PromptShareLink {
+  id          String   @id @default(cuid())
+  promptId    String
+  prompt      Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shareId     String   @unique // Short unique identifier for URL
+  title       String   // Public title (can differ from prompt title)
+  description String?  // Public description
+  content     String   // Snapshot of prompt content at share time
+  tags        String[] // Snapshot of tags
+  settings    Json     // Share settings (password, theme, etc.)
+  expiresAt   DateTime? // Optional expiration date
+  password    String?  // Optional password hash
+  maxViews    Int?     // Optional view limit
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  views       PromptShareView[]
+
+  @@index([shareId])
+  @@index([userId])
+  @@index([promptId])
+  @@index([expiresAt])
+}
+
+// Prompt Share View Tracking
+model PromptShareView {
+  id           String   @id @default(cuid())
+  shareLinkId  String
+  shareLink    PromptShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+  ipAddress    String?
+  userAgent    String?
+  referer      String?
+  viewedAt     DateTime @default(now())
+
+  @@index([shareLinkId])
 }

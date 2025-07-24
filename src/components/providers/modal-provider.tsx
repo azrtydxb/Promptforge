@@ -13,6 +13,7 @@ import { EditTagModal } from "../modals/edit-tag-modal";
 import { DeleteTagModal } from "../modals/delete-tag-modal";
 import { ChangePasswordModal } from "../modals/change-password-modal";
 import { SaveVersionModal } from "../modals/save-version-modal";
+import { SharePromptModal } from "../modals/share-prompt-modal";
 
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -39,6 +40,7 @@ export const ModalProvider = () => {
       <DeleteTagModal />
       <ChangePasswordModal />
       <SaveVersionModal />
+      <SharePromptModal />
     </>
   );
 };

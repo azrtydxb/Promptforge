@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Save, ArrowLeft, Copy, Check } from "lucide-react";
+import { ChevronDown, Save, ArrowLeft, Copy, Check, Share2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 import { AIEnhancementPanel } from "@/components/prompts/ai-enhancement-panel";
@@ -257,6 +257,23 @@ export default function PromptPage({
               onChange={(e) => setTitle(e.target.value)}
               className="flex-grow text-lg font-semibold"
             />
+            {!isCreateMode && (
+              <Button
+                onClick={() => onOpen("sharePrompt", { 
+                  promptData: { 
+                    id: promptId!, 
+                    title, 
+                    description,
+                    content 
+                  } 
+                })}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Share2 className="h-4 w-4" />
+                Share
+              </Button>
+            )}
             <Button
               onClick={isCreateMode ? handleSaveNewPrompt : handleSave}
               disabled={isSaving || !title.trim()}
