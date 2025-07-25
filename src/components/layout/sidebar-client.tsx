@@ -82,8 +82,6 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
             </div>
             <span className="text-primary-foreground tracking-wide">PromptForge</span>
           </Link>
-          {/* Subtle glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent hidden group-hover:block transition-all duration-300 pointer-events-none" />
         </div>
         
         {/* Enhanced Navigation */}
@@ -120,14 +118,10 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                     </div>
                   </div>
                   
-                  {/* Active indicator with smooth animation */}
-                  <ChevronRight className={`
-                    h-3 w-3 flex-shrink-0 transition-all duration-200 text-primary-foreground
-                    ${isActive
-                      ? 'block translate-x-0'
-                      : 'hidden -translate-x-2 group-hover:block group-hover:translate-x-0'
-                    }
-                  `} />
+                  {/* Active indicator */}
+                  {isActive && (
+                    <ChevronRight className="h-3 w-3 flex-shrink-0 text-primary-foreground" />
+                  )}
                 </Link>
               )
             })}

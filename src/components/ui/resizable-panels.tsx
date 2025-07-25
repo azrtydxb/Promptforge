@@ -97,7 +97,7 @@ export function ResizablePanels({
         {/* Mobile sidebar overlay */}
         {isMobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-white z-40 md:hidden"
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}

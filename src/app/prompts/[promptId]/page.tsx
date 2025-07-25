@@ -106,12 +106,21 @@ export default function PromptPage({
       
       setIsLoading(false);
       
-      // Check for draft
+      // Check for draft (only show if it's less than 24 hours old and has meaningful content)
       if (hasDraft) {
         const draft = loadDraft();
         if (draft) {
-          setRecoveredDraft(draft);
-          setShowDraftRecovery(true);
+          const draftAge = Date.now() - draft.timestamp;
+          const oneDayInMs = 24 * 60 * 60 * 1000;
+          const hasMeaningfulContent = draft.content.trim().length > 0 || draft.title.trim().length > 0;
+          
+          if (draftAge < oneDayInMs && hasMeaningfulContent) {
+            setRecoveredDraft(draft);
+            setShowDraftRecovery(true);
+          } else {
+            // Clear old or empty drafts
+            clearDraft();
+          }
         }
       }
       return;
@@ -133,13 +142,22 @@ export default function PromptPage({
           // Check for draft after loading prompt
           if (hasDraft) {
             const draft = loadDraft();
-            if (draft && (
-              draft.content !== fetchedPrompt.content ||
-              draft.title !== fetchedPrompt.title ||
-              draft.description !== fetchedPrompt.description
-            )) {
-              setRecoveredDraft(draft);
-              setShowDraftRecovery(true);
+            if (draft) {
+              const hasSignificantChanges = (
+                draft.content !== fetchedPrompt.content ||
+                draft.title !== fetchedPrompt.title ||
+                draft.description !== fetchedPrompt.description
+              );
+              const draftAge = Date.now() - draft.timestamp;
+              const oneDayInMs = 24 * 60 * 60 * 1000;
+              
+              if (hasSignificantChanges && draftAge < oneDayInMs) {
+                setRecoveredDraft(draft);
+                setShowDraftRecovery(true);
+              } else if (draftAge >= oneDayInMs) {
+                // Clear old drafts
+                clearDraft();
+              }
             }
           }
         }
