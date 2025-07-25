@@ -2,20 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -28,13 +17,6 @@ import { inviteTeamMember } from "@/app/actions/team-members.actions";
 import { TeamRole } from "@/generated/prisma";
 import { Loader2, Mail } from "lucide-react";
 
-const formSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  role: z.enum(["VIEWER", "MEMBER", "ADMIN"]),
-});
-
 interface InviteMemberFormProps {
   teamId: string;
   teamSlug: string;
@@ -44,29 +26,52 @@ export function InviteMemberForm({ teamId, teamSlug }: InviteMemberFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      role: "MEMBER",
-    },
+  const [formData, setFormData] = useState({
+    email: "",
+    role: "MEMBER" as TeamRole,
   });
+  const [errors, setErrors] = useState<{
+    email?: string;
+  }>({});
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    
+    if (!formData.email.trim()) {
+      newErrors.email = "Email address is required";
+    } else if (!validateEmail(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
       const result = await inviteTeamMember({
         teamId,
-        email: values.email,
-        role: values.role as TeamRole,
+        email: formData.email.trim(),
+        role: formData.role,
       });
       
       if (result.success) {
         toast({
           title: "Invitation sent!",
-          description: `An invitation has been sent to ${values.email}`,
+          description: `An invitation has been sent to ${formData.email}`,
         });
         
         // Redirect back to team members page
@@ -82,106 +87,97 @@ export function InviteMemberForm({ teamId, teamSlug }: InviteMemberFormProps) {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email Address</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="email"
-                    placeholder="colleague@company.com" 
-                    className="pl-10"
-                    {...field} 
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </FormControl>
-              <FormDescription>
-                The email address of the person you want to invite.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Role</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-                disabled={isSubmitting}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="VIEWER">
-                    <div>
-                      <div className="font-medium">Viewer</div>
-                      <div className="text-sm text-muted-foreground">
-                        Can view team prompts but cannot create or edit
-                      </div>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="MEMBER">
-                    <div>
-                      <div className="font-medium">Member</div>
-                      <div className="text-sm text-muted-foreground">
-                        Can create, edit, and manage their own prompts
-                      </div>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="ADMIN">
-                    <div>
-                      <div className="font-medium">Admin</div>
-                      <div className="text-sm text-muted-foreground">
-                        Can manage team members and all prompts
-                      </div>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                Choose what permissions this person will have in the team.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex gap-4">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            Send Invitation
-          </Button>
-          
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="email">Email Address</Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="colleague@company.com"
+            className="pl-10"
+            value={formData.email}
+            onChange={(e) => {
+              setFormData(prev => ({ ...prev, email: e.target.value }));
+              if (errors.email) {
+                setErrors(prev => ({ ...prev, email: undefined }));
+              }
+            }}
             disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
+            required
+          />
         </div>
-      </form>
-    </Form>
+        <p className="text-sm text-muted-foreground">
+          The email address of the person you want to invite.
+        </p>
+        {errors.email && (
+          <p className="text-sm text-destructive">{errors.email}</p>
+        )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="role">Role</Label>
+        <Select
+          value={formData.role}
+          onValueChange={(value) => setFormData(prev => ({ ...prev, role: value as TeamRole }))}
+          disabled={isSubmitting}
+        >
+          <SelectTrigger id="role">
+            <SelectValue placeholder="Select a role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="VIEWER">
+              <div>
+                <div className="font-medium">Viewer</div>
+                <div className="text-sm text-muted-foreground">
+                  Can view team prompts but cannot create or edit
+                </div>
+              </div>
+            </SelectItem>
+            <SelectItem value="MEMBER">
+              <div>
+                <div className="font-medium">Member</div>
+                <div className="text-sm text-muted-foreground">
+                  Can create, edit, and manage their own prompts
+                </div>
+              </div>
+            </SelectItem>
+            <SelectItem value="ADMIN">
+              <div>
+                <div className="font-medium">Admin</div>
+                <div className="text-sm text-muted-foreground">
+                  Can manage team members and all prompts
+                </div>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-sm text-muted-foreground">
+          Choose what permissions this person will have in the team.
+        </p>
+      </div>
+      
+      <div className="flex gap-4">
+        <Button type="submit" disabled={isSubmitting || !formData.email.trim()}>
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          Send Invitation
+        </Button>
+        
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 }

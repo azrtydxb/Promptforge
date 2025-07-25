@@ -2,56 +2,59 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { createTeam } from "@/app/actions/team.actions";
 import { Loader2 } from "lucide-react";
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Team name must be at least 2 characters.",
-  }).max(50, {
-    message: "Team name must be less than 50 characters.",
-  }),
-  description: z.string().max(200, {
-    message: "Description must be less than 200 characters.",
-  }).optional(),
-});
-
 export function CreateTeamForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
   });
+  const [errors, setErrors] = useState<{
+    name?: string;
+    description?: string;
+  }>({});
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = "Team name is required";
+    } else if (formData.name.length < 2) {
+      newErrors.name = "Team name must be at least 2 characters";
+    } else if (formData.name.length > 50) {
+      newErrors.name = "Team name must be less than 50 characters";
+    }
+    
+    if (formData.description && formData.description.length > 200) {
+      newErrors.description = "Description must be less than 200 characters";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
       const result = await createTeam({
-        name: values.name,
-        description: values.description,
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
       });
       
       if (result.success) {
@@ -73,72 +76,76 @@ export function CreateTeamForm() {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Team Name</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="My Awesome Team" 
-                  {...field} 
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormDescription>
-                This is your team's display name.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="name">Team Name</Label>
+        <Input
+          id="name"
+          placeholder="My Awesome Team"
+          value={formData.name}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, name: e.target.value }));
+            if (errors.name) {
+              setErrors(prev => ({ ...prev, name: undefined }));
+            }
+          }}
+          disabled={isSubmitting}
+          maxLength={50}
+          required
         />
-        
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (optional)</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="What is this team about?"
-                  className="resize-none"
-                  {...field}
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormDescription>
-                Brief description of your team's purpose.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+        <p className="text-sm text-muted-foreground">
+          This is your team's display name.
+        </p>
+        {errors.name && (
+          <p className="text-sm text-destructive">{errors.name}</p>
+        )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="description">Description (optional)</Label>
+        <Textarea
+          id="description"
+          placeholder="What is this team about?"
+          className="resize-none"
+          value={formData.description}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, description: e.target.value }));
+            if (errors.description) {
+              setErrors(prev => ({ ...prev, description: undefined }));
+            }
+          }}
+          disabled={isSubmitting}
+          maxLength={200}
+          rows={3}
         />
+        <p className="text-sm text-muted-foreground">
+          Brief description of your team's purpose.
+        </p>
+        {errors.description && (
+          <p className="text-sm text-destructive">{errors.description}</p>
+        )}
+      </div>
+      
+      <div className="flex gap-4">
+        <Button type="submit" disabled={isSubmitting || !formData.name.trim()}>
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          Create Team
+        </Button>
         
-        <div className="flex gap-4">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            Create Team
-          </Button>
-          
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
-    </Form>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </Button>
+      </div>
+    </form>
   );
 }
