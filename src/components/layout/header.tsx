@@ -17,7 +17,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 export function Header() {
   return (
-    <header className="flex h-[var(--topbar-height)] items-center gap-4 border-b bg-background px-6 shadow-sm sticky top-0 z-30" role="banner">
+    <header className="flex h-[var(--topbar-height)] items-center gap-4 border-b bg-white dark:bg-[#3a444e] px-6 shadow-sm sticky top-0 z-30" role="banner">
       {/* Mobile menu */}
       <Sheet>
         <SheetTrigger asChild>

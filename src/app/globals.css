@@ -148,8 +148,8 @@
 @layer base {
   :root {
     /* Hyper Template Professional Design System - Light Mode */
-    --background: 0 0% 100%; /* #FFFFFF - Clean white background */
-    --foreground: 214 17% 24%; /* #343a40 - Primary text color */
+    --background: 240 60% 99%; /* #fafbfe - Hyper light background */
+    --foreground: 210 10% 45%; /* #6c757d - Hyper text color */
 
     --card: 0 0% 100%; /* #FFFFFF - White cards */
     --card-foreground: 214 17% 24%; /* #343a40 - Card text color */
@@ -208,49 +208,52 @@
   }
  
   .dark {
-    /* Hyper Template Dark Mode */
-    --background: 218 15% 13%; /* #1e2229 - Darker background matching Hyper */
-    --foreground: 210 17% 85%; /* #d5dae1 - Lighter text for better contrast */
+    /* Hyper Template Dark Mode - Exact Match */
+    --background: 210 10% 23%; /* #343a40 - Hyper dark background */
+    --foreground: 208 17% 69%; /* #aab8c5 - Hyper dark text */
 
-    --card: 218 13% 18%; /* #313a46 - Card background */
-    --card-foreground: 210 17% 85%;
+    --card: 218 15% 25%; /* #37404a - Hyper dark card */
+    --card-foreground: 208 17% 69%; /* #aab8c5 */
  
-    --popover: 218 13% 18%;
-    --popover-foreground: 210 17% 85%;
+    --popover: 218 15% 25%; /* #37404a */
+    --popover-foreground: 208 17% 69%;
  
     --primary: 226 42% 56%; /* #546ee5 - Hyper gradient end */
     --primary-foreground: 0 0% 100%;
  
-    --secondary: 217 13% 23%; /* #37404a - Secondary bg */
-    --secondary-foreground: 210 17% 85%;
+    --secondary: 218 15% 25%; /* #37404a - Secondary bg */
+    --secondary-foreground: 208 17% 69%;
  
-    --muted: 217 12% 28%; /* #404854 */
-    --muted-foreground: 210 14% 68%; /* #a1acb8 */
+    --muted: 217 15% 32%; /* #464f5b - Hyper muted */
+    --muted-foreground: 216 15% 59%; /* #8391a2 - Hyper muted text */
  
     --accent: 226 42% 56%; /* #546ee5 */
     --accent-foreground: 0 0% 100%;
     
-    /* Dark menu colors */
-    --menu-bg: 218 15% 13%; /* #1e2229 - Darker sidebar matching background */
-    --menu-item-color: 210 16% 70%; /* #a6b0cf - Lighter menu text */
-    --menu-item-hover-color: 0 0% 100%;
-    --menu-item-active-color: 0 0% 100%;
+    /* Dark menu colors - Hyper exact */
+    --menu-bg: 217 15% 29%; /* #3a444e - Hyper sidebar bg */
+    --menu-item-color: 216 15% 59%; /* #8391a2 - Hyper menu text */
+    --menu-item-hover-color: 213 21% 82%; /* #bccee4 - Hyper menu hover */
+    --menu-item-active-color: 0 0% 100%; /* White when active */
  
-    --destructive: 354 70% 60%; /* #fa5c7c - Slightly darker for dark mode */
+    --destructive: 0 69% 68%; /* #fa6767 - Hyper danger */
     --destructive-foreground: 0 0% 100%;
  
-    --success: 160 70% 40%; /* #0acf97 - Slightly darker for dark mode */
+    --success: 160 70% 45%; /* #42d29d - Hyper success */
     --success-foreground: 0 0% 100%;
  
-    --warning: 45 90% 58%; /* #ffbc00 - Slightly darker for dark mode */
+    --warning: 41 96% 52%; /* #f9bc0d - Hyper warning */
     --warning-foreground: 0 0% 100%;
  
-    --info: 188 70% 38%; /* #39afd1 - Slightly darker for dark mode */
+    --info: 195 70% 57%; /* #44badc - Hyper info */
     --info-foreground: 0 0% 100%;
 
-    --border: 217 12% 25%; /* #36404d - Darker border */
-    --input: 218 13% 15%; /* #262d38 - Darker input background */
+    --border: 217 15% 32%; /* #464f5b - Hyper border */
+    --input: 217 15% 30%; /* #404954 - Hyper input bg */
     --ring: 226 42% 56%; /* Primary color for focus ring */
+    
+    /* Additional Hyper dark variables */
+    --box-shadow: 0px 0px 35px 0px rgba(49, 57, 66, 0.5);
   }
 
   * {
