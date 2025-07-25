@@ -24,10 +24,12 @@
    - Use for: Creating unit tests, integration tests, E2E tests
    - Run after: Implementing new features or fixing bugs
 
-5. **project-orchestrator**
-   - Use for: Managing complete workflows from issue to deployment
-   - Coordinates: Other agents to ensure quality at every step
-   - IMPORTANT: This agent should delegate, not implement
+5. **project-orchestrator** (PLANNER ONLY - NO CODE)
+   - Use for: Planning and coordinating complete workflows
+   - ONLY ALLOWED TO: Create plans, delegate tasks, coordinate agents
+   - STRICTLY FORBIDDEN: Writing ANY code, using Edit/Write tools, implementing features
+   - MUST DELEGATE ALL CODE TO: fullstack-nodejs-engineer
+   - Example: "Plan task → Delegate coding to fullstack-nodejs-engineer → Coordinate testing"
 
 6. **docs-architect**
    - Use for: Creating/updating documentation, API docs, README files
@@ -40,20 +42,42 @@
 ### Enforcement Rules:
 1. **NO DIRECT IMPLEMENTATION** - You must NEVER write code directly
 2. **ALWAYS DELEGATE** - Use the appropriate agent for every task
-3. **QUALITY GATES** - Use code-quality-inspector after implementations
-4. **DOCUMENTATION** - Use docs-architect after feature completion
-5. **TESTING** - Use test-automation-engineer for all test creation
+3. **PROJECT-ORCHESTRATOR CANNOT CODE** - This agent is ONLY for planning and delegation
+4. **ALL CODE GOES TO FULLSTACK-NODEJS-ENGINEER** - Every single line of code
+5. **QUALITY GATES** - Use code-quality-inspector after implementations
+6. **DOCUMENTATION** - Use docs-architect after feature completion
+7. **TESTING** - Use test-automation-engineer for all test creation
+
+### RED FLAGS - When project-orchestrator is doing it WRONG:
+- Using Edit, Write, or MultiEdit tools
+- Writing TypeScript, JavaScript, React code
+- Creating or modifying files directly
+- Implementing features instead of delegating
 
 ### Example Workflow:
 ```
-User Request → project-orchestrator → delegates to:
-  → fullstack-nodejs-engineer (implementation)
-  → test-automation-engineer (tests)
-  → security-vulnerability-scanner (if applicable)
-  → code-quality-inspector (review)
-  → docs-architect (documentation)
-  → git-workflow-manager (commit/PR)
+User Request → project-orchestrator:
+  1. PLANS the task (no coding)
+  2. DELEGATES implementation → fullstack-nodejs-engineer
+  3. WAITS for completion
+  4. DELEGATES testing → test-automation-engineer
+  5. COORDINATES review → code-quality-inspector
+  6. ENSURES documentation → docs-architect
+  7. MANAGES Git workflow → git-workflow-manager
+
+If project-orchestrator writes even ONE line of code = VIOLATION
 ```
+
+### Correct project-orchestrator behavior:
+✅ "I'll delegate the implementation to fullstack-nodejs-engineer"
+✅ "Let me create a plan and assign tasks to specialized agents"
+✅ "I'll coordinate between the agents to ensure quality"
+
+### WRONG project-orchestrator behavior:
+❌ "Let me implement this feature"
+❌ "I'll create this component"
+❌ "Here's the code for that"
+❌ Using any code editing tools
 
 ## Test Credentials
 - **Email**: pascal@watteel.com
