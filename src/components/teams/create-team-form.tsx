@@ -57,14 +57,20 @@ export function CreateTeamForm() {
         description: formData.description.trim() || undefined,
       });
       
-      if (result.success) {
+      if (result.success && result.team) {
         toast({
           title: "Team created!",
           description: "Your new team has been created successfully.",
         });
         
-        // Redirect to the new team's dashboard
-        router.push(`/teams/${result.team.slug}`);
+        // Small delay to ensure toast is visible and state is updated
+        setTimeout(() => {
+          // Ensure the router is ready and redirect to the new team's dashboard
+          router.push(`/teams/${result.team.slug}`);
+          router.refresh(); // Force a refresh to ensure navigation happens
+        }, 100);
+      } else {
+        throw new Error("Team creation failed");
       }
     } catch (error) {
       console.error("Error creating team:", error);

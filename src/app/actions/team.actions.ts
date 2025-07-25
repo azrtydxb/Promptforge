@@ -66,8 +66,10 @@ export async function createTeam(params: CreateTeamParams) {
       },
     });
     
+    // Revalidate paths after team creation
     revalidatePath('/dashboard');
     revalidatePath('/teams');
+    revalidatePath(`/teams/${team.slug}`); // Also revalidate the new team page
     
     logger.info("Team created", { teamId: team.id, userId: user.id });
     return { success: true, team };
