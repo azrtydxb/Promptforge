@@ -212,16 +212,16 @@
     --background: 210 10% 23%; /* #343a40 - Hyper dark background */
     --foreground: 208 17% 69%; /* #aab8c5 - Hyper dark text */
 
-    --card: 218 15% 25%; /* #37404a - Hyper dark card */
+    --card: 217 15% 30%; /* #404954 - Hyper dark card */
     --card-foreground: 208 17% 69%; /* #aab8c5 */
  
-    --popover: 218 15% 25%; /* #37404a */
+    --popover: 217 15% 30%; /* #404954 */
     --popover-foreground: 208 17% 69%;
  
     --primary: 226 42% 56%; /* #546ee5 - Hyper gradient end */
     --primary-foreground: 0 0% 100%;
  
-    --secondary: 218 15% 25%; /* #37404a - Secondary bg */
+    --secondary: 217 15% 30%; /* #404954 - Secondary bg */
     --secondary-foreground: 208 17% 69%;
  
     --muted: 217 15% 32%; /* #464f5b - Hyper muted */
