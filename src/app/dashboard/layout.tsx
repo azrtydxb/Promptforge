@@ -6,6 +6,8 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { PageErrorBoundary } from '@/components/error-boundary';
+import { SidebarProvider } from '@/components/providers/sidebar-provider';
+import { DashboardContent } from '@/components/layout/dashboard-content';
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getServerSession(authOptions);
@@ -16,18 +18,12 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <PageErrorBoundary>
-      <div className="flex h-screen overflow-hidden bg-[hsl(var(--background))]">
-        <Sidebar />
-        <div className="flex flex-col flex-1 overflow-hidden ml-[260px]">
-          <Header />
-          <main id="main-content" className="flex-1 overflow-y-auto bg-[#fafbfe] p-6">
-            <div className="max-w-[1440px] mx-auto">
-              {children}
-            </div>
-          </main>
-          <Footer />
+      <SidebarProvider>
+        <div className="flex h-screen overflow-hidden bg-[hsl(var(--background))]">
+          <Sidebar />
+          <DashboardContent>{children}</DashboardContent>
         </div>
-      </div>
+      </SidebarProvider>
     </PageErrorBoundary>
   );
 };

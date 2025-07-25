@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useRef } from "react"
 import {
   Home,
   FileText,
@@ -12,6 +13,8 @@ import {
   Star,
   Layout,
 } from "lucide-react"
+import { useSidebar } from "@/components/providers/sidebar-provider"
+import { cn } from "@/lib/utils"
 
 interface SidebarClientProps {
   isAdmin?: boolean;
@@ -65,20 +68,48 @@ const getNavigationItems = (isAdmin: boolean) => [
 export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
   const pathname = usePathname()
   const navigationItems = getNavigationItems(isAdmin)
+  const { isCollapsed, setIsCollapsed } = useSidebar()
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    setIsCollapsed(false)
+  }
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsCollapsed(true)
+    }, 800) // 800ms delay before collapsing
+  }
 
   return (
-    <div className="fixed left-0 top-0 bottom-0 hidden border-r border-border bg-white dark:bg-[hsl(var(--menu-bg))] md:block overflow-hidden w-[260px] z-40">
+    <div 
+      className={cn(
+        "fixed left-0 top-0 bottom-0 hidden border-r border-border bg-[hsl(var(--menu-bg))] md:block overflow-hidden z-40 transition-all duration-300",
+        isCollapsed ? "w-[70px]" : "w-[260px]"
+      )}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className="flex h-full max-h-screen flex-col">
         {/* Logo Section */}
-        <div className="flex h-[var(--topbar-height)] items-center px-6 bg-white dark:bg-[hsl(var(--menu-bg))]">
+        <div className="flex h-[var(--topbar-height)] items-center px-6 bg-[hsl(var(--menu-bg))]">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 font-semibold group transition-all duration-200"
+            className={cn(
+              "flex items-center gap-3 font-semibold group transition-all duration-200",
+              isCollapsed && "justify-center w-full"
+            )}
           >
             <div className="p-2 rounded bg-[hsl(var(--primary))] shadow-sm group-hover:shadow-md transition-all duration-200">
               <Zap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-semibold text-foreground dark:text-white">PromptForge</span>
+            {!isCollapsed && (
+              <span className="text-lg font-semibold text-white">PromptForge</span>
+            )}
           </Link>
         </div>
         
@@ -93,16 +124,22 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`
-                    flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group relative
-                    ${isActive
-                      ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-white'
-                      : 'text-muted-foreground dark:text-[hsl(var(--menu-item-color))] hover:text-foreground dark:hover:text-[hsl(var(--menu-item-hover-color))] hover:bg-primary/5 dark:hover:bg-white/5'
-                    }
-                  `}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group relative",
+                    isActive
+                      ? 'bg-primary/20 text-white'
+                      : 'text-[hsl(var(--menu-item-color))] hover:text-[hsl(var(--menu-item-hover-color))] hover:bg-white/5',
+                    isCollapsed && "justify-center px-2"
+                  )}
+                  title={isCollapsed ? item.label : undefined}
                 >
-                  <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-primary dark:text-white' : ''}`} />
-                  <span className="font-medium">{item.label}</span>
+                  <Icon className={cn(
+                    "h-5 w-5 flex-shrink-0",
+                    isActive ? 'text-white' : ''
+                  )} />
+                  {!isCollapsed && (
+                    <span className="font-medium">{item.label}</span>
+                  )}
                   
                   {/* Active indicator bar */}
                   {isActive && (

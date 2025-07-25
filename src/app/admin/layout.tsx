@@ -1,8 +1,8 @@
 import React from 'react';
 import { requireAdmin } from '@/lib/admin-auth';
 import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { SidebarProvider } from '@/components/providers/sidebar-provider';
+import { DashboardContent } from '@/components/layout/dashboard-content';
 import { PageErrorBoundary } from '@/components/error-boundary';
 
 const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -10,18 +10,12 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   
   return (
     <PageErrorBoundary>
-      <div className="flex h-screen overflow-hidden bg-[hsl(var(--background))]">
-        <Sidebar />
-        <div className="flex flex-col flex-1 overflow-hidden ml-[260px]">
-          <Header />
-          <main id="main-content" className="flex-1 overflow-y-auto bg-[#fafbfe] p-6">
-            <div className="mx-auto w-full max-w-7xl">
-              {children}
-            </div>
-          </main>
-          <Footer />
+      <SidebarProvider>
+        <div className="flex h-screen overflow-hidden bg-[hsl(var(--background))]">
+          <Sidebar />
+          <DashboardContent>{children}</DashboardContent>
         </div>
-      </div>
+      </SidebarProvider>
     </PageErrorBoundary>
   );
 };
