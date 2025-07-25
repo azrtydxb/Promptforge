@@ -55,6 +55,12 @@ model User {
   aiUsageLogs AIUsageLog[]
   shareLinks  PromptShareLink[]
   searchHistory SearchHistory[]
+  // Team relations
+  teamMemberships TeamMember[]
+  createdTeams Team[] @relation("TeamCreator")
+  teamInvitations TeamInvitation[]
+  teamActivities TeamActivity[]
+  teamPrompts TeamPrompt[]
 }
 
 enum AvatarType {
@@ -567,4 +573,206 @@ model SearchHistory {
   @@index([userId])
   @@index([createdAt])
   @@index([query])
+}
+
+// Team Models
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique // URL-friendly identifier
+  description String?
+  logo        String?
+  createdById String
+  createdBy   User     @relation("TeamCreator", fields: [createdById], references: [id])
+  isActive    Boolean  @default(true)
+  settings    Json?    // Team-specific settings
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  members     TeamMember[]
+  prompts     TeamPrompt[]
+  invitations TeamInvitation[]
+  activities  TeamActivity[]
+  folders     TeamFolder[]
+  tags        TeamTag[]
+  
+  @@index([slug])
+  @@index([createdById])
+}
+
+model TeamMember {
+  id        String     @id @default(cuid())
+  teamId    String
+  team      Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      TeamRole
+  joinedAt  DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model TeamPrompt {
+  id          String   @id @default(cuid())
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  content     String?
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  folderId    String?
+  folder      TeamFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags        TeamTag[]
+  isArchived  Boolean  @default(false)
+  // AI Enhancement fields (similar to Prompt model)
+  enhancedContent String?
+  enhancementSuggestions Json?
+  autoTags    String[]
+  embedding   String?
+  embeddingVersion Int? @default(1)
+  embeddingOutdated Boolean @default(true)
+  // Versioning
+  versions    TeamPromptVersion[]
+  // Analytics
+  viewCount   Int      @default(0)
+  copyCount   Int      @default(0)
+  lastUsedAt  DateTime?
+  pinnedAt    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([teamId])
+  @@index([createdById])
+  @@index([folderId])
+  @@index([lastUsedAt])
+  @@index([pinnedAt])
+}
+
+model TeamPromptVersion {
+  id            String      @id @default(cuid())
+  teamPromptId  String
+  teamPrompt    TeamPrompt  @relation(fields: [teamPromptId], references: [id], onDelete: Cascade)
+  content       String
+  version       String?
+  changeMessage String?
+  createdById   String
+  createdAt     DateTime    @default(now())
+  
+  @@index([teamPromptId])
+}
+
+model TeamFolder {
+  id        String       @id @default(cuid())
+  name      String
+  teamId    String
+  team      Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    TeamFolder?  @relation("TeamFolderHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  TeamFolder[] @relation("TeamFolderHierarchy")
+  prompts   TeamPrompt[]
+  order     Int?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  
+  @@index([teamId])
+  @@index([parentId])
+}
+
+model TeamTag {
+  id          String       @id @default(cuid())
+  name        String
+  teamId      String
+  team        Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  description String?
+  prompts     TeamPrompt[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@unique([name, teamId])
+  @@index([teamId])
+}
+
+model TeamInvitation {
+  id         String             @id @default(cuid())
+  teamId     String
+  team       Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email      String
+  role       TeamRole           @default(MEMBER)
+  invitedById String
+  invitedBy  User               @relation(fields: [invitedById], references: [id])
+  token      String             @unique @default(cuid())
+  status     InvitationStatus   @default(PENDING)
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  declinedAt DateTime?
+  createdAt  DateTime           @default(now())
+  
+  @@index([teamId])
+  @@index([email])
+  @@index([token])
+  @@index([status])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model TeamActivity {
+  id          String         @id @default(cuid())
+  teamId      String
+  team        Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  action      TeamAction
+  entityType  String?        // "prompt", "member", "folder", etc.
+  entityId    String?        // ID of the affected entity
+  entityName  String?        // Name/title for display
+  metadata    Json?          // Additional data about the action
+  createdAt   DateTime       @default(now())
+  
+  @@index([teamId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum TeamAction {
+  // Team management
+  TEAM_CREATED
+  TEAM_UPDATED
+  TEAM_DELETED
+  // Member management
+  MEMBER_INVITED
+  MEMBER_JOINED
+  MEMBER_LEFT
+  MEMBER_REMOVED
+  MEMBER_ROLE_CHANGED
+  // Prompt actions
+  PROMPT_CREATED
+  PROMPT_UPDATED
+  PROMPT_DELETED
+  PROMPT_ARCHIVED
+  PROMPT_RESTORED
+  // Folder actions
+  FOLDER_CREATED
+  FOLDER_UPDATED
+  FOLDER_DELETED
+  // Tag actions
+  TAG_CREATED
+  TAG_UPDATED
+  TAG_DELETED
 }

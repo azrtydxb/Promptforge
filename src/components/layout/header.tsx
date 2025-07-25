@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { AuthUserButton } from "../auth/user-button"
+import { TeamSwitcher } from "@/components/teams/team-switcher"
 
 export function Header() {
   return (
@@ -75,8 +76,13 @@ export function Header() {
       </Sheet>
 
 
+      {/* Center - Team Switcher */}
+      <div className="flex-1 flex justify-center">
+        <TeamSwitcher className="max-w-xs" />
+      </div>
+
       {/* Right side items */}
-      <div className="flex items-center justify-end ml-auto gap-3">
+      <div className="flex items-center justify-end gap-3">
         <AuthUserButton />
       </div>
     </header>
