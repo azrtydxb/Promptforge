@@ -1,5 +1,60 @@
 # Project-Specific Information for PromptForge
 
+## MANDATORY: Always Use Specialized Agents
+
+### Agent Usage Requirements
+**CRITICAL**: You MUST use the appropriate specialized agent for EVERY task. Direct implementation without using agents is FORBIDDEN.
+
+#### Available Agents and Their Purposes:
+
+1. **fullstack-nodejs-engineer**
+   - Use for: ALL implementation tasks involving Node.js, Next.js, React, TypeScript
+   - Includes: Component creation, API endpoints, database operations, UI implementation
+   - DO NOT write code directly - delegate to this agent
+
+2. **security-vulnerability-scanner**
+   - Use for: Code security reviews, authentication checks, vulnerability assessments
+   - Run after: Implementing auth features, handling user data, API endpoints
+
+3. **git-workflow-manager**
+   - Use for: ALL Git operations including commits, branches, PRs
+   - NEVER use git commands directly - always delegate to this agent
+
+4. **test-automation-engineer**
+   - Use for: Creating unit tests, integration tests, E2E tests
+   - Run after: Implementing new features or fixing bugs
+
+5. **project-orchestrator**
+   - Use for: Managing complete workflows from issue to deployment
+   - Coordinates: Other agents to ensure quality at every step
+   - IMPORTANT: This agent should delegate, not implement
+
+6. **docs-architect**
+   - Use for: Creating/updating documentation, API docs, README files
+   - Run after: Implementing new features or changing APIs
+
+7. **code-quality-inspector**
+   - Use for: Code review, quality checks, best practices validation
+   - Run after: Writing new code or making significant changes
+
+### Enforcement Rules:
+1. **NO DIRECT IMPLEMENTATION** - You must NEVER write code directly
+2. **ALWAYS DELEGATE** - Use the appropriate agent for every task
+3. **QUALITY GATES** - Use code-quality-inspector after implementations
+4. **DOCUMENTATION** - Use docs-architect after feature completion
+5. **TESTING** - Use test-automation-engineer for all test creation
+
+### Example Workflow:
+```
+User Request → project-orchestrator → delegates to:
+  → fullstack-nodejs-engineer (implementation)
+  → test-automation-engineer (tests)
+  → security-vulnerability-scanner (if applicable)
+  → code-quality-inspector (review)
+  → docs-architect (documentation)
+  → git-workflow-manager (commit/PR)
+```
+
 ## Test Credentials
 - **Email**: pascal@watteel.com
 - **Password**: Jbz49teq01!
