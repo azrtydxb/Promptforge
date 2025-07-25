@@ -294,7 +294,7 @@ export async function getUserTeamRole(teamId: string, userId?: string) {
 }
 
 // Check if user can perform an action based on their role
-export function canPerformAction(userRole: TeamRole | null, requiredRole: TeamRole): boolean {
+export async function canPerformAction(userRole: TeamRole | null, requiredRole: TeamRole): Promise<boolean> {
   if (!userRole) return false;
   
   const roleHierarchy = {

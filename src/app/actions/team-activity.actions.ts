@@ -185,7 +185,7 @@ export async function getTeamActivitySummary(teamIdOrSlug: string) {
 }
 
 // Helper function to format activity messages
-export function formatActivityMessage(activity: any): string {
+export async function formatActivityMessage(activity: any): Promise<string> {
   const userName = activity.user?.name || activity.user?.username || "Someone";
   
   switch (activity.action) {

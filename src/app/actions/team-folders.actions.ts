@@ -18,7 +18,7 @@ export async function createTeamFolder(params: CreateTeamFolderParams) {
     const user = await requireAuth();
     const userRole = await getUserTeamRole(params.teamId);
     
-    if (!canPerformAction(userRole, TeamRole.MEMBER)) {
+    if (!(await canPerformAction(userRole, TeamRole.MEMBER))) {
       throw new Error("Insufficient permissions to create folders");
     }
     
@@ -88,7 +88,7 @@ export async function updateTeamFolder(params: UpdateTeamFolderParams) {
     
     const userRole = await getUserTeamRole(folder.teamId);
     
-    if (!canPerformAction(userRole, TeamRole.MEMBER)) {
+    if (!(await canPerformAction(userRole, TeamRole.MEMBER))) {
       throw new Error("Insufficient permissions to update folders");
     }
     
@@ -165,7 +165,7 @@ export async function deleteTeamFolder(folderId: string) {
     
     const userRole = await getUserTeamRole(folder.teamId);
     
-    if (!canPerformAction(userRole, TeamRole.MEMBER)) {
+    if (!(await canPerformAction(userRole, TeamRole.MEMBER))) {
       throw new Error("Insufficient permissions to delete folders");
     }
     
@@ -249,7 +249,7 @@ export async function createTeamTag(params: CreateTeamTagParams) {
     const user = await requireAuth();
     const userRole = await getUserTeamRole(params.teamId);
     
-    if (!canPerformAction(userRole, TeamRole.MEMBER)) {
+    if (!(await canPerformAction(userRole, TeamRole.MEMBER))) {
       throw new Error("Insufficient permissions to create tags");
     }
     
@@ -302,7 +302,7 @@ export async function updateTeamTag(tagId: string, updates: { name?: string; des
     
     const userRole = await getUserTeamRole(tag.teamId);
     
-    if (!canPerformAction(userRole, TeamRole.MEMBER)) {
+    if (!(await canPerformAction(userRole, TeamRole.MEMBER))) {
       throw new Error("Insufficient permissions to update tags");
     }
     
@@ -362,7 +362,7 @@ export async function deleteTeamTag(tagId: string) {
     
     const userRole = await getUserTeamRole(tag.teamId);
     
-    if (!canPerformAction(userRole, TeamRole.ADMIN)) {
+    if (!(await canPerformAction(userRole, TeamRole.ADMIN))) {
       throw new Error("Insufficient permissions to delete tags");
     }
     

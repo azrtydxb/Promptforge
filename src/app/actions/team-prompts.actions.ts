@@ -24,7 +24,7 @@ export async function createTeamPrompt(params: CreateTeamPromptParams) {
     const userRole = await getUserTeamRole(params.teamId);
     
     // Check if user has permission to create prompts
-    if (!canPerformAction(userRole, TeamRole.MEMBER)) {
+    if (!(await canPerformAction(userRole, TeamRole.MEMBER))) {
       throw new Error("Insufficient permissions to create prompts");
     }
     
@@ -113,7 +113,7 @@ export async function updateTeamPrompt(params: UpdateTeamPromptParams) {
     
     // Check if user has permission to update
     const isCreator = prompt.createdById === user.id;
-    const canEdit = isCreator || canPerformAction(userRole, TeamRole.ADMIN);
+    const canEdit = isCreator || await canPerformAction(userRole, TeamRole.ADMIN);
     
     if (!canEdit) {
       throw new Error("Insufficient permissions to update this prompt");
@@ -194,7 +194,7 @@ export async function deleteTeamPrompt(promptId: string) {
     
     // Check if user has permission to delete
     const isCreator = prompt.createdById === user.id;
-    const canDelete = isCreator || canPerformAction(userRole, TeamRole.ADMIN);
+    const canDelete = isCreator || await canPerformAction(userRole, TeamRole.ADMIN);
     
     if (!canDelete) {
       throw new Error("Insufficient permissions to delete this prompt");
@@ -248,7 +248,7 @@ export async function archiveTeamPrompt(promptId: string) {
     
     // Check if user has permission
     const isCreator = prompt.createdById === user.id;
-    const canArchive = isCreator || canPerformAction(userRole, TeamRole.ADMIN);
+    const canArchive = isCreator || await canPerformAction(userRole, TeamRole.ADMIN);
     
     if (!canArchive) {
       throw new Error("Insufficient permissions to archive this prompt");
@@ -421,7 +421,7 @@ export async function pinTeamPrompt(promptId: string) {
     
     const userRole = await getUserTeamRole(prompt.teamId);
     
-    if (!canPerformAction(userRole, TeamRole.MEMBER)) {
+    if (!(await canPerformAction(userRole, TeamRole.MEMBER))) {
       throw new Error("Insufficient permissions");
     }
     

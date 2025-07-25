@@ -24,7 +24,7 @@ export async function inviteTeamMember(params: InviteMemberParams) {
     const userRole = await getUserTeamRole(params.teamId);
     
     // Check if user has permission to invite members
-    if (!canPerformAction(userRole, TeamRole.ADMIN)) {
+    if (!(await canPerformAction(userRole, TeamRole.ADMIN))) {
       throw new Error("Insufficient permissions to invite members");
     }
     
@@ -258,7 +258,7 @@ export async function updateTeamMemberRole(params: UpdateMemberRoleParams) {
     const userRole = await getUserTeamRole(params.teamId);
     
     // Only owners and admins can change roles
-    if (!canPerformAction(userRole, TeamRole.ADMIN)) {
+    if (!(await canPerformAction(userRole, TeamRole.ADMIN))) {
       throw new Error("Insufficient permissions to change member roles");
     }
     
@@ -350,7 +350,7 @@ export async function removeTeamMember(params: RemoveMemberParams) {
     
     // Users can remove themselves, or admins/owners can remove others
     const isRemovingSelf = targetMember.userId === user.id;
-    if (!isRemovingSelf && !canPerformAction(userRole, TeamRole.ADMIN)) {
+    if (!isRemovingSelf && !(await canPerformAction(userRole, TeamRole.ADMIN))) {
       throw new Error("Insufficient permissions to remove members");
     }
     
@@ -451,7 +451,7 @@ export async function getTeamInvitations(teamId: string) {
     const userRole = await getUserTeamRole(teamId);
     
     // Only admins and owners can view invitations
-    if (!canPerformAction(userRole, TeamRole.ADMIN)) {
+    if (!(await canPerformAction(userRole, TeamRole.ADMIN))) {
       throw new Error("Insufficient permissions to view invitations");
     }
     
