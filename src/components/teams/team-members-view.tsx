@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { updateTeamMemberRole, removeTeamMember } from "@/app/actions/team-members.actions";
 import { TeamRole } from "@/generated/prisma";
-import { canPerformAction } from "@/app/actions/team.actions";
+// import { canPerformAction } from "@/app/actions/team.actions";
 import { useToast } from "@/hooks/use-toast";
 import { 
   UserPlus, 
@@ -59,7 +59,7 @@ export function TeamMembersView({
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null);
   
-  const isAdmin = canPerformAction(currentUserRole, TeamRole.ADMIN);
+  const isAdmin = currentUserRole === TeamRole.ADMIN || currentUserRole === TeamRole.OWNER;
   const isOwner = currentUserRole === TeamRole.OWNER;
 
   const handleRoleChange = async (memberId: string, newRole: TeamRole) => {
@@ -177,12 +177,18 @@ export function TeamMembersView({
                   return (
                     <div key={member.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={member.user.image || undefined} />
-                          <AvatarFallback>
-                            {member.user.name?.[0] || member.user.username[0]}
-                          </AvatarFallback>
-                        </Avatar>
+                        <Avatar 
+                          user={{
+                            id: member.user.id,
+                            name: member.user.name,
+                            email: member.user.email,
+                            username: member.user.username,
+                            avatarType: 'INITIALS' as const,
+                            profilePicture: member.user.image,
+                            gravatarEmail: member.user.email
+                          }}
+                          size="md"
+                        />
                         <div>
                           <p className="font-medium">
                             {member.user.name || member.user.username}

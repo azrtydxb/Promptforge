@@ -17,7 +17,7 @@ import { saveSearchToHistory } from "@/app/actions/search-history.actions";
 export type SearchDataSource = "prompts" | "templates" | "shared" | "all";
 export type SearchMode = "semantic" | "hybrid" | "keyword";
 
-interface SearchFilters {
+export interface SearchFilters {
   tags?: string[];
   category?: string;
   folderId?: string | null;

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { 
   Users, 
   FileText, 
@@ -40,12 +40,18 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
       {/* Team Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={team.logo || undefined} />
-            <AvatarFallback className="text-2xl">
-              {team.name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <Avatar 
+            user={{
+              id: team.id,
+              name: team.name,
+              email: null,
+              username: null,
+              avatarType: 'INITIALS' as const,
+              profilePicture: team.logo,
+              gravatarEmail: null
+            }}
+            size="2xl"
+          />
           <div>
             <h1 className="text-3xl font-bold">{team.name}</h1>
             {team.description && (
@@ -162,12 +168,18 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
                 {activitySummary.recentActivity.length > 0 ? (
                   activitySummary.recentActivity.slice(0, 5).map((activity: any) => (
                     <div key={activity.id} className="flex items-start gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={activity.user?.image || undefined} />
-                        <AvatarFallback>
-                          {activity.user?.name?.[0] || "?"}
-                        </AvatarFallback>
-                      </Avatar>
+                      <Avatar 
+                        user={{
+                          id: activity.user?.id || 'unknown',
+                          name: activity.user?.name,
+                          email: activity.user?.email,
+                          username: activity.user?.username,
+                          avatarType: 'INITIALS' as const,
+                          profilePicture: activity.user?.image,
+                          gravatarEmail: activity.user?.email
+                        }}
+                        size="sm"
+                      />
                       <div className="flex-1 space-y-1">
                         <p className="text-sm">
                           {formatActivityMessage(activity)}
@@ -233,12 +245,18 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
                 {team.members.map((member: any) => (
                   <div key={member.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={member.user.image || undefined} />
-                        <AvatarFallback>
-                          {member.user.name?.[0] || member.user.username[0]}
-                        </AvatarFallback>
-                      </Avatar>
+                      <Avatar 
+                        user={{
+                          id: member.user.id,
+                          name: member.user.name,
+                          email: member.user.email,
+                          username: member.user.username,
+                          avatarType: 'INITIALS' as const,
+                          profilePicture: member.user.image,
+                          gravatarEmail: member.user.email
+                        }}
+                        size="md"
+                      />
                       <div>
                         <p className="font-medium">{member.user.name || member.user.username}</p>
                         <p className="text-sm text-muted-foreground">{member.user.email}</p>

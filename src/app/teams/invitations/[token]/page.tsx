@@ -5,16 +5,17 @@ import { AcceptInvitationView } from "@/components/teams/accept-invitation-view"
 import { notFound } from "next/navigation";
 
 interface AcceptInvitationPageProps {
-  params: {
+  params: Promise<{
     token: string;
-  };
+  }>;
 }
 
 export default async function AcceptInvitationPage({ params }: AcceptInvitationPageProps) {
   const user = await requireAuth();
+  const { token } = await params;
   
   const invitation = await db.teamInvitation.findUnique({
-    where: { token: params.token },
+    where: { token },
     include: {
       team: true,
       invitedBy: {

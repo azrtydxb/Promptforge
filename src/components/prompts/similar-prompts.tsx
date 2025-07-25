@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getSimilarPrompts } from "@/app/actions/search.actions";
-import { UnifiedPromptCardFinal as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-final";
+import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

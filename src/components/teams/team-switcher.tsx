@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { 
   Check, 
   ChevronDown, 
@@ -124,12 +124,19 @@ export function TeamSwitcher({ className }: TeamSwitcherProps) {
           <div className="flex items-center gap-2">
             {currentTeam ? (
               <>
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={currentTeam.logo || undefined} />
-                  <AvatarFallback className="text-xs">
-                    <Building2 className="h-3 w-3" />
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar 
+                  user={{
+                    id: currentTeam.id,
+                    name: currentTeam.name,
+                    email: null,
+                    username: null,
+                    avatarType: 'INITIALS' as const,
+                    profilePicture: currentTeam.logo,
+                    gravatarEmail: null
+                  }}
+                  size="sm"
+                  className="h-5 w-5"
+                />
                 <span className="truncate">{currentTeam.name}</span>
               </>
             ) : (
@@ -165,12 +172,19 @@ export function TeamSwitcher({ className }: TeamSwitcherProps) {
             onClick={() => handleTeamSwitch(team.id)}
             className="cursor-pointer"
           >
-            <Avatar className="mr-2 h-4 w-4">
-              <AvatarImage src={team.logo || undefined} />
-              <AvatarFallback className="text-xs">
-                <Building2 className="h-3 w-3" />
-              </AvatarFallback>
-            </Avatar>
+            <Avatar 
+              user={{
+                id: team.id,
+                name: team.name,
+                email: null,
+                username: null,
+                avatarType: 'INITIALS' as const,
+                profilePicture: team.logo,
+                gravatarEmail: null
+              }}
+              size="sm"
+              className="mr-2 h-4 w-4"
+            />
             <div className="flex-1 overflow-hidden">
               <div className="truncate">{team.name}</div>
               <div className="text-xs text-muted-foreground">

@@ -5,18 +5,19 @@ import { getTeamActivitySummary } from "@/app/actions/team-activity.actions";
 import { TeamDashboard } from "@/components/teams/team-dashboard";
 
 interface TeamPageProps {
-  params: {
+  params: Promise<{
     teamSlug: string;
-  };
+  }>;
 }
 
 export default async function TeamPage({ params }: TeamPageProps) {
   const user = await requireAuth();
+  const { teamSlug } = await params;
   
   try {
     const [team, activitySummary] = await Promise.all([
-      getTeam(params.teamSlug),
-      getTeamActivitySummary(params.teamSlug),
+      getTeam(teamSlug),
+      getTeamActivitySummary(teamSlug),
     ]);
     
     return (

@@ -5,19 +5,20 @@ import { TeamRole } from "@/generated/prisma";
 import { InviteMemberForm } from "@/components/teams/invite-member-form";
 
 interface InviteMemberPageProps {
-  params: {
+  params: Promise<{
     teamSlug: string;
-  };
+  }>;
 }
 
 export default async function InviteMemberPage({ params }: InviteMemberPageProps) {
   const user = await requireAuth();
+  const { teamSlug } = await params;
   
   try {
-    const team = await getTeam(params.teamSlug);
+    const team = await getTeam(teamSlug);
     const userRole = await getUserTeamRole(team.id);
     
-    if (!canPerformAction(userRole, TeamRole.ADMIN)) {
+    if (!await canPerformAction(userRole, TeamRole.ADMIN)) {
       notFound();
     }
     

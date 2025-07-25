@@ -5,16 +5,17 @@ import { getTeamMembers, getTeamInvitations } from "@/app/actions/team-members.a
 import { TeamMembersView } from "@/components/teams/team-members-view";
 
 interface TeamMembersPageProps {
-  params: {
+  params: Promise<{
     teamSlug: string;
-  };
+  }>;
 }
 
 export default async function TeamMembersPage({ params }: TeamMembersPageProps) {
   const user = await requireAuth();
+  const { teamSlug } = await params;
   
   try {
-    const team = await getTeam(params.teamSlug);
+    const team = await getTeam(teamSlug);
     const userRole = await getUserTeamRole(team.id);
     
     if (!userRole) {

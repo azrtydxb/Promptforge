@@ -12,6 +12,7 @@ import {
   Shield,
   Star,
   Layout,
+  Users2,
 } from "lucide-react"
 import { useSidebar } from "@/components/providers/sidebar-provider"
 import { cn } from "@/lib/utils"
@@ -50,6 +51,12 @@ const getNavigationItems = (isAdmin: boolean) => [
     icon: Users,
     label: "Shared Prompts",
     description: "Collaborative workspace"
+  },
+  {
+    href: "/teams",
+    icon: Users2,
+    label: "Teams",
+    description: "Manage your teams"
   },
   {
     href: "/tags",
