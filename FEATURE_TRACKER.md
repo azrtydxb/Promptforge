@@ -108,7 +108,7 @@ This document tracks all implemented features and planned enhancements for the P
 
 ### Collaboration Features
 - [ ] **Team Workspaces** - Shared prompt libraries for teams
-- [ ] **Commenting System** - Discussions on shared prompts
+- [x] **Commenting System** - Discussions on shared prompts ✅
 - [ ] **Real-time Collaboration** - Multiple users editing simultaneously
 - [ ] **Mention System** - @mention users in comments
 - [ ] **Activity Feed** - See what your team is working on
@@ -117,7 +117,7 @@ This document tracks all implemented features and planned enhancements for the P
 - [x] **Semantic Search** - Search by meaning using embeddings ✅
 - [x] **Unified Search Component** - Consistent search across all pages ✅ 
 - [ ] **Prompt Collections** - Curated prompt sets by experts
-- [ ] **Trending Dashboard** - Popular prompts by time period
+- [x] **Trending Dashboard** - Popular prompts by time period ✅
 - [ ] **Recommendation Engine** - Personalized prompt suggestions
 - [ ] **Advanced Filters** - Filter by date, author, performance
 
@@ -250,4 +250,4 @@ This document tracks all implemented features and planned enhancements for the P
 
 ---
 
-Last Updated: 2025-07-25 (Semantic Search & Unified Search Completed!)
+Last Updated: 2025-07-25 (Comments & Trending Dashboard Completed!)
