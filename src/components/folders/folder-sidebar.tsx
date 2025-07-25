@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Skeleton } from "../ui/skeleton";
-import { LoadingStates } from "../ui/loading-state";
 import { EmptyStates } from "../ui/empty-state";
 
 type FolderNode = {

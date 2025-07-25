@@ -13,7 +13,6 @@ import {
   Copy,
   Filter
 } from 'lucide-react';
-import { dellButton, dellBadge } from '@/lib/styles';
 
 interface MarketplaceFiltersProps {
   searchQuery: string;

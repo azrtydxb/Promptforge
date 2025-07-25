@@ -1,8 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { dellCard } from "@/lib/styles";
 import { Button } from "@/components/ui/button";
 import { 
   FileX, 

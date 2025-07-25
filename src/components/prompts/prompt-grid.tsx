@@ -21,7 +21,6 @@ interface PromptGridProps {
 
 export function PromptGrid({ 
   prompts, 
-  showFavoriteButton = true,
   className = "",
   onPromptClick
 }: PromptGridProps) {

@@ -67,10 +67,10 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
   const navigationItems = getNavigationItems(isAdmin)
 
   return (
-    <div className="fixed left-0 top-0 bottom-0 hidden border-r border-border bg-[hsl(var(--menu-bg))] md:block overflow-hidden w-[260px] z-40">
+    <div className="fixed left-0 top-0 bottom-0 hidden border-r border-border bg-background md:block overflow-hidden w-[260px] z-40">
       <div className="flex h-full max-h-screen flex-col">
         {/* Logo Section */}
-        <div className="flex h-[var(--topbar-height)] items-center px-6 bg-[hsl(var(--menu-bg))]">
+        <div className="flex h-[var(--topbar-height)] items-center px-6 bg-background">
           <Link
             href="/dashboard"
             className="flex items-center gap-3 font-semibold group transition-all duration-200"
@@ -78,7 +78,7 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
             <div className="p-2 rounded bg-[hsl(var(--primary))] shadow-sm group-hover:shadow-md transition-all duration-200">
               <Zap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-semibold text-white">PromptForge</span>
+            <span className="text-lg font-semibold text-foreground">PromptForge</span>
           </Link>
         </div>
         
@@ -96,12 +96,12 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group relative
                     ${isActive
-                      ? 'bg-[hsl(var(--primary))]/10 text-white'
-                      : 'text-[hsl(var(--menu-item-color))] hover:text-[hsl(var(--menu-item-hover-color))] hover:bg-[hsl(var(--primary))]/5'
+                      ? 'bg-primary/10 text-primary dark:text-white'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-primary/5'
                     }
                   `}
                 >
-                  <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
+                  <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-primary dark:text-white' : ''}`} />
                   <span className="font-medium">{item.label}</span>
                   
                   {/* Active indicator bar */}

@@ -1,14 +1,9 @@
 "use client";
 
-import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { dellSpinner } from "@/lib/styles";
 
-interface LoadingStateProps {
-  className?: string;
-  children?: ReactNode;
-}
 
 // Standardized loading patterns for different content types
 export const LoadingStates = {

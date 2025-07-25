@@ -5,7 +5,6 @@ import { getTagsWithPrompts } from "@/app/actions/tag-management.actions";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import { LoadingStates } from "@/components/ui/loading-state";
 import { EmptyStates } from "@/components/ui/empty-state";
 

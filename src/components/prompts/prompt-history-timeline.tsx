@@ -11,13 +11,11 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
-  AlertCircle,
   GitCompare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LoadingStates } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/ui/empty-state";

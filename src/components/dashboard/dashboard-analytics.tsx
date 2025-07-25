@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import { SectionErrorBoundary } from "@/components/error-boundary";
 import { MinimalErrorFallback } from "@/components/error-boundary/error-fallbacks";
+import { useTheme } from "next-themes";
 
 interface DashboardData {
   totalPrompts: number;
@@ -67,7 +68,19 @@ const COLORS = [
   '#bac4ee'  // Very light
 ];
 
+const getChartColors = (theme: string | undefined) => ({
+  grid: theme === 'dark' ? '#36404d' : '#e7ebf0',
+  text: theme === 'dark' ? '#a1acb8' : '#6c757d',
+  tooltip: {
+    bg: theme === 'dark' ? '#313a46' : '#ffffff',
+    border: theme === 'dark' ? '#36404d' : '#e7ebf0'
+  }
+});
+
 export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
+  const { theme } = useTheme();
+  const chartColors = getChartColors(theme);
+  
   return (
     <div className="space-y-6">
       {/* Overview Cards */}
@@ -144,22 +157,28 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={data.promptGrowth}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
                 <XAxis
                   dataKey="date"
-                  stroke="#888888"
+                  stroke={chartColors.text}
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
-                  stroke="#888888"
+                  stroke={chartColors.text}
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) => `${value}`}
                 />
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: chartColors.tooltip.bg,
+                    border: `1px solid ${chartColors.tooltip.border}`,
+                    borderRadius: '6px'
+                  }}
+                />
                 <Line
                   type="monotone"
                   dataKey="prompts"
@@ -220,22 +239,28 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={data.promptsByMonth}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
                 <XAxis
                   dataKey="month"
-                  stroke="#888888"
+                  stroke={chartColors.text}
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
-                  stroke="#888888"
+                  stroke={chartColors.text}
                   fontSize={10}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) => `${value}`}
                 />
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: chartColors.tooltip.bg,
+                    border: `1px solid ${chartColors.tooltip.border}`,
+                    borderRadius: '6px'
+                  }}
+                />
                 <Bar dataKey="count" fill="#6379c3" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

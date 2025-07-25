@@ -72,7 +72,7 @@ export function EditTagModal() {
           <Button 
             type="submit" 
             disabled={isLoading || !formData.name.trim()}
-            onClick={handleSubmit as any}
+            onClick={() => handleSubmit()}
           >
             {isLoading ? "Updating..." : "Update Tag"}
           </Button>

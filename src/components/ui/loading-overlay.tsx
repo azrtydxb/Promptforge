@@ -16,8 +16,7 @@ export function LoadingOverlay({
   children, 
   className,
   spinnerClassName,
-  label,
-  blur = true
+  label
 }: LoadingOverlayProps) {
   return (
     <div className={cn("relative", className)}>
