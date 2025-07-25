@@ -45,6 +45,7 @@ model User {
   promptComments PromptComment[]
   promptViews   PromptView[]
   promptCopies  PromptCopy[]
+  commentLikes  CommentLike[]
   collections   Collection[]
   following     UserFollow[] @relation("UserFollowing")
   followers     UserFollow[] @relation("UserFollowers")
@@ -277,12 +278,27 @@ model PromptComment {
   parentId       String?
   parent         PromptComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies        PromptComment[] @relation("CommentReplies")
+  likes          CommentLike[]
+  likeCount      Int          @default(0)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   @@index([sharedPromptId])
   @@index([userId])
   @@index([parentId])
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  commentId String
+  comment   PromptComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
 }
 
 model PromptView {

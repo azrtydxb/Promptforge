@@ -19,6 +19,7 @@ import {
 import { SectionErrorBoundary } from "@/components/error-boundary";
 import { MinimalErrorFallback } from "@/components/error-boundary/error-fallbacks";
 import { useTheme } from "next-themes";
+import { TrendingSection } from "./trending-section";
 
 interface DashboardData {
   totalPrompts: number;
@@ -423,27 +424,33 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         )}
       </div>
 
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-semibold">Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {data.recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-center space-x-4">
-                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#6379c3] to-[#546ee5]" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{activity.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {activity.type} • {new Date(activity.createdAt).toLocaleDateString()}
-                  </p>
+      {/* Recent Activity and Trending Side by Side */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-semibold">Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {data.recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-center space-x-4">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#6379c3] to-[#546ee5]" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {activity.type} • {new Date(activity.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Trending Section */}
+        <TrendingSection />
+      </div>
     </div>
   );
 }
