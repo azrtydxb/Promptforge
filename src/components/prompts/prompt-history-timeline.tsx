@@ -271,11 +271,11 @@ export function PromptHistoryTimeline({
                       {/* Timeline node */}
                       <div className={cn(
                         "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center z-10",
-                        isLatest ? "bg-[hsl(var(--primary))]/20 dark:bg-[hsl(var(--primary))]/20" : "bg-muted"
+                        isLatest ? "bg-[hsl(var(--primary))]/20" : "bg-muted"
                       )}>
                         <GitBranch className={cn(
                           "h-5 w-5",
-                          isLatest ? "text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))]" : "text-muted-foreground"
+                          isLatest ? "text-[hsl(var(--primary))]" : "text-muted-foreground"
                         )} />
                       </div>
                       
@@ -299,10 +299,10 @@ export function PromptHistoryTimeline({
                             
                             {/* Diff summary */}
                             <div className="flex items-center gap-4 mt-2 text-sm">
-                              <span className="text-green-600 dark:text-green-400">
+                              <span className="text-green-600">
                                 +{diff.addedCount} added
                               </span>
-                              <span className="text-red-600 dark:text-red-400">
+                              <span className="text-red-600">
                                 -{diff.removedCount} removed
                               </span>
                             </div>

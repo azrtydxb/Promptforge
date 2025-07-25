@@ -82,7 +82,7 @@ export function DiffViewer({
                   <div
                     className={cn(
                       "flex-1 px-2 py-1 whitespace-pre-wrap break-all",
-                      item.type === "removed" && "text-red-600 dark:text-red-400"
+                      item.type === "removed" && "text-red-600"
                     )}
                   >
                     {item.line || "\u00A0"}
@@ -111,7 +111,7 @@ export function DiffViewer({
                   <div
                     className={cn(
                       "flex-1 px-2 py-1 whitespace-pre-wrap break-all",
-                      item.type === "added" && "text-green-600 dark:text-green-400"
+                      item.type === "added" && "text-green-600"
                     )}
                   >
                     {item.line || "\u00A0"}
@@ -142,8 +142,8 @@ export function DiffViewer({
                 key={`${index}-${lineIndex}`}
                 className={cn(
                   "px-4 py-1 whitespace-pre-wrap break-all",
-                  segment.added && "bg-green-100 text-green-600 dark:text-green-700",
-                  segment.removed && "bg-red-100 text-red-600 dark:text-red-700"
+                  segment.added && "bg-green-100 text-green-600",
+                  segment.removed && "bg-red-100 text-red-600"
                 )}
               >
                 <span className="select-none mr-2">

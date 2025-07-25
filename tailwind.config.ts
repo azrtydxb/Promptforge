@@ -3,7 +3,6 @@ import tailwindcssAnimate from "tailwindcss-animate";
 import lineClamp from "@tailwindcss/line-clamp";
 
 const config: Config = {
-  darkMode: "class",
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',

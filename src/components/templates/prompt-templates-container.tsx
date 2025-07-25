@@ -131,7 +131,7 @@ export function PromptTemplatesContainer() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white dark:bg-card p-4 rounded-lg border border-border shadow-[var(--box-shadow)] mb-6">
+      <div className="bg-card p-4 rounded-lg border border-border shadow-[var(--box-shadow)] mb-6">
         <div className="flex gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

@@ -207,54 +207,6 @@
     --gradient-end: 226 42% 56%; /* #546ee5 */
   }
  
-  .dark {
-    /* Hyper Template Dark Mode - Exact Match */
-    --background: 210 10% 23%; /* #343a40 - Hyper dark background */
-    --foreground: 208 17% 69%; /* #aab8c5 - Hyper dark text */
-
-    --card: 217 15% 30%; /* #404954 - Hyper dark card */
-    --card-foreground: 208 17% 69%; /* #aab8c5 */
- 
-    --popover: 217 15% 30%; /* #404954 */
-    --popover-foreground: 208 17% 69%;
- 
-    --primary: 226 42% 56%; /* #546ee5 - Hyper gradient end */
-    --primary-foreground: 0 0% 100%;
- 
-    --secondary: 217 15% 30%; /* #404954 - Secondary bg */
-    --secondary-foreground: 208 17% 69%;
- 
-    --muted: 217 15% 32%; /* #464f5b - Hyper muted */
-    --muted-foreground: 216 15% 59%; /* #8391a2 - Hyper muted text */
- 
-    --accent: 226 42% 56%; /* #546ee5 */
-    --accent-foreground: 0 0% 100%;
-    
-    /* Dark menu colors - Hyper exact */
-    --menu-bg: 217 15% 29%; /* #3a444e - Hyper sidebar bg */
-    --menu-item-color: 216 15% 59%; /* #8391a2 - Hyper menu text */
-    --menu-item-hover-color: 213 21% 82%; /* #bccee4 - Hyper menu hover */
-    --menu-item-active-color: 0 0% 100%; /* White when active */
- 
-    --destructive: 0 69% 68%; /* #fa6767 - Hyper danger */
-    --destructive-foreground: 0 0% 100%;
- 
-    --success: 160 70% 45%; /* #42d29d - Hyper success */
-    --success-foreground: 0 0% 100%;
- 
-    --warning: 41 96% 52%; /* #f9bc0d - Hyper warning */
-    --warning-foreground: 0 0% 100%;
- 
-    --info: 195 70% 57%; /* #44badc - Hyper info */
-    --info-foreground: 0 0% 100%;
-
-    --border: 217 15% 32%; /* #464f5b - Hyper border */
-    --input: 217 15% 30%; /* #404954 - Hyper input bg */
-    --ring: 226 42% 56%; /* Primary color for focus ring */
-    
-    /* Additional Hyper dark variables */
-    --box-shadow: 0px 0px 35px 0px rgba(49, 57, 66, 0.5);
-  }
 
   * {
     border-color: hsl(var(--border));

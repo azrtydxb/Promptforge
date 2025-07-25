@@ -60,7 +60,7 @@ export default function SignInPage() {
         {/* Logo/Brand Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-white shadow-[0_2px_0_rgba(0,0,0,0.045)]">
+            <div className="p-3 rounded-xl bg-white dark:bg-card shadow-[0_2px_0_rgba(0,0,0,0.045)] dark:shadow-none">
               <Zap className="h-8 w-8 text-[#6379c3]" />
             </div>
             <div>
@@ -71,7 +71,7 @@ export default function SignInPage() {
         </div>
 
         {/* Login Card */}
-        <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-2xl">
+        <Card className="bg-white/95 dark:bg-card backdrop-blur-sm border-white/20 dark:border-border shadow-2xl dark:shadow-none">
           <CardHeader className="space-y-1 pb-6">
             <CardTitle className="text-2xl text-center text-gray-800 font-semibold">
               Welcome Back

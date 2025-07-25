@@ -115,7 +115,7 @@ export function DraftRecoveryDialog({
 
           {hasChanges && (
             <div className="rounded-lg bg-amber-100 border border-amber-300 p-3">
-              <p className="text-sm text-amber-600 dark:text-amber-400">
+              <p className="text-sm text-amber-600">
                 Warning: The current prompt has unsaved changes that will be
                 overwritten if you recover this draft.
               </p>
@@ -123,7 +123,7 @@ export function DraftRecoveryDialog({
                 variant="link"
                 size="sm"
                 onClick={() => setShowComparison(!showComparison)}
-                className="mt-1 h-auto p-0 text-amber-600 dark:text-amber-400"
+                className="mt-1 h-auto p-0 text-amber-600"
               >
                 {showComparison ? "Hide" : "Show"} differences
               </Button>

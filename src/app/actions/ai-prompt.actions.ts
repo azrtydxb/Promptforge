@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/auth";
 import { aiService } from "@/services/ai-service";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/logger";
+import { Prisma } from "@prisma/client";
 
 export async function enhancePrompt(promptId: string) {
   const user = await requireAuth();
@@ -44,7 +45,7 @@ export async function enhancePrompt(promptId: string) {
       where: { id: promptId },
       data: {
         enhancedContent: result.enhancedContent,
-        enhancementSuggestions: result.suggestions,
+        enhancementSuggestions: result.suggestions as Prisma.InputJsonValue,
       },
     });
 

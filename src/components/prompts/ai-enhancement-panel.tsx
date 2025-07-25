@@ -213,7 +213,7 @@ export function AIEnhancementPanel({
 
           {/* Enhancement Results */}
           {enhancement && (
-            <Card className="bg-[hsl(var(--primary))]/10 dark:bg-[hsl(var(--primary))]/20">
+            <Card className="bg-[hsl(var(--primary))]/10">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Enhanced Version</h4>
@@ -236,24 +236,24 @@ export function AIEnhancementPanel({
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="text-sm p-3 bg-white dark:bg-gray-900 rounded border">
+                <div className="text-sm p-3 bg-white rounded border">
                   {enhancement.enhancedContent}
                 </div>
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                  <p className="text-xs font-medium text-gray-600">
                     Suggestions:
                   </p>
                   {enhancement.suggestions.map((suggestion, index) => (
                     <div
                       key={index}
-                      className="text-xs p-2 bg-white dark:bg-gray-900 rounded border"
+                      className="text-xs p-2 bg-white rounded border"
                     >
                       <div className="flex items-start gap-2">
                         <span>{getSuggestionIcon(suggestion.type)}</span>
                         <div className="flex-1">
                           <p className="font-medium">{suggestion.suggestion}</p>
                           {suggestion.example && (
-                            <p className="text-gray-600 dark:text-gray-400 mt-1">
+                            <p className="text-gray-600 mt-1">
                               Example: {suggestion.example}
                             </p>
                           )}
@@ -263,7 +263,7 @@ export function AIEnhancementPanel({
                   ))}
                 </div>
                 {enhancement.explanation && (
-                  <div className="text-xs text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                  <div className="text-xs text-gray-600 flex items-start gap-2">
                     <Info className="h-3 w-3 mt-0.5" />
                     <p>{enhancement.explanation}</p>
                   </div>
@@ -291,7 +291,7 @@ export function AIEnhancementPanel({
 
           {/* Suggested Tags */}
           {suggestedTags && (
-            <Card className="bg-green-50 dark:bg-green-100">
+            <Card className="bg-green-50">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Suggested Tags</h4>
@@ -349,7 +349,7 @@ export function AIEnhancementPanel({
 
           {/* Similar Prompts Results */}
           {similarPrompts.length > 0 && (
-            <Card className="bg-purple-50 dark:bg-purple-100">
+            <Card className="bg-purple-50">
               <CardHeader className="pb-3">
                 <h4 className="text-sm font-medium">Similar Prompts</h4>
               </CardHeader>
@@ -359,7 +359,7 @@ export function AIEnhancementPanel({
                     <a
                       key={prompt.id}
                       href={`/prompts/${prompt.id}`}
-                      className="block p-2 bg-white dark:bg-gray-900 rounded border hover:border-purple-500 transition-colors"
+                      className="block p-2 bg-white rounded border hover:border-purple-500 transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
@@ -367,7 +367,7 @@ export function AIEnhancementPanel({
                             {prompt.title}
                           </p>
                           {prompt.description && (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                            <p className="text-xs text-gray-600 truncate">
                               {prompt.description}
                             </p>
                           )}

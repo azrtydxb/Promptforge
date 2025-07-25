@@ -29,8 +29,8 @@ The color system is based on HSL values for easy theme customization and dark mo
 
 | Color | HSL Value | Hex | Usage |
 |-------|-----------|-----|-------|
-| **Background** | `0 0% 100%` | `#FFFFFF` | Main page background |
-| **Secondary** | `216 38% 97%` | `#fafbfe` | Secondary backgrounds (Hyper body-bg) |
+| **Background** | `240 60% 99%` | `#fafbfe` | Main page background (Hyper body-bg) |
+| **Secondary** | `210 16% 96%` | `#f6f7fb` | Secondary backgrounds |
 | **Card** | `0 0% 100%` | `#FFFFFF` | Card backgrounds |
 | **Card Foreground** | `214 17% 24%` | `#343a40` | Card text color |
 | **Foreground** | `214 17% 24%` | `#343a40` | Primary text |
@@ -60,14 +60,30 @@ The color system is based on HSL values for easy theme customization and dark mo
 | **Topbar Item** | `215 12% 45%` | - | Topbar item color |
 | **Topbar Item Hover** | `235 84% 71%` | `#727cf5` | Topbar item hover |
 
-### Dark Mode Colors
+### Dark Mode Colors (Hyper Exact)
 
-| Color | HSL Value | Hex | Usage |
-|-------|-----------|-----|-------|
-| **Background** | `218 13% 18%` | `#313a46` | Dark mode background |
-| **Foreground** | `210 17% 82%` | `#cfd5de` | Dark mode text |
-| **Card** | `218 13% 23%` | `#37404a` | Dark mode cards |
-| **Menu Background** | `218 13% 18%` | `#313a46` | Sidebar background |
+Based on direct analysis of Hyper Admin dark theme:
+
+| Color | Hex | RGB | Usage |
+|-------|-----|-----|-------|
+| **Background** | `#343a40` | `52, 58, 64` | Main dark mode background |
+| **Foreground** | `#aab8c5` | `170, 184, 197` | Primary text color |
+| **Card Background** | `#404954` | `64, 73, 84` | Card backgrounds |
+| **Card Border** | `#464f5b` | `70, 79, 91` | Card borders |
+| **Sidebar/Topbar** | `#3a444e` | `58, 68, 78` | Sidebar and topbar background |
+| **Sidebar Text** | `#ffffff` | `255, 255, 255` | Sidebar link text (active) |
+| **Muted Text** | `#8391a2` | `131, 145, 162` | Secondary/muted text |
+| **Input Background** | `#464f5b` | `70, 79, 91` | Form input backgrounds |
+| **Input Border** | `#8391a2` | `131, 145, 162` | Form input borders |
+| **Box Shadow** | `rgba(49, 57, 66, 0.5)` | - | Dark mode shadows |
+
+#### Dark Mode Component Styles
+
+- **Cards**: No box shadow in dark mode (shadow: none)
+- **Card Headers**: Transparent background, border-bottom: #464f5b
+- **Card Titles**: UPPERCASE, font-weight: 700, letter-spacing: 0.288px
+- **Sidebar Links**: font-weight: 500, font-size: 15px, padding: 15px 10px
+- **Text Sizes**: Base font-size: 14.4px (0.9rem)
 
 ## Typography
 
@@ -2008,17 +2024,19 @@ strong {
   --border-color-custom: #f7f7f7;
 }
 
-/* Dark theme */
+/* Dark theme - Hyper Exact Values */
 [data-bs-theme="dark"] {
-  --light: #464f5b;
-  --light-rgb: 70, 79, 91;
-  --dark: #f1f1f1;
-  --dark-rgb: 241, 241, 241;
-  --secondary: #6c757d;
-  --secondary-rgb: 108, 117, 125;
+  --body-bg: #343a40;
+  --body-color: #aab8c5;
+  --card-bg: #404954;
+  --card-border: #464f5b;
+  --sidebar-bg: #3a444e;
+  --topbar-bg: #3a444e;
+  --muted-color: #8391a2;
+  --input-bg: #464f5b;
+  --input-border: #8391a2;
   --box-shadow: 0px 0px 35px 0px rgba(49, 57, 66, 0.5);
-  --input-bg: #404954;
-  --border-color-custom: #404954;
+  --card-shadow: none; /* No shadows on cards in dark mode */
 }
 ```
 

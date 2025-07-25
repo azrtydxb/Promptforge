@@ -13,11 +13,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { AuthUserButton } from "../auth/user-button"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 export function Header() {
   return (
-    <header className="flex h-[var(--topbar-height)] items-center gap-4 border-b bg-white dark:bg-[#3a444e] px-6 shadow-sm sticky top-0 z-30" role="banner">
+    <header className="flex h-[var(--topbar-height)] items-center gap-4 border-b bg-background px-6 shadow-sm sticky top-0 z-30" role="banner">
       {/* Mobile menu */}
       <Sheet>
         <SheetTrigger asChild>
@@ -78,7 +77,6 @@ export function Header() {
 
       {/* Right side items */}
       <div className="flex items-center justify-end ml-auto gap-3">
-        <ThemeToggle />
         <AuthUserButton />
       </div>
     </header>
