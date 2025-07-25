@@ -540,7 +540,7 @@ export function AISettings() {
             <CardContent className="space-y-6">
               {settings.general && (
                 <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-[hsl(var(--success))]" />
                   <span className="text-sm">Configuration exists</span>
                   {settings.general.isActive && (
                     <Badge variant="outline" className="ml-auto">Active</Badge>
@@ -747,7 +747,7 @@ export function AISettings() {
 
               {settings.embedding && (
                 <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 text-[hsl(var(--success))]" />
                   <span className="text-sm">Configuration exists</span>
                   {settings.embedding.isActive && (
                     <Badge variant="outline" className="ml-auto">Active</Badge>
@@ -944,7 +944,7 @@ export function AISettings() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">With Embeddings:</span>
-                          <span className="text-green-600">{embeddingStats.prompts.withEmbeddings}</span>
+                          <span className="text-[hsl(var(--success))]">{embeddingStats.prompts.withEmbeddings}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Pending:</span>
@@ -952,7 +952,7 @@ export function AISettings() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Outdated:</span>
-                          <span className="text-red-600">{embeddingStats.prompts.outdated}</span>
+                          <span className="text-[hsl(var(--destructive))]">{embeddingStats.prompts.outdated}</span>
                         </div>
                       </div>
                     </div>
@@ -966,7 +966,7 @@ export function AISettings() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">With Embeddings:</span>
-                          <span className="text-green-600">{embeddingStats.templates.withEmbeddings}</span>
+                          <span className="text-[hsl(var(--success))]">{embeddingStats.templates.withEmbeddings}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Pending:</span>
@@ -974,7 +974,7 @@ export function AISettings() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Outdated:</span>
-                          <span className="text-red-600">{embeddingStats.templates.outdated}</span>
+                          <span className="text-[hsl(var(--destructive))]">{embeddingStats.templates.outdated}</span>
                         </div>
                       </div>
                     </div>
@@ -994,7 +994,7 @@ export function AISettings() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                          className="bg-[hsl(var(--success))] h-2 rounded-full transition-all duration-300"
                           style={{
                             width: `${
                               ((embeddingStats.prompts.withEmbeddings + embeddingStats.templates.withEmbeddings) /
@@ -1021,16 +1021,16 @@ export function AISettings() {
                         <div className="text-2xl font-bold">{queueStatus.waiting}</div>
                         <div className="text-xs text-muted-foreground">Waiting</div>
                       </div>
-                      <div className="text-center p-2 bg-blue-50 rounded">
-                        <div className="text-2xl font-bold text-blue-600">{queueStatus.active}</div>
+                      <div className="text-center p-2 bg-[hsl(var(--primary))]/10 rounded">
+                        <div className="text-2xl font-bold text-[hsl(var(--primary))]">{queueStatus.active}</div>
                         <div className="text-xs text-muted-foreground">Active</div>
                       </div>
-                      <div className="text-center p-2 bg-green-50 rounded">
-                        <div className="text-2xl font-bold text-green-600">{queueStatus.completed}</div>
+                      <div className="text-center p-2 bg-[hsl(var(--success))]/10 rounded">
+                        <div className="text-2xl font-bold text-[hsl(var(--success))]">{queueStatus.completed}</div>
                         <div className="text-xs text-muted-foreground">Completed</div>
                       </div>
-                      <div className="text-center p-2 bg-red-50 rounded">
-                        <div className="text-2xl font-bold text-red-600">{queueStatus.failed}</div>
+                      <div className="text-center p-2 bg-[hsl(var(--destructive))]/10 rounded">
+                        <div className="text-2xl font-bold text-[hsl(var(--destructive))]">{queueStatus.failed}</div>
                         <div className="text-xs text-muted-foreground">Failed</div>
                       </div>
                       <div className="text-center p-2 bg-orange-50 rounded">

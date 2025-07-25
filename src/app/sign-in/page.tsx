@@ -5,7 +5,7 @@ import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Zap, Mail, Lock, ArrowRight, Loader2 } from "lucide-react"
@@ -54,32 +54,26 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4 relative">
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }} />
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 relative bg-gradient-to-b from-[#6379c3] to-[#546ee5]">
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo/Brand Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-gray-200 border border-gray-300">
-              <Zap className="h-8 w-8 text-gray-700" />
+            <div className="p-3 rounded-xl bg-white shadow-[0_2px_0_rgba(0,0,0,0.045)]">
+              <Zap className="h-8 w-8 text-[#6379c3]" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-wide">PromptForge</h1>
-              <p className="text-gray-600 text-sm">Craft Your Perfect Prompts</p>
+              <h1 className="text-3xl font-bold text-white tracking-wide">PromptForge</h1>
+              <p className="text-white/80 text-sm">Craft Your Perfect Prompts</p>
             </div>
           </div>
         </div>
 
         {/* Login Card */}
-        <Card className="bg-white border-gray-200 shadow-2xl">
+        <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-2xl">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl text-center text-gray-900 font-semibold">
+            <CardTitle className="text-2xl text-center text-gray-800 font-semibold">
               Welcome Back
             </CardTitle>
           </CardHeader>
@@ -90,7 +84,7 @@ export default function SignInPage() {
                   Email Address
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     name="email"
@@ -100,7 +94,7 @@ export default function SignInPage() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
-                    className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-gray-300"
+                    className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]/20 shadow-sm"
                   />
                 </div>
               </div>
@@ -110,7 +104,7 @@ export default function SignInPage() {
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     name="password"
@@ -120,20 +114,20 @@ export default function SignInPage() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
-                    className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-gray-400 focus:ring-gray-300"
+                    className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]/20 shadow-sm"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm text-center">
+                <div className="bg-[hsl(var(--destructive))]/10 border border-[hsl(var(--destructive))]/20 text-[hsl(var(--destructive))] px-4 py-3 rounded-lg text-sm text-center shadow-sm">
                   {error}
                 </div>
               )}
 
               <Button 
                 type="submit" 
-                className="w-full bg-gray-200 hover:bg-gray-100 text-gray-900 border border-gray-300 hover:border-gray-400 transition-all duration-200 font-medium py-3 group"
+                className="w-full bg-[#6379c3] hover:bg-[#546ee5] text-white shadow-lg hover:shadow-xl active:scale-[0.98] transition-all duration-200 font-medium py-3 group"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -150,19 +144,14 @@ export default function SignInPage() {
               </Button>
             </form>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-transparent px-2 text-gray-400">New to PromptForge?</span>
-              </div>
+            <div className="text-center text-sm text-muted-foreground">
+              New to PromptForge?
             </div>
 
             <div className="text-center">
               <Link 
                 href="/sign-up" 
-                className="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium group"
+                className="inline-flex items-center gap-2 text-[#6379c3] hover:text-[#546ee5] transition-colors duration-200 font-medium group"
               >
                 Create an account
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -172,7 +161,7 @@ export default function SignInPage() {
         </Card>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-gray-400 text-sm">
+        <div className="text-center mt-8 text-white/70 text-sm">
           <p>© 2024 PromptForge. Empowering creative workflows.</p>
         </div>
       </div>

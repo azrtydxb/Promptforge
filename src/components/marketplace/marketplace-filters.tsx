@@ -105,7 +105,7 @@ export function MarketplaceFilters({
                 onClick={() => onSortChange(option.value as 'recent' | 'popular' | 'liked' | 'copied')}
                 className={`justify-start text-xs h-8 ${
                   isActive 
-                    ? dellButton('primary') 
+                    ? 'bg-gradient-to-r from-[#6379c3] to-[#546ee5] text-white border-0' 
                     : 'hover:bg-muted'
                 }`}
               >
@@ -133,7 +133,7 @@ export function MarketplaceFilters({
                 <Badge
                   key={tag}
                   variant="default"
-                  className={`cursor-pointer text-xs ${dellBadge('default')}`}
+                  className="cursor-pointer text-xs bg-gradient-to-r from-[#6379c3] to-[#546ee5] text-white border-0"
                   onClick={() => onTagToggle(tag)}
                 >
                   {tag}

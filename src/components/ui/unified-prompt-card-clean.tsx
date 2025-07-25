@@ -5,10 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, ArrowRight, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { dellCard } from "@/lib/styles";
 import { useState } from "react";
 import { togglePromptLike } from "@/app/actions/likes-comments.actions";
-import { copySharedPrompt } from "@/app/actions/shared-prompts.actions";
 
 export type PromptCardVariant = "personal" | "template" | "shared";
 
@@ -88,14 +86,12 @@ export function UnifiedPromptCardClean({
   onPromptClick,
   onUseTemplate,
   onLikeToggle,
-  onCopy,
 }: UnifiedPromptCardProps) {
   const [isLiking, setIsLiking] = useState(false);
 
   // Type guards
-  const isPersonal = (d: any): d is PersonalPromptData => variant === "personal";
-  const isTemplate = (d: any): d is TemplatePromptData => variant === "template";
-  const isShared = (d: any): d is SharedPromptData => variant === "shared";
+  const isTemplate = (d: BasePromptData): d is TemplatePromptData => variant === "template";
+  const isShared = (d: BasePromptData): d is SharedPromptData => variant === "shared";
 
   // Get unified data
   const title = isTemplate(data) ? data.name : data.title;
@@ -154,22 +150,21 @@ export function UnifiedPromptCardClean({
     <CardWrapper>
       <Card
         className={cn(
-          dellCard('interactive'),
-          "bg-card h-full flex flex-col min-h-[200px]",
+          "group rounded-lg border bg-card hover:shadow-lg transition-all duration-200 h-full flex flex-col min-h-[240px] cursor-pointer hover:border-[#546ee5]/30",
           className
         )}
       >
         <CardHeader className="pb-3">
           <div className="space-y-1">
-            <CardTitle className="text-base font-semibold line-clamp-2 min-h-[3rem]">
+            <CardTitle className="text-base font-bold text-foreground line-clamp-2 min-h-[3rem] leading-snug">
               {title}
             </CardTitle>
             
             {/* Tags display */}
             {((tags && tags.length > 0) || (isTemplate(data) && data.category)) && (
-              <div className="flex items-center gap-1 flex-wrap">
-                <Hash className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                <div className="flex flex-wrap gap-1">
+              <div className="flex items-start gap-1 mt-2">
+                <Hash className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+                <div className="flex flex-wrap gap-1 text-xs">
                   {isTemplate(data) && data.category && (
                     <span className="text-xs text-muted-foreground">
                       {data.category}
@@ -196,7 +191,7 @@ export function UnifiedPromptCardClean({
         <CardContent className="flex-1 flex flex-col space-y-3">
           {/* Description */}
           {data.description && (
-            <p className="text-sm text-muted-foreground line-clamp-3 flex-1">
+            <p className="text-sm text-muted-foreground line-clamp-2 flex-1 leading-relaxed">
               {data.description}
             </p>
           )}
@@ -221,8 +216,8 @@ export function UnifiedPromptCardClean({
                   type="button"
                 >
                   <Heart className={cn(
-                    "h-3 w-3 transition-colors",
-                    data.isLiked ? "fill-red-500 text-red-500" : "hover:text-red-500"
+                    "h-3.5 w-3.5 transition-colors",
+                    data.isLiked ? "fill-[hsl(var(--destructive))] text-[hsl(var(--destructive))]" : "hover:text-[hsl(var(--destructive))]"
                   )} />
                   <span>{data.likeCount}</span>
                 </button>
@@ -245,7 +240,7 @@ export function UnifiedPromptCardClean({
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 px-3 text-xs"
+              className="h-7 px-3 text-xs hover:text-[hsl(var(--primary))] group-hover:text-[hsl(var(--primary))]"
               onClick={(e) => {
                 if (variant === "template" && isTemplate(data)) {
                   e.preventDefault();

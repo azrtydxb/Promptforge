@@ -170,7 +170,7 @@ export default function PromptPage({
       }
     };
     fetchPrompt();
-  }, [promptId, isCreateMode, status, router, hasDraft, loadDraft, searchParams]);
+  }, [promptId, isCreateMode, status, router, hasDraft, loadDraft, clearDraft, searchParams]);
 
   // Auto-save draft on content changes
   useEffect(() => {

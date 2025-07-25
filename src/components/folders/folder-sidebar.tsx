@@ -106,11 +106,11 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
       <Icons.Folder
         className={`h-2.5 w-2.5 mr-1.5 ${
           node.isSelected
-            ? 'text-[hsl(var(--accent))]'
+            ? 'text-[#546ee5]'
             : node.isOpen
-              ? 'text-[hsl(var(--accent))]/80'
+              ? 'text-[#546ee5]/80'
               : 'text-gray-500'
-        } ${node.data.isDefault && !node.isSelected ? 'text-[hsl(var(--accent))]' : ''} transition-colors duration-200`}
+        } ${node.data.isDefault && !node.isSelected ? 'text-[#546ee5]' : ''} transition-colors duration-200`}
       />
 
       {/* Folder Name */}

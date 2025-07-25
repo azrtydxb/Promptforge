@@ -85,25 +85,18 @@ export function PromptCard({
         className={cn(
           dellCard('interactive'),
           "bg-card",
-          prompt.isPinned ? "border-blue-300 bg-blue-50" : "",
+          prompt.isPinned ? "border-[#546ee5]/40 bg-gradient-to-br from-[#6379c3]/5 to-[#546ee5]/5" : "",
           className
         )}
       >
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "p-2 rounded-lg",
-                "bg-muted",
-                "group-hover:bg-blue-100",
-                "transition-colors"
-              )}
-            >
-              <FileText className="h-5 w-5" />
+            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20 group-hover:from-[#6379c3]/30 group-hover:to-[#546ee5]/30 transition-all">
+              <FileText className="h-5 w-5 text-[#546ee5]" />
             </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg line-clamp-1">{prompt.title}</CardTitle>
+              <CardTitle className="text-lg font-semibold text-foreground line-clamp-1">{prompt.title}</CardTitle>
               {prompt.tags && prompt.tags.length > 0 && (
                 <div className="flex items-center gap-1 mt-1">
                   <Hash className="h-3 w-3 text-muted-foreground" />

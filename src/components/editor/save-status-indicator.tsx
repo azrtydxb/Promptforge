@@ -55,7 +55,7 @@ export function SaveStatusIndicator({
   const getStatusColor = () => {
     switch (status) {
       case 'saving':
-        return 'text-blue-500';
+        return 'text-[hsl(var(--primary))]';
       case 'saved':
         return 'text-green-500';
       case 'error':

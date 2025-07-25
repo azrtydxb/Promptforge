@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -311,13 +311,17 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Profile Settings</h1>
+          <p className="text-muted-foreground mt-1">Manage your profile and account preferences</p>
+        </div>
         <div className="flex items-center gap-2">
           {hasChanges && (
             <Button 
               onClick={handleSave} 
               disabled={isSaving || usernameCheck.isChecking || !usernameCheck.isAvailable}
-              className="bg-[#007DB8] hover:bg-[#007DB8]/90"
+              className="bg-gradient-to-r from-[#6379c3] to-[#546ee5] text-white hover:opacity-90"
             >
               {isSaving ? (
                 <>
@@ -339,8 +343,8 @@ export default function ProfilePage() {
           {/* Profile Picture */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Camera className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 font-semibold text-foreground">
+                <Camera className="w-5 h-5 text-[#546ee5]" />
                 Profile Picture
               </CardTitle>
             </CardHeader>
@@ -426,8 +430,8 @@ export default function ProfilePage() {
           {/* Profile Information */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 font-semibold text-foreground">
+                <User className="w-5 h-5 text-[#546ee5]" />
                 Profile Information
               </CardTitle>
             </CardHeader>
@@ -533,7 +537,7 @@ export default function ProfilePage() {
                         <Badge
                           key={suggestion}
                           variant="secondary"
-                          className="cursor-pointer hover:bg-[#007DB8] hover:text-white"
+                          className="cursor-pointer hover:bg-gradient-to-r hover:from-[#6379c3] hover:to-[#546ee5] hover:text-white"
                           onClick={() => setFormData(prev => ({ ...prev, username: suggestion }))}
                         >
                           {suggestion}
@@ -550,7 +554,7 @@ export default function ProfilePage() {
                 <Button
                   onClick={handleSaveWithUpload}
                   disabled={isSaving || isUploading || !hasChanges}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-[#6379c3] to-[#546ee5] text-white hover:opacity-90"
                 >
                   {isUploading ? (
                     <>

@@ -8,8 +8,8 @@ import { json, jsonParseLinter } from "@codemirror/lang-json";
 import { yaml } from "@codemirror/lang-yaml";
 import { xml } from "@codemirror/lang-xml";
 import { languages } from "@codemirror/language-data";
-import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import { linter, Diagnostic } from "@codemirror/lint";
+import { hyperEditorTheme } from "./editor-theme";
 import { autocompletion } from "@codemirror/autocomplete";
 import { searchKeymap } from "@codemirror/search";
 import { keymap } from "@codemirror/view";
@@ -167,7 +167,7 @@ const EditorComponent = ({ value, onChange, language = "Text" }: EditorProps) =>
     <CodeMirror
       value={value}
       height="100%"
-      theme={vscodeDark}
+      theme={hyperEditorTheme}
       extensions={getLanguageExtensions()}
       onChange={onChange}
       className="h-full"

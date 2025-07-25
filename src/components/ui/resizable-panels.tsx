@@ -128,7 +128,7 @@ export function ResizablePanels({
       {/* Left Panel */}
       <div 
         style={{ width: `${leftWidth}px` }}
-        className="flex-shrink-0 overflow-hidden hidden md:block"
+        className="flex-shrink-0 overflow-auto hidden md:block"
       >
         {leftPanel}
       </div>
@@ -136,8 +136,8 @@ export function ResizablePanels({
       {/* Resizer */}
       <div
         className={cn(
-          "w-1 bg-border hover:bg-dell-blue-500 cursor-col-resize transition-colors flex-shrink-0 hidden md:block",
-          isDragging && "bg-dell-blue-500"
+          "w-1 bg-border hover:bg-[hsl(var(--primary))] cursor-col-resize transition-colors flex-shrink-0 hidden md:block",
+          isDragging && "bg-[hsl(var(--primary))]"
         )}
         onMouseDown={handleMouseDown}
       >
@@ -145,7 +145,7 @@ export function ResizablePanels({
       </div>
       
       {/* Right Panel */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         {rightPanel}
       </div>
     </div>

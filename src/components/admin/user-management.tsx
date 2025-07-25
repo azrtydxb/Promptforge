@@ -199,7 +199,7 @@ export function UserManagement() {
                       {user.email}
                       {user.emailVerified && (
                         <span title="Email verified">
-                          <Mail className="h-3 w-3 text-green-600" />
+                          <Mail className="h-3 w-3 text-[hsl(var(--success))]" />
                         </span>
                       )}
                     </div>
@@ -211,11 +211,11 @@ export function UserManagement() {
                 <TableCell>{getRoleBadge(user.role)}</TableCell>
                 <TableCell>
                   {user.isActive ? (
-                    <Badge variant="outline" className="text-green-600 border-green-600">
+                    <Badge variant="outline" className="text-[hsl(var(--success))] border-[hsl(var(--success))]">
                       <CheckCircle className="h-3 w-3 mr-1" /> Active
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-red-600 border-red-600">
+                    <Badge variant="outline" className="text-[hsl(var(--destructive))] border-[hsl(var(--destructive))]">
                       <XCircle className="h-3 w-3 mr-1" /> Inactive
                     </Badge>
                   )}
@@ -263,7 +263,7 @@ export function UserManagement() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        className="text-red-600"
+                        className="text-[hsl(var(--destructive))]"
                         onClick={() => {
                           setSelectedUser(user);
                           setDeleteDialogOpen(true);

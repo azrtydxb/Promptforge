@@ -12,12 +12,12 @@ import { cn } from "./utils"
 export const dellColors = {
   // Primary Dell Blue with enhanced interactions
   primary: {
-    bg: "bg-dell-blue-500",
-    text: "text-dell-blue-500",
-    border: "border-dell-blue-500",
-    hover: "hover:bg-dell-blue-50 hover:shadow-sm transition-all duration-200",
-    selected: "bg-dell-blue-100 border-l-4 border-dell-blue-500 shadow-sm",
-    gradient: "bg-gradient-to-r from-dell-blue-500 to-dell-blue-600",
+    bg: "bg-[hsl(var(--primary))]",
+    text: "text-[hsl(var(--primary))]",
+    border: "border-[hsl(var(--primary))]",
+    hover: "hover:bg-[hsl(var(--primary))]/10 hover:shadow-sm transition-all duration-200",
+    selected: "bg-[hsl(var(--primary))]/20 border-l-4 border-[hsl(var(--primary))] shadow-sm",
+    gradient: "bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]",
   },
   // Secondary/Neutral with subtle interactions
   neutral: {
@@ -28,9 +28,9 @@ export const dellColors = {
   },
   // Interactive states with professional polish
   interactive: {
-    hover: "hover:bg-dell-blue-50 hover:text-dell-blue-600 hover:shadow-md hover:scale-[1.02] transition-all duration-200",
-    focus: "focus:ring-2 focus:ring-dell-blue-500 focus:ring-offset-2 focus:outline-none",
-    active: "active:bg-dell-blue-600 active:text-white active:scale-[0.98] transition-all duration-100",
+    hover: "hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))] hover:shadow-md hover:scale-[1.02] transition-all duration-200",
+    focus: "focus:ring-2 focus:ring-[hsl(var(--primary))] focus:ring-offset-2 focus:outline-none",
+    active: "active:bg-[hsl(var(--primary))] active:text-white active:scale-[0.98] transition-all duration-100",
     disabled: "disabled:cursor-not-allowed disabled:hover:scale-100",
   },
   // Professional shadow system
@@ -50,34 +50,34 @@ export const dellComponents = {
   // Enhanced Cards with sophisticated hover effects
   card: {
     base: "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200",
-    interactive: "cursor-pointer hover:shadow-lg hover:scale-[1.02] hover:border-dell-blue-200 transition-all duration-200 group",
-    selected: "ring-2 ring-dell-blue-500 ring-offset-2 shadow-lg scale-[1.01]",
-    premium: "bg-gradient-to-br from-white to-dell-blue-50 border-dell-blue-200 hover:shadow-xl",
+    interactive: "cursor-pointer hover:shadow-lg hover:scale-[1.02] hover:border-[hsl(var(--primary))]/30 transition-all duration-200 group",
+    selected: "ring-2 ring-[hsl(var(--primary))] ring-offset-2 shadow-lg scale-[1.01]",
+    premium: "bg-gradient-to-br from-white to-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/30 hover:shadow-xl",
   },
   
-  // Professional Navigation with smooth animations (theme-aware)
+  // Professional Navigation with smooth animations (Hyper theme)
   navItem: {
-    base: "flex items-center gap-1.5 rounded pl-0.5 pr-1 py-0.5 mr-3 transition-all duration-200 group relative",
-    default: "text-primary-foreground hover:bg-gray-100 hover:text-primary-foreground",
-    active: "bg-gray-100 text-primary-foreground before:absolute before:left-0 before:w-0.5 before:h-full before:bg-[hsl(var(--accent))] before:rounded-r",
-    indicator: "after:absolute after:right-1 after:w-0 after:h-0 after:transition-all after:duration-200 group-hover:after:w-0.5 group-hover:after:h-0.5 group-hover:after:bg-primary-foreground group-hover:after:rounded-full",
+    base: "flex items-center gap-1.5 rounded-md px-3 py-2.5 mr-3 transition-all duration-200 group relative",
+    default: "text-primary-foreground hover:bg-gradient-to-r hover:from-[#6379c3]/10 hover:to-[#546ee5]/10 hover:text-[#546ee5]",
+    active: "bg-gradient-to-r from-[#6379c3]/20 to-[#546ee5]/20 text-[#546ee5] font-medium",
+    indicator: "",
   },
   
-  // Enhanced Buttons with professional interactions
+  // Enhanced Buttons with professional interactions (Hyper theme)
   button: {
-    primary: "bg-dell-blue-500 hover:bg-dell-blue-600 hover:shadow-lg hover:scale-[1.02] text-white transition-all duration-200 active:scale-[0.98]",
-    secondary: "bg-dell-gray-100 hover:bg-dell-gray-200 hover:shadow-md hover:scale-[1.02] text-dell-gray-900 transition-all duration-200",
-    ghost: "hover:bg-dell-blue-50 hover:text-dell-blue-600 hover:shadow-sm hover:scale-[1.02] transition-all duration-200",
-    gradient: "bg-gradient-to-r from-dell-blue-500 to-dell-blue-600 hover:from-dell-blue-600 hover:to-dell-blue-700 hover:shadow-lg hover:scale-[1.02] text-white transition-all duration-200",
+    primary: "bg-gradient-to-r from-[#6379c3] to-[#546ee5] hover:opacity-90 text-white transition-all duration-200 shadow-sm hover:shadow-md",
+    secondary: "bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))]/90 text-[hsl(var(--secondary-foreground))] transition-all duration-200",
+    ghost: "hover:bg-gradient-to-r hover:from-[#6379c3]/10 hover:to-[#546ee5]/10 hover:text-[#546ee5] transition-all duration-200",
+    gradient: "bg-gradient-to-r from-[hsl(var(--accent-gradient-start))] to-[hsl(var(--accent-gradient-end))] hover:opacity-90 text-white transition-all duration-200 shadow-sm hover:shadow-md",
     // Icon buttons for overlays and sticky notes
     iconOverlay: "rounded-full bg-white text-foreground hover:bg-gray-50 hover:shadow-md transition-all duration-200 hover:scale-110 border border-gray-300",
-    iconSolid: "rounded-full bg-primary text-primary-foreground hover:bg-primary hover:shadow-lg transition-all duration-200 hover:scale-110",
+    iconSolid: "rounded-full bg-gradient-to-r from-[#6379c3] to-[#546ee5] text-white hover:opacity-90 hover:shadow-lg transition-all duration-200 hover:scale-110",
   },
   
   // Professional Form elements with enhanced feedback
   input: {
-    base: "border border-dell-gray-300 rounded-md px-3 py-2 transition-all duration-200 hover:border-dell-blue-300",
-    focus: "focus:ring-2 focus:ring-dell-blue-500 focus:border-dell-blue-500 focus:outline-none focus:shadow-lg",
+    base: "border border-dell-gray-300 rounded-md px-3 py-2 transition-all duration-200 hover:border-[hsl(var(--primary))]/40",
+    focus: "focus:ring-2 focus:ring-[hsl(var(--primary))] focus:border-[hsl(var(--primary))] focus:outline-none focus:shadow-lg",
     error: "border-red-500 focus:ring-red-500 hover:border-red-400",
     success: "border-green-500 focus:ring-green-500 hover:border-green-400",
   },
@@ -87,20 +87,20 @@ export const dellComponents = {
     container: "px-4 py-4 transition-all duration-200",
     section: "space-y-6 animate-in fade-in duration-300",
     pageHeader: "flex items-center justify-between mb-6 pb-4 border-b border-dell-gray-200",
-    sidebar: "w-64 bg-dell-blue-500 text-white shadow-xl",
+    sidebar: "w-64 bg-[hsl(var(--primary))] text-white shadow-xl",
   },
   
   // Professional Status indicators with animations
   status: {
-    dot: "w-2 h-2 rounded-full bg-dell-blue-500 animate-pulse",
-    badge: "inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-dell-blue-100 text-dell-blue-800 hover:bg-dell-blue-200 transition-colors duration-200",
+    dot: "w-2 h-2 rounded-full bg-[hsl(var(--primary))] animate-pulse",
+    badge: "inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/30 transition-colors duration-200",
     progress: "h-2 bg-dell-gray-200 rounded-full overflow-hidden",
-    progressBar: "h-full bg-gradient-to-r from-dell-blue-500 to-dell-blue-600 transition-all duration-500 ease-out",
+    progressBar: "h-full bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))] transition-all duration-500 ease-out",
   },
   
   // Loading states for professional feedback
   loading: {
-    spinner: "animate-spin h-4 w-4 border-2 border-dell-blue-500 border-t-transparent rounded-full",
+    spinner: "animate-spin h-4 w-4 border-2 border-[hsl(var(--primary))] border-t-transparent rounded-full",
     skeleton: "animate-pulse bg-dell-gray-200 rounded",
     overlay: "absolute inset-0 bg-white flex items-center justify-center",
   },
@@ -146,9 +146,9 @@ export function dellNavItem(isActive: boolean = false, withIndicator: boolean = 
  */
 export function dellButton(variant: 'primary' | 'secondary' | 'ghost' | 'gradient' = 'primary', className?: ClassValue) {
   return cn(
-    "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-dell-blue-500",
+    "inline-flex items-center justify-center rounded-sm px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#546ee5]",
     dellComponents.button[variant],
-    dellColors.interactive.disabled,
+    "disabled:opacity-50 disabled:cursor-not-allowed",
     className
   )
 }
@@ -195,9 +195,9 @@ export function dellFolderItem(isSelected: boolean, isDefault?: boolean, classNa
     // Base text color
     "text-gray-700",
     isSelected
-      ? "text-dell-blue-600 font-semibold"
-      : "hover:text-dell-blue-500",
-    isDefault && !isSelected && "text-dell-blue-600 font-medium",
+      ? "text-[#546ee5] font-semibold"
+      : "hover:text-[#546ee5]",
+    isDefault && !isSelected && "text-[#546ee5] font-medium",
     className
   )
 }
@@ -208,7 +208,7 @@ export function dellFolderItem(isSelected: boolean, isDefault?: boolean, classNa
 export function stickyNoteCard(color: 'yellow' | 'blue' | 'green' | 'pink' | 'orange' = 'yellow', className?: ClassValue) {
   const colorClasses = {
     yellow: "bg-yellow-100 border-yellow-200",
-    blue: "bg-blue-100 border-blue-200",
+    blue: "bg-[hsl(var(--primary))]/20 border-[hsl(var(--primary))]/30",
     green: "bg-green-100 border-green-200",
     pink: "bg-pink-100 border-pink-200",
     orange: "bg-orange-100 border-orange-200"
@@ -255,7 +255,7 @@ export function dellSpinner(size: 'sm' | 'md' | 'lg' = 'md', className?: ClassVa
  */
 export function dellBadge(variant: 'default' | 'success' | 'warning' | 'error' = 'default', className?: ClassValue) {
   const variants = {
-    default: 'bg-dell-blue-100 text-dell-blue-800 hover:bg-dell-blue-200',
+    default: 'bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/30',
     success: 'bg-green-100 text-green-800 hover:bg-green-200',
     warning: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
     error: 'bg-red-100 text-red-800 hover:bg-red-200'

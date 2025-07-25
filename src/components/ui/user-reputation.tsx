@@ -28,10 +28,10 @@ interface UserReputationProps {
 }
 
 const badgeConfig = {
-  CREATOR: { icon: Award, color: 'bg-blue-600', label: 'Creator' },
+  CREATOR: { icon: Award, color: 'bg-[hsl(var(--primary))]', label: 'Creator' },
   POPULAR: { icon: Star, color: 'bg-yellow-600', label: 'Popular' },
   HELPFUL: { icon: Heart, color: 'bg-green-600', label: 'Helpful' },
-  VERIFIED: { icon: Shield, color: 'bg-blue-500', label: 'Verified' },
+  VERIFIED: { icon: Shield, color: 'bg-[hsl(var(--primary))]', label: 'Verified' },
   MODERATOR: { icon: Crown, color: 'bg-purple-600', label: 'Moderator' },
   EARLY_ADOPTER: { icon: Zap, color: 'bg-orange-600', label: 'Early Adopter' }
 };
@@ -45,7 +45,7 @@ export function UserReputation({
 }: UserReputationProps) {
   const getReputationLevel = (score: number) => {
     if (score >= 1000) return { level: 'Expert', color: 'text-yellow-400' };
-    if (score >= 500) return { level: 'Advanced', color: 'text-blue-400' };
+    if (score >= 500) return { level: 'Advanced', color: 'text-[hsl(var(--primary))]' };
     if (score >= 100) return { level: 'Contributor', color: 'text-green-400' };
     if (score >= 50) return { level: 'Member', color: 'text-gray-400' };
     return { level: 'Newcomer', color: 'text-gray-500' };

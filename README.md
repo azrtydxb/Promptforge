@@ -330,6 +330,38 @@ For detailed worker documentation, see [docs/EMBEDDING_WORKER.md](docs/EMBEDDING
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## Recent Fixes (2025-07-25)
+
+### Layout Issues Fixed
+
+1. **Dashboard and Page Layouts**
+   - **Problem**: Content was hidden behind the 260px fixed sidebar
+   - **Solution**: Added `ml-[260px]` margin to content wrappers in all layout files
+   - **Files Fixed**: dashboard/layout.tsx, prompts/layout.tsx, admin/layout.tsx, search/layout.tsx, templates/layout.tsx, favorites/layout.tsx, shared-prompts/layout.tsx, tags/layout.tsx, profile/layout.tsx
+
+2. **My Prompts Page Scrolling**
+   - **Problem**: Content was cut off at the bottom without scroll capability in ResizablePanels
+   - **Solution**: Changed `overflow-hidden` to `overflow-auto` in ResizablePanels component
+   - **File Fixed**: src/components/ui/resizable-panels.tsx
+
+3. **CSS Import Order**
+   - **Problem**: @import rule for Google Fonts was after other CSS rules
+   - **Solution**: Moved Google Fonts to HTML head tags in layout.tsx
+   - **File Fixed**: src/app/layout.tsx, src/app/globals.css
+
+4. **Design System Migration**
+   - Applied Hyper template design system with:
+     - Primary color: #727cf5 (indigo)
+     - Nunito font family
+     - Professional shadows and spacing
+     - Consistent card heights and layouts
+
+### Testing Approach
+- Used Playwright MCP to test each fix
+- Verified fixes with screenshots
+- Checked for text overflow, cut-off content, and proper scrolling
+- Ensured all pages are accessible and properly laid out
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

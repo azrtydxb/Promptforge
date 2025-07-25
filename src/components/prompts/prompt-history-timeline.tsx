@@ -273,11 +273,11 @@ export function PromptHistoryTimeline({
                       {/* Timeline node */}
                       <div className={cn(
                         "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center z-10",
-                        isLatest ? "bg-blue-100 dark:bg-blue-900" : "bg-muted"
+                        isLatest ? "bg-[hsl(var(--primary))]/20 dark:bg-[hsl(var(--primary))]/20" : "bg-muted"
                       )}>
                         <GitBranch className={cn(
                           "h-5 w-5",
-                          isLatest ? "text-blue-600 dark:text-blue-400" : "text-muted-foreground"
+                          isLatest ? "text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))]" : "text-muted-foreground"
                         )} />
                       </div>
                       

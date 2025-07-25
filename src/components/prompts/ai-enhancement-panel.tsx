@@ -213,7 +213,7 @@ export function AIEnhancementPanel({
 
           {/* Enhancement Results */}
           {enhancement && (
-            <Card className="bg-blue-50 dark:bg-blue-100">
+            <Card className="bg-[hsl(var(--primary))]/10 dark:bg-[hsl(var(--primary))]/20">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Enhanced Version</h4>

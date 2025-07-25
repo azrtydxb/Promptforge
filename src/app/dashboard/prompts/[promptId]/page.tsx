@@ -413,12 +413,12 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
                 {tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))]"
                   >
                     {tag}
                     <button
                       onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                      className="ml-1 text-blue-600 hover:text-blue-800"
+                      className="ml-1 text-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]/80"
                     >
                       ×
                     </button>

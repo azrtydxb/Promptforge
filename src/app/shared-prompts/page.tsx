@@ -183,8 +183,8 @@ export default function SharedPromptsPage() {
   const renderFilterSidebar = () => (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
-        <Share2 className="h-5 w-5 text-[#007DB8]" />
-        <h2 className="text-lg font-semibold">Find Prompts</h2>
+        <Share2 className="h-5 w-5 text-[#546ee5]" />
+        <h2 className="text-lg font-bold text-foreground">Find Prompts</h2>
       </div>
       
       <MarketplaceFilters
@@ -302,6 +302,10 @@ export default function SharedPromptsPage() {
         }
         rightPanel={
           <div className="pb-4 px-4">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-foreground">Community Prompts</h1>
+              <p className="text-muted-foreground mt-1">Discover and share prompts with the community</p>
+            </div>
             <SectionErrorBoundary 
               fallback={<NetworkErrorFallback onReset={loadPrompts} />}
               resetKeys={[prompts.length, pagination?.page || 1]}

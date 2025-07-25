@@ -63,42 +63,42 @@ export function AdminStats() {
       value: stats.totalUsers,
       icon: Users,
       description: "All registered users",
-      color: "text-blue-600",
+      color: "text-[#546ee5]",
     },
     {
       title: "Active Users",
       value: stats.activeUsers,
       icon: Activity,
       description: "Currently active accounts",
-      color: "text-green-600",
+      color: "text-[#10b981]",
     },
     {
       title: "Admins",
       value: stats.adminCount,
       icon: Shield,
       description: "Administrator accounts",
-      color: "text-purple-600",
+      color: "text-[#546ee5]",
     },
     {
       title: "Moderators",
       value: stats.moderatorCount,
       icon: ShieldCheck,
       description: "Moderator accounts",
-      color: "text-orange-600",
+      color: "text-[#f59e0b]",
     },
     {
       title: "Verified Users",
       value: stats.verifiedUsers,
       icon: UserCheck,
       description: "Email verified accounts",
-      color: "text-cyan-600",
+      color: "text-[#3b82f6]",
     },
     {
       title: "New This Month",
       value: stats.newUsersThisMonth,
       icon: UserPlus,
       description: "Users joined this month",
-      color: "text-pink-600",
+      color: "text-[#6379c3]",
     },
   ];
 
@@ -107,12 +107,14 @@ export function AdminStats() {
       {statCards.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+          <Card key={index} className="min-h-[var(--card-min-height)]">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-semibold text-foreground">
                 {stat.title}
               </CardTitle>
-              <Icon className={`h-4 w-4 ${stat.color}`} />
+              <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
+                <Icon className={`h-5 w-5 ${stat.color}`} />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value.toLocaleString()}</div>

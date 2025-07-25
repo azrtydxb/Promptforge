@@ -12,6 +12,10 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Manage users, AI settings, and view system statistics</p>
+      </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
           <TabsTrigger value="stats" className="flex items-center gap-2">

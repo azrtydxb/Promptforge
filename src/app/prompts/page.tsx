@@ -140,9 +140,9 @@ export default function Prompts() {
               </div>
               <span className="font-medium text-sm sm:text-base">
                 {viewMode === "folders" ? (
-                  <>Selected: <span className="text-[hsl(var(--accent))]">{selectedFolder.name}</span></>
+                  <>Selected: <span className="text-[#546ee5] font-semibold">{selectedFolder.name}</span></>
                 ) : (
-                  <>Selected: <span className="text-[hsl(var(--accent))]">{selectedTag.name}</span></>
+                  <>Selected: <span className="text-[#546ee5] font-semibold">{selectedTag.name}</span></>
                 )}
               </span>
             </div>

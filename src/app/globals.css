@@ -2,6 +2,7 @@
 
 :root {
   --font-jetbrains-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-nunito: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 @layer utilities {
@@ -50,10 +51,10 @@
 
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 0 0 rgba(0, 125, 184, 0.4);
+      box-shadow: 0 0 0 0 rgba(114, 124, 245, 0.4);
     }
     50% {
-      box-shadow: 0 0 0 10px rgba(0, 125, 184, 0);
+      box-shadow: 0 0 0 10px rgba(114, 124, 245, 0);
     }
   }
 
@@ -128,99 +129,128 @@
 
   /* Professional shadows */
   .shadow-soft {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 35px 0 rgba(154, 161, 171, 0.15);
   }
 
   .shadow-medium {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 35px 0 rgba(154, 161, 171, 0.15);
   }
 
   .shadow-large {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 45px 0 rgba(154, 161, 171, 0.2);
   }
 
-  .shadow-dell-blue {
-    box-shadow: 0 4px 12px rgba(0, 125, 184, 0.25);
+  .shadow-hyper {
+    box-shadow: 0px 0px 35px 0px rgba(154, 161, 171, 0.15);
   }
 }
 
 @layer base {
   :root {
-    /* Professional Enterprise Design System */
-    --background: 0 0% 98%; /* #FAFAFA - clean background */
-    --foreground: 222 32% 14%; /* #1A2332 - professional dark text */
+    /* Hyper Template Professional Design System - Light Mode */
+    --background: 0 0% 100%; /* #FFFFFF - Clean white background */
+    --foreground: 214 17% 24%; /* #343a40 - Primary text color */
 
-    --card: 0 0% 100%; /* #FFFFFF - white cards */
-    --card-foreground: 222 32% 14%;
+    --card: 0 0% 100%; /* #FFFFFF - White cards */
+    --card-foreground: 214 17% 24%; /* #343a40 - Card text color */
  
     --popover: 0 0% 100%;
-    --popover-foreground: 222 32% 14%;
+    --popover-foreground: 210 10% 40%;
  
-    --primary: 210 16% 96%; /* #F4F5F7 - light gray for sidebar in light mode */
-    --primary-foreground: 222 32% 14%; /* #1A2332 - dark text for contrast */
+    --primary: 226 42% 56%; /* #546ee5 - Hyper gradient end color */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
  
-    --secondary: 213 13% 93%; /* #F0F2F4 - Dell light gray */
-    --secondary-foreground: 218 47% 12%;
+    --secondary: 210 16% 96%; /* #f7f9fc - Light background */
+    --secondary-foreground: 218 12% 30%; /* #3e4954 - Dark text */
  
-    --muted: 210 14% 97%; /* #F8F9FA - very light gray */
-    --muted-foreground: 215 16% 47%; /* #6B7280 - muted text */
+    --muted: 210 16% 96%; /* #f7f9fc */
+    --muted-foreground: 210 9% 55%; /* #8a92a6 - Muted text */
  
-    --accent: 207 90% 44%; /* #0C6FC2 - professional accent blue */
+    --accent: 226 42% 56%; /* #546ee5 - Hyper gradient end */
     --accent-foreground: 0 0% 100%;
     
-    /* Gradient variables for professional buttons */
-    --accent-gradient-start: 207 90% 34%; /* #0A5A9C */
-    --accent-gradient-end: 207 90% 44%; /* #0C6FC2 */
-
-    /* Professional Interactive state colors */
-    --dell-blue-hover: 207 90% 95%; /* Very light blue for hover */
-    --dell-blue-selected: 207 90% 90%; /* Light blue for selection */
-    --dell-blue-border: 207 90% 34%; /* Professional blue border */
-    --dell-gray-hover: 210 14% 95%; /* Light gray hover */
+    /* Menu/Sidebar colors */
+    --menu-bg: 218 13% 18%; /* #313a46 - Dark sidebar */
+    --menu-item-color: 210 17% 77%; /* #bccee4 - Menu text */
+    --menu-item-hover-color: 0 0% 100%; /* White on hover */
+    --menu-item-active-color: 0 0% 100%; /* White when active */
  
-    --destructive: 0 84.2% 60.2%; /* #EF4444 */
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 354 70% 67%; /* #fa5c7c - Hyper danger */
+    --destructive-foreground: 0 0% 100%;
+ 
+    --success: 160 70% 45%; /* #0acf97 - Hyper success */
+    --success-foreground: 0 0% 100%;
+ 
+    --warning: 45 95% 64%; /* #ffbc00 - Hyper warning */
+    --warning-foreground: 218 12% 30%;
+ 
+    --info: 188 78% 41%; /* #39afd1 - Hyper info */
+    --info-foreground: 0 0% 100%;
 
-    --border: 213 13% 87%; /* #DDE1E5 - Dell subtle borders */
-    --input: 0 0% 100%; /* #FFFFFF - white inputs */
-    --ring: 207 90% 44%; /* #0C6FC2 - professional blue focus ring */
+    --border: 210 17% 93%; /* #e7ebf0 - Light border */
+    --input: 0 0% 100%; /* White inputs */
+    --ring: 226 42% 56%; /* Primary focus ring */
 
-    --radius: 0.5rem; /* 8px for cleaner, more corporate look */
+    --radius: 0.25rem; /* 4px border radius */
+    
+    /* Additional Hyper variables */
+    --topbar-height: 70px;
+    --sidebar-width: 260px;
+    --sidebar-width-sm: 70px;
+    --sidebar-width-md: 160px;
+    --box-shadow: 0px 0px 35px 0px rgba(154, 161, 171, 0.15);
+    --card-min-height: 120px;
+    --editor-font-size: 14px;
+    
+    /* Hyper gradient colors */
+    --gradient-start: 225 33% 58%; /* #6379c3 */
+    --gradient-end: 226 42% 56%; /* #546ee5 */
   }
  
   .dark {
-    /* Professional dark mode with subtle blue accents */
-    --background: 224 14% 8%; /* #111318 - dark charcoal */
-    --foreground: 210 11% 85%; /* #D6DBE0 - light gray text */
+    /* Hyper Template Dark Mode */
+    --background: 218 13% 18%; /* #313a46 - Dark background */
+    --foreground: 210 17% 82%; /* #cfd5de - Light text */
+
+    --card: 218 13% 23%; /* #37404a - Card background */
+    --card-foreground: 210 17% 82%;
  
-    --card: 222 15% 13%; /* #1B1F26 - slightly lighter card */
-    --card-foreground: 210 11% 85%;
+    --popover: 218 13% 23%;
+    --popover-foreground: 210 17% 82%;
  
-    --popover: 222 15% 13%;
-    --popover-foreground: 210 11% 85%;
+    --primary: 226 42% 56%; /* #546ee5 - Hyper gradient end */
+    --primary-foreground: 0 0% 100%;
  
-    --primary: 220 20% 14%; /* #1C2333 - darker for better contrast */
-    --primary-foreground: 210 11% 92%; /* #E8EAED - lighter text for better contrast */
+    --secondary: 217 13% 28%; /* #404954 - Secondary bg */
+    --secondary-foreground: 210 17% 82%;
  
-    --secondary: 217 15% 18%; /* #262B33 - secondary dark */
-    --secondary-foreground: 210 11% 85%;
+    --muted: 217 13% 33%; /* #4b5666 */
+    --muted-foreground: 210 12% 65%; /* #98a6ad */
  
-    --muted: 217 15% 18%;
-    --muted-foreground: 215 13% 55%; /* #7D8B9A - muted text */
- 
-    --accent: 201 74% 48%; /* #1F8FDB - professional blue accent */
+    --accent: 226 42% 56%; /* #546ee5 */
     --accent-foreground: 0 0% 100%;
     
-    /* Dark mode gradient variables - subtle blue gradient */
-    --accent-gradient-start: 201 74% 48%; /* #1F8FDB */
-    --accent-gradient-end: 201 64% 58%; /* #4FA3E3 */
+    /* Dark menu colors */
+    --menu-bg: 218 13% 18%; /* #313a46 */
+    --menu-item-color: 210 17% 77%; /* #bccee4 */
+    --menu-item-hover-color: 0 0% 100%;
+    --menu-item-active-color: 0 0% 100%;
  
-    --destructive: 0 72% 51%; /* #E53E3E - softer red */
-    --destructive-foreground: 210 11% 85%;
+    --destructive: 354 70% 67%; /* #fa5c7c */
+    --destructive-foreground: 0 0% 100%;
  
-    --border: 217 15% 21%; /* #2E333B - subtle borders */
-    --input: 222 15% 13%;
-    --ring: 201 74% 48%;
+    --success: 160 70% 45%; /* #0acf97 */
+    --success-foreground: 0 0% 100%;
+ 
+    --warning: 45 95% 64%; /* #ffbc00 */
+    --warning-foreground: 218 12% 30%;
+ 
+    --info: 188 78% 41%; /* #39afd1 */
+    --info-foreground: 0 0% 100%;
+
+    --border: 217 12% 33%; /* #4b5564 - Dark border */
+    --input: 218 13% 23%;
+    --ring: 235 84% 71%;
   }
 
   * {
@@ -230,13 +260,13 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+    font-family: var(--font-nunito);
     font-feature-settings: "rlig" 1, "calt" 1;
     font-weight: 400;
-    line-height: 1.6;
+    font-size: 0.9rem;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.01em;
   }
 
 }

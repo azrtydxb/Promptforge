@@ -119,7 +119,8 @@ export function PromptTemplatesContainer() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-foreground">Prompt Templates</h1>
         <Button
           onClick={() => router.push("/templates/new")}
           className="flex items-center gap-2"
@@ -130,7 +131,7 @@ export function PromptTemplatesContainer() {
       </div>
 
       {/* Search and Filters */}
-      <div className="space-y-4">
+      <div className="bg-white dark:bg-card p-4 rounded-lg border border-border shadow-[var(--box-shadow)] mb-6">
         <div className="flex gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

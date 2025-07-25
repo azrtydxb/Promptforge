@@ -272,7 +272,7 @@ export function PublicShareView({ shareData, shareId }: PublicShareViewProps) {
           </Card>
 
           {/* CTA Section */}
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/30">
             <CardContent className="pt-6">
               <div className="text-center space-y-4">
                 <h2 className="text-xl font-semibold">

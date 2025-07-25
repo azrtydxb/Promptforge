@@ -100,7 +100,7 @@ export function SimilarPrompts({ promptId, className }: SimilarPromptsProps) {
               }}
               showFavoriteButton={false}
             />
-            <div className="absolute top-2 right-2 bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
+            <div className="absolute top-2 right-2 bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] text-xs px-2 py-1 rounded">
               {(prompt.similarity * 100).toFixed(0)}% match
             </div>
           </div>

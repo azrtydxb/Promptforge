@@ -58,13 +58,13 @@ interface DashboardAnalyticsProps {
   data: DashboardData;
 }
 
-// Professional color palette for charts - using CSS variable colors
+// Professional color palette for charts - using the Hyper blue gradient
 const COLORS = [
-  'hsl(207, 90%, 44%)', // Primary accent
-  'hsl(207, 80%, 54%)', // Lighter variant
-  'hsl(207, 70%, 64%)', // Even lighter
-  'hsl(207, 60%, 74%)', // Light
-  'hsl(207, 50%, 84%)'  // Very light
+  '#6379c3', // Primary gradient start
+  '#546ee5', // Primary gradient end
+  '#7a8fd3', // Lighter variant
+  '#9aa9e1', // Even lighter
+  '#bac4ee'  // Very light
 ];
 
 export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
@@ -72,53 +72,61 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Prompts</CardTitle>
-            <FileText className="h-4 w-4 text-blue-600" />
+        <Card className="min-h-[var(--card-min-height)]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold text-foreground">Total Prompts</CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
+              <FileText className="h-5 w-5 text-[#546ee5]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.totalPrompts}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold">{data.totalPrompts}</div>
+            <p className="text-sm text-muted-foreground mt-1">
               Active prompt templates
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Folders</CardTitle>
-            <Folder className="h-4 w-4 text-blue-600" />
+        <Card className="min-h-[var(--card-min-height)]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold text-foreground">Folders</CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
+              <Folder className="h-5 w-5 text-[#546ee5]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.totalFolders}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold">{data.totalFolders}</div>
+            <p className="text-sm text-muted-foreground mt-1">
               Organization structures
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tags</CardTitle>
-            <Tag className="h-4 w-4 text-blue-600" />
+        <Card className="min-h-[var(--card-min-height)]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold text-foreground">Tags</CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
+              <Tag className="h-5 w-5 text-[#546ee5]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.totalTags}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold">{data.totalTags}</div>
+            <p className="text-sm text-muted-foreground mt-1">
               Unique categories
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Versions</CardTitle>
-            <BarChart3 className="h-4 w-4 text-blue-600" />
+        <Card className="min-h-[var(--card-min-height)]">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-semibold text-foreground">Versions</CardTitle>
+            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
+              <BarChart3 className="h-5 w-5 text-[#546ee5]" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.totalVersions}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold">{data.totalVersions}</div>
+            <p className="text-sm text-muted-foreground mt-1">
               Total revisions
             </p>
           </CardContent>
@@ -130,7 +138,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         {/* Trends */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Trends</CardTitle>
+            <CardTitle className="text-base font-semibold">Trends</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
@@ -155,14 +163,14 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                 <Line
                   type="monotone"
                   dataKey="prompts"
-                  stroke="hsl(207, 90%, 44%)"
+                  stroke="#6379c3"
                   strokeWidth={2}
                   name="New Prompts"
                 />
                 <Line
                   type="monotone"
                   dataKey="cumulative"
-                  stroke="hsl(207, 80%, 54%)"
+                  stroke="#546ee5"
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   name="Total Prompts"
@@ -176,7 +184,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         {/* Folders */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Folders</CardTitle>
+            <CardTitle className="text-base font-semibold">Folders</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
@@ -189,7 +197,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   labelLine={false}
                   label={false}
                   outerRadius={70}
-                  fill="hsl(207, 90%, 44%)"
+                  fill="#6379c3"
                   dataKey="count"
                 >
                   {data.promptsByFolder.map((entry, index) => (
@@ -206,7 +214,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         {/* Activity */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Activity</CardTitle>
+            <CardTitle className="text-base font-semibold">Activity</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
@@ -228,7 +236,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   tickFormatter={(value) => `${value}`}
                 />
                 <Tooltip />
-                <Bar dataKey="count" fill="hsl(207, 90%, 44%)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#6379c3" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </SectionErrorBoundary>
@@ -238,21 +246,21 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         {/* Tags */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Tags</CardTitle>
+            <CardTitle className="text-base font-semibold">Tags</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <div className="space-y-2 max-h-[180px] overflow-y-auto">
               {data.topTags.map((tag) => (
                 <div key={tag.name} className="flex items-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2 flex-shrink-0" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#546ee5] mr-2 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-medium leading-none truncate pr-1">{tag.name}</p>
-                      <p className="text-xs text-muted-foreground whitespace-nowrap">{tag.count}</p>
+                      <p className="text-xs text-foreground/70 font-medium whitespace-nowrap">{tag.count}</p>
                     </div>
                     <div className="mt-1 h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-primary transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-[#6379c3] to-[#546ee5] transition-all duration-300"
                         style={{
                           width: `${(tag.count / Math.max(...data.topTags.map(t => t.count))) * 100}%`
                         }}
@@ -270,14 +278,14 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
       {data.recentlyUsedPrompts && data.recentlyUsedPrompts.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Recently Used</CardTitle>
+            <CardTitle className="font-semibold">Recently Used</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {data.recentlyUsedPrompts.map((prompt) => (
                 <div key={prompt.id} className="flex items-center justify-between">
                   <div className="flex-1">
-                    <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-blue-600 transition-colors">
+                    <a href={`/prompts/${prompt.id}`} className="text-sm font-medium text-foreground hover:text-[#546ee5] transition-colors">
                       {prompt.title}
                     </a>
                     <div className="flex items-center gap-2 mt-1">
@@ -312,7 +320,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         {data.mostLikedPrompts && data.mostLikedPrompts.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Most Popular Prompts</CardTitle>
+              <CardTitle className="font-semibold">Most Popular Prompts</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -320,7 +328,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   <div key={prompt.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-[hsl(var(--accent))] transition-colors">
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium text-foreground hover:text-[#546ee5] transition-colors">
                         {prompt.title}
                       </a>
                     </div>
@@ -339,7 +347,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         {data.mostVersionedPrompts && data.mostVersionedPrompts.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Most Edited Prompts</CardTitle>
+              <CardTitle className="font-semibold">Most Edited Prompts</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -347,12 +355,12 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   <div key={prompt.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-[hsl(var(--accent))] transition-colors">
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium text-foreground hover:text-[#546ee5] transition-colors">
                         {prompt.title}
                       </a>
                     </div>
                     <div className="flex items-center gap-1">
-                      <History className="h-3 w-3 text-blue-500" />
+                      <History className="h-3 w-3 text-[#546ee5]" />
                       <span className="text-sm">{prompt._count.versions} versions</span>
                     </div>
                   </div>
@@ -366,7 +374,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         {data.mostFavoritedPrompts && data.mostFavoritedPrompts.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Most Favorited Prompts</CardTitle>
+              <CardTitle className="font-semibold">Most Favorited Prompts</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -374,7 +382,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   <div key={prompt.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium hover:text-[hsl(var(--accent))] transition-colors">
+                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium text-foreground hover:text-[#546ee5] transition-colors">
                         {prompt.title}
                       </a>
                     </div>
@@ -393,13 +401,13 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
       {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle className="font-semibold">Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {data.recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-center space-x-4">
-                <div className="w-2 h-2 rounded-full bg-primary" />
+                <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#6379c3] to-[#546ee5]" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{activity.title}</p>
                   <p className="text-xs text-muted-foreground">

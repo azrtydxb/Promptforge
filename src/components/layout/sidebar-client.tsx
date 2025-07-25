@@ -8,12 +8,10 @@ import {
   Tag,
   Zap,
   Users,
-  ChevronRight,
   Shield,
   Star,
   Layout,
 } from "lucide-react"
-import { dellNavItem } from "@/lib/styles"
 
 interface SidebarClientProps {
   isAdmin?: boolean;
@@ -69,24 +67,24 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
   const navigationItems = getNavigationItems(isAdmin)
 
   return (
-    <div className="hidden border-r border-border bg-[hsl(var(--primary))] shadow-sm md:block overflow-hidden">
-      <div className="flex h-full max-h-screen flex-col gap-2">
-        {/* Enhanced Header with gradient and professional styling */}
-        <div className="flex h-14 items-center border-b border-gray-300 px-4 lg:h-[60px] lg:px-6 bg-[hsl(var(--primary))] relative">
+    <div className="fixed left-0 top-0 bottom-0 hidden border-r border-border bg-[hsl(var(--menu-bg))] md:block overflow-hidden w-[260px] z-40">
+      <div className="flex h-full max-h-screen flex-col">
+        {/* Logo Section */}
+        <div className="flex h-[var(--topbar-height)] items-center px-6 bg-[hsl(var(--menu-bg))]">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 font-semibold text-primary-foreground group transition-colors duration-200"
+            className="flex items-center gap-3 font-semibold group transition-all duration-200"
           >
-            <div className="p-1 rounded-md bg-white group-hover:bg-gray-100 transition-colors duration-200">
-              <Zap className="h-5 w-5 text-primary-foreground" />
+            <div className="p-2 rounded bg-[hsl(var(--primary))] shadow-sm group-hover:shadow-md transition-all duration-200">
+              <Zap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-primary-foreground tracking-wide">PromptForge</span>
+            <span className="text-lg font-semibold text-white">PromptForge</span>
           </Link>
         </div>
         
-        {/* Enhanced Navigation */}
-        <div className="flex-1 py-4 overflow-hidden">
-          <nav className="grid items-start px-3 text-sm font-medium space-y-3 overflow-hidden">
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="px-4 py-6">
             {navigationItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
               const Icon = item.icon
@@ -95,32 +93,20 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={dellNavItem(isActive, true)}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group relative
+                    ${isActive
+                      ? 'bg-[hsl(var(--primary))]/10 text-white'
+                      : 'text-[hsl(var(--menu-item-color))] hover:text-[hsl(var(--menu-item-hover-color))] hover:bg-[hsl(var(--primary))]/5'
+                    }
+                  `}
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`
-                      p-1.5 rounded-md transition-all duration-200
-                      ${isActive
-                        ? 'bg-blue-100 shadow-sm'
-                        : 'bg-gray-100 group-hover:bg-gray-200'
-                      }
-                    `}>
-                      <Icon className="h-4 w-4 flex-shrink-0 text-primary-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold truncate text-primary-foreground">{item.label}</div>
-                      <div className={`
-                        text-xs truncate transition-opacity duration-200 text-primary-foreground
-                        ${isActive ? 'text-gray-700' : 'text-gray-500 group-hover:text-gray-600'}
-                      `}>
-                        {item.description}
-                      </div>
-                    </div>
-                  </div>
+                  <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
+                  <span className="font-medium">{item.label}</span>
                   
-                  {/* Active indicator */}
+                  {/* Active indicator bar */}
                   {isActive && (
-                    <ChevronRight className="h-3 w-3 flex-shrink-0 text-primary-foreground" />
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[hsl(var(--primary))] rounded-r-full" />
                   )}
                 </Link>
               )

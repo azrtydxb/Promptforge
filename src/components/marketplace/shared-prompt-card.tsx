@@ -144,7 +144,7 @@ export function SharedPromptCard({
         <div className="flex justify-between items-start mb-3 flex-shrink-0">
           <Link
             href={`/shared-prompts/${sharedPrompt.id}`}
-            className="flex-grow text-xl font-semibold text-gray-800 hover:text-dell-blue-600 transition-colors line-clamp-4 mr-2"
+            className="flex-grow text-xl font-semibold text-gray-800 hover:text-[hsl(var(--primary))] transition-colors line-clamp-4 mr-2"
           >
             {sharedPrompt.title}
           </Link>
