@@ -17,7 +17,7 @@ import {
   Clock
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { formatActivityMessage } from "@/app/actions/team-activity.actions";
+import { formatActivityMessage } from "@/lib/team-activity-formatter";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 

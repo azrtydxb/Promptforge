@@ -1,9 +1,9 @@
 import {
   getTeamActivity,
-  getTeamActivitySummary,
-  formatActivityMessage
+  getTeamActivitySummary
 } from '@/app/actions/team-activity.actions'
 import { getUserTeamRole } from '@/app/actions/team.actions'
+import { formatActivityMessage } from '@/lib/team-activity-formatter'
 import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/auth'
 import { logger } from '@/lib/logger'
