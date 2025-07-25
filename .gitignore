@@ -51,3 +51,6 @@ next-env.d.ts
 # temporary files
 /temp/
 temp/
+**/temp/
+temp/**
+/temp/**
