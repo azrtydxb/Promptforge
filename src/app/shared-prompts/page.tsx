@@ -16,6 +16,7 @@ import { SectionErrorBoundary } from '@/components/error-boundary';
 import { NetworkErrorFallback } from '@/components/error-boundary/error-fallbacks';
 import { LoadingStates } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
+import { canUseSemanticSearch } from '@/app/actions/semantic-search.actions';
 
 interface SharedPrompt {
   id: string;
@@ -59,6 +60,7 @@ export default function SharedPromptsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,11 +68,14 @@ export default function SharedPromptsPage() {
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'liked' | 'copied'>('recent');
   const [availableTags, setAvailableTags] = useState<Array<{ id: string; name: string; count: number }>>([]);
 
-  // Initialize marketplace on component mount
+  // Initialize marketplace and check semantic search on component mount
   useEffect(() => {
     const initialize = async () => {
       try {
         await initializeMarketplace();
+        // Check if semantic search is enabled
+        const semanticStatus = await canUseSemanticSearch();
+        setSemanticSearchEnabled(semanticStatus.enabled);
       } catch (error) {
         console.error('Error initializing marketplace:', error);
       }

@@ -105,7 +105,6 @@ This document tracks all implemented features and planned enhancements for the P
 - [x] **Auto-Tagging** - Automatic tag suggestions based on content
 - [x] **Similar Prompts** - Find related prompts using embeddings
 - [x] **Prompt Templates** - Pre-built templates for common use cases
-- [ ] **AI Model Testing** - Test prompts with different AI models
 
 ### Collaboration Features
 - [ ] **Team Workspaces** - Shared prompt libraries for teams
@@ -115,7 +114,8 @@ This document tracks all implemented features and planned enhancements for the P
 - [ ] **Activity Feed** - See what your team is working on
 
 ### Advanced Search & Discovery
-- [ ] **Semantic Search** - Search by meaning using embeddings
+- [x] **Semantic Search** - Search by meaning using embeddings ✅
+- [x] **Unified Search Component** - Consistent search across all pages ✅ 
 - [ ] **Prompt Collections** - Curated prompt sets by experts
 - [ ] **Trending Dashboard** - Popular prompts by time period
 - [ ] **Recommendation Engine** - Personalized prompt suggestions
@@ -181,15 +181,15 @@ This document tracks all implemented features and planned enhancements for the P
 
 ## 📊 Quick Wins (Easy to Implement)
 
-- [ ] **Prompt History Timeline** - Visual history view
-- [ ] **Public Share Links** - Share without login
-- [ ] **Markdown Preview** - Live markdown rendering
-- [ ] **Copy as Markdown** - Export prompt as MD
-- [ ] **Prompt Shortcuts** - Pin prompts to sidebar
-- [ ] **Search History** - Recent searches
-- [ ] **Undo/Redo** - For prompt editing
-- [ ] **Auto-save Drafts** - Never lose work
-- [ ] **Prompt Diff View** - Compare versions
+- [x] **Prompt History Timeline** - Visual history view ✅
+- [x] **Public Share Links** - Share without login ✅
+- [x] **Markdown Preview** - Live markdown rendering ✅
+- [x] **Copy as Markdown** - Export prompt as MD ✅
+- [x] **Prompt Shortcuts** - Pin prompts to sidebar ✅
+- [x] **Search History** - Recent searches ✅
+- [x] **Undo/Redo** - For prompt editing ✅
+- [x] **Auto-save Drafts** - Never lose work ✅
+- [x] **Prompt Diff View** - Compare versions ✅
 
 ## 🎯 Implementation Roadmap
 
@@ -250,4 +250,4 @@ This document tracks all implemented features and planned enhancements for the P
 
 ---
 
-Last Updated: 2025-07-23 (Phase 1 Completed!)
+Last Updated: 2025-07-25 (Semantic Search & Unified Search Completed!)
