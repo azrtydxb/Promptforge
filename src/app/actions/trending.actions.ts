@@ -476,34 +476,58 @@ export async function getTrendingStats({
     // Get engagement stats over time
     const [viewsByDay, likesByDay, copiesByDay] = await Promise.all([
       // Views by day
-      db.$queryRaw<Array<{ date: Date; count: bigint }>>`
-        SELECT DATE(viewed_at) as date, COUNT(*) as count
-        FROM prompt_views
-        WHERE viewed_at >= ${sinceDate}
-        ${userId ? db.$queryRaw`AND user_id = ${userId}` : db.$queryRaw``}
-        GROUP BY DATE(viewed_at)
-        ORDER BY date
-      `,
+      userId
+        ? db.$queryRaw<Array<{ date: Date; count: bigint }>>`
+            SELECT DATE("viewedAt") as date, COUNT(*) as count
+            FROM "PromptView"
+            WHERE "viewedAt" >= ${sinceDate}
+            AND "userId" = ${userId}
+            GROUP BY DATE("viewedAt")
+            ORDER BY date
+          `
+        : db.$queryRaw<Array<{ date: Date; count: bigint }>>`
+            SELECT DATE("viewedAt") as date, COUNT(*) as count
+            FROM "PromptView"
+            WHERE "viewedAt" >= ${sinceDate}
+            GROUP BY DATE("viewedAt")
+            ORDER BY date
+          `,
       
       // Likes by day
-      db.$queryRaw<Array<{ date: Date; count: bigint }>>`
-        SELECT DATE(created_at) as date, COUNT(*) as count
-        FROM prompt_likes
-        WHERE created_at >= ${sinceDate}
-        ${userId ? db.$queryRaw`AND user_id = ${userId}` : db.$queryRaw``}
-        GROUP BY DATE(created_at)
-        ORDER BY date
-      `,
+      userId
+        ? db.$queryRaw<Array<{ date: Date; count: bigint }>>`
+            SELECT DATE("createdAt") as date, COUNT(*) as count
+            FROM "PromptLike"
+            WHERE "createdAt" >= ${sinceDate}
+            AND "userId" = ${userId}
+            GROUP BY DATE("createdAt")
+            ORDER BY date
+          `
+        : db.$queryRaw<Array<{ date: Date; count: bigint }>>`
+            SELECT DATE("createdAt") as date, COUNT(*) as count
+            FROM "PromptLike"
+            WHERE "createdAt" >= ${sinceDate}
+            GROUP BY DATE("createdAt")
+            ORDER BY date
+          `,
       
       // Copies by day
-      db.$queryRaw<Array<{ date: Date; count: bigint }>>`
-        SELECT DATE(copied_at) as date, COUNT(*) as count
-        FROM prompt_copies
-        WHERE copied_at >= ${sinceDate}
-        ${userId ? db.$queryRaw`AND user_id = ${userId}` : db.$queryRaw``}
-        GROUP BY DATE(copied_at)
-        ORDER BY date
-      `
+      userId
+        ? db.$queryRaw<Array<{ date: Date; count: bigint }>>`
+            SELECT DATE("copiedAt") as date, COUNT(*) as count
+            FROM "PromptCopy"
+            WHERE "copiedAt" >= ${sinceDate}
+            AND "userId" = ${userId}
+            GROUP BY DATE("copiedAt")
+            ORDER BY date
+          `
+        : db.$queryRaw<Array<{ date: Date; count: bigint }>>`
+            SELECT DATE("copiedAt") as date, COUNT(*) as count
+            FROM "PromptCopy"
+            WHERE "copiedAt" >= ${sinceDate}
+            GROUP BY DATE("copiedAt")
+            ORDER BY date
+          `
     ]);
 
     // Get category breakdown

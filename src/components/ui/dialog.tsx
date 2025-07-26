@@ -126,7 +126,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
           ref={contentRef}
           className={cn(
             "relative rounded-lg shadow-2xl border-2 border-[hsl(var(--accent))] w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
-            "bg-white",
+            "bg-card",
             className
           )}
           onClick={(e) => e.stopPropagation()}
@@ -154,7 +154,7 @@ export interface DialogHeaderProps {
 
 export function DialogHeader({ className, children }: DialogHeaderProps) {
   return (
-    <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left p-6 pb-4 bg-white", className)}>
+    <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left p-6 pb-4 bg-card", className)}>
       {children}
     </div>
   );
@@ -167,7 +167,7 @@ export interface DialogFooterProps {
 
 export function DialogFooter({ className, children }: DialogFooterProps) {
   return (
-    <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 pt-4 bg-white", className)}>
+    <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 pt-4 bg-card", className)}>
       {children}
     </div>
   );
