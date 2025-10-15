@@ -136,10 +136,11 @@ export async function getFollowing(userId?: string) {
             id: true,
             name: true,
             username: true,
-            image: true,
+            profilePicture: true,
+            avatarType: true,
             _count: {
               select: {
-                sharedPrompts: true,
+                prompts: true,
                 followers: true,
                 following: true,
               },
@@ -178,10 +179,11 @@ export async function getFollowers(userId?: string) {
             id: true,
             name: true,
             username: true,
-            image: true,
+            profilePicture: true,
+            avatarType: true,
             _count: {
               select: {
-                sharedPrompts: true,
+                prompts: true,
                 followers: true,
                 following: true,
               },
@@ -262,17 +264,18 @@ export async function getSuggestedUsers(limit = 10) {
         id: true,
         name: true,
         username: true,
-        image: true,
+        profilePicture: true,
+        avatarType: true,
         _count: {
           select: {
-            sharedPrompts: true,
+            prompts: true,
             followers: true,
           },
         },
       },
       orderBy: [
         { followers: { _count: "desc" } },
-        { sharedPrompts: { _count: "desc" } },
+        { prompts: { _count: "desc" } },
       ],
       take: limit,
     });

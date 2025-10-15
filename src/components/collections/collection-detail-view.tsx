@@ -31,12 +31,12 @@ interface CollectionPrompt {
       title: string;
       description: string | null;
     };
-    user: {
+    author: {
       name: string | null;
       username: string | null;
     };
     _count: {
-      likes: number;
+      ratings: number;
       copies: number;
     };
   };
@@ -198,8 +198,8 @@ export function CollectionDetailView({
                   id: item.sharedPrompt.id,
                   title: item.sharedPrompt.prompt.title,
                   description: item.sharedPrompt.prompt.description,
-                  author: item.sharedPrompt.user,
-                  likeCount: item.sharedPrompt._count.likes,
+                  author: item.sharedPrompt.author,
+                  likeCount: item.sharedPrompt._count.ratings,
                   copyCount: item.sharedPrompt._count.copies,
                 }}
                 onRemove={

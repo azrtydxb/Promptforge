@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 import { logger } from "@/lib/logger";
-import { TeamRole, TeamAction } from "@/generated/prisma";
+import { TeamRole, TeamAction, Prisma } from "@/generated/prisma";
 import { canPerformAction, getUserTeamRole } from "./team.actions";
 
 // Team Prompt Management
@@ -471,7 +471,7 @@ export async function copyTeamPromptToPersonal(promptId: string) {
         description: teamPrompt.description,
         content: teamPrompt.content,
         enhancedContent: teamPrompt.enhancedContent,
-        enhancementSuggestions: teamPrompt.enhancementSuggestions,
+        enhancementSuggestions: teamPrompt.enhancementSuggestions as unknown as Prisma.InputJsonValue,
         autoTags: teamPrompt.autoTags,
       },
     });

@@ -18,8 +18,8 @@ export default async function CollectionsPage() {
       getPublicCollections(),
     ]);
 
-    const userCollections = userResult.success ? userResult.collections : [];
-    const publicCollections = publicResult.success ? publicResult.collections : [];
+    const userCollections = userResult.success ? (userResult.collections || []) : [];
+    const publicCollections = publicResult.success ? (publicResult.collections || []) : [];
 
     return (
       <div className="container mx-auto py-6 space-y-8">

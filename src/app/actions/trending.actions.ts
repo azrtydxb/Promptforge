@@ -79,7 +79,7 @@ const getTrendingPromptsData = cache(async ({
       })
     };
 
-    let trendingPrompts;
+    let trendingPrompts: any[] = [];
 
     switch (metric) {
       case 'views': {

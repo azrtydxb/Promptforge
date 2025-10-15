@@ -12,9 +12,10 @@ interface User {
   id: string;
   name: string | null;
   username: string | null;
-  image: string | null;
+  profilePicture: string | null;
+  avatarType: string;
   _count?: {
-    sharedPrompts: number;
+    prompts: number;
     followers: number;
     following?: number;
   };
@@ -57,7 +58,7 @@ export function UserList({
                 className="flex items-center gap-3 flex-1 min-w-0"
               >
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+                  <AvatarImage src={user.profilePicture || undefined} alt={user.name || 'User'} />
                   <AvatarFallback>
                     {(user.name || user.username || 'U')[0].toUpperCase()}
                   </AvatarFallback>
@@ -86,7 +87,7 @@ export function UserList({
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <FileText className="w-4 h-4" />
-                  <span>{user._count.sharedPrompts} prompts</span>
+                  <span>{user._count.prompts} prompts</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="w-4 h-4" />

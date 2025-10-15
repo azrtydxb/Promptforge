@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@/generated/prisma";
 
 export async function saveSearchToHistory(params: {
   query: string;
@@ -18,7 +19,7 @@ export async function saveSearchToHistory(params: {
         userId: user.id,
         query: params.query,
         searchType: params.searchType,
-        filters: params.filters || {},
+        filters: (params.filters || {}) as Prisma.InputJsonValue,
         resultCount: params.resultCount,
       },
     });
