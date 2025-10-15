@@ -65,13 +65,16 @@ export const CreateFolderModal = () => {
         <DialogHeader>
           <DialogTitle>Create Folder</DialogTitle>
         </DialogHeader>
-        <div>
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+        <div className="space-y-4 px-6 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter folder name"
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
