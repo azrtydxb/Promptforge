@@ -149,30 +149,30 @@ export function TeamSwitcher({ className }: TeamSwitcherProps) {
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[200px] bg-white">
-        <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        
+      <DropdownMenuContent className="w-[200px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+        <DropdownMenuLabel className="text-gray-900 dark:text-gray-100">Workspaces</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
+
         {/* Personal Workspace */}
         <DropdownMenuItem
           onClick={() => handleTeamSwitch(null)}
-          className="cursor-pointer"
+          className="cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700"
         >
           <User className="mr-2 h-4 w-4" />
           <span className="flex-1">Personal Workspace</span>
-          {!currentTeamId && <Check className="h-4 w-4" />}
+          {!currentTeamId && <Check className="h-4 w-4 text-[#546ee5]" />}
         </DropdownMenuItem>
-        
-        {teams.length > 0 && <DropdownMenuSeparator />}
-        
+
+        {teams.length > 0 && <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />}
+
         {/* Team Workspaces */}
         {teams.map((team) => (
           <DropdownMenuItem
             key={team.id}
             onClick={() => handleTeamSwitch(team.id)}
-            className="cursor-pointer"
+            className="cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700"
           >
-            <Avatar 
+            <Avatar
               user={{
                 id: team.id,
                 name: team.name,
@@ -187,45 +187,45 @@ export function TeamSwitcher({ className }: TeamSwitcherProps) {
             />
             <div className="flex-1 overflow-hidden">
               <div className="truncate">{team.name}</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-gray-600 dark:text-gray-400">
                 {team._count.members} members · {team._count.prompts} prompts
               </div>
             </div>
-            {currentTeamId === team.id && <Check className="h-4 w-4" />}
+            {currentTeamId === team.id && <Check className="h-4 w-4 text-[#546ee5]" />}
           </DropdownMenuItem>
         ))}
-        
-        <DropdownMenuSeparator />
-        
+
+        <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
+
         {/* Current team actions */}
         {currentTeam && (
           <>
             <DropdownMenuItem
               onClick={() => router.push(`/teams/${currentTeam.slug}`)}
-              className="cursor-pointer"
+              className="cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700"
             >
               <Users className="mr-2 h-4 w-4" />
               <span>Team Dashboard</span>
             </DropdownMenuItem>
-            
+
             {(userRole === "OWNER" || userRole === "ADMIN") && (
               <DropdownMenuItem
                 onClick={() => router.push(`/teams/${currentTeam.slug}/settings`)}
-                className="cursor-pointer"
+                className="cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700"
               >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Team Settings</span>
               </DropdownMenuItem>
             )}
-            
-            <DropdownMenuSeparator />
+
+            <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
           </>
         )}
-        
+
         {/* Create new team */}
         <DropdownMenuItem
           onClick={() => router.push("/teams/new")}
-          className="cursor-pointer"
+          className="cursor-pointer text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700"
         >
           <Plus className="mr-2 h-4 w-4" />
           <span>Create Team</span>
