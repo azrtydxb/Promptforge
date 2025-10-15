@@ -3,7 +3,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 import { db } from '@/lib/db';
-import { cache } from 'react';
 import { unstable_cache } from 'next/cache';
 
 // Time period configurations
@@ -48,19 +47,20 @@ export type TrendingMetric = 'views' | 'likes' | 'copies' | 'comments' | 'rising
 /**
  * Get trending prompts by various metrics
  */
-const getTrendingPromptsData = cache(async ({
+const getTrendingPromptsData = async ({
   metric = 'views',
   period = 'week',
   category,
-  limit = 10
+  limit = 10,
+  userId
 }: {
   metric?: TrendingMetric;
   period?: TimePeriod;
   category?: string;
   limit?: number;
+  userId?: string;
 }) => {
   try {
-    const session = await getServerSession(authOptions);
     const periodConfig = TIME_PERIODS[period];
     const sinceDate = periodConfig.dateFilter();
 
@@ -371,17 +371,17 @@ const getTrendingPromptsData = cache(async ({
     }
 
     // Add isLiked status if user is logged in
-    if (session?.user?.id && trendingPrompts.length > 0) {
+    if (userId && trendingPrompts.length > 0) {
       const promptIds = trendingPrompts.map(p => p.promptId);
       const likedPrompts = await db.promptLike.findMany({
         where: {
-          userId: session.user.id,
+          userId: userId,
           promptId: { in: promptIds }
         }
       });
-      
+
       const likedSet = new Set(likedPrompts.map(like => like.promptId));
-      
+
       trendingPrompts = trendingPrompts.map(prompt => ({
         ...prompt,
         isLiked: likedSet.has(prompt.promptId)
@@ -399,17 +399,39 @@ const getTrendingPromptsData = cache(async ({
     console.error('Error getting trending prompts:', error);
     return { success: false, error: 'Failed to load trending prompts' };
   }
-});
+};
 
-// Create cached version
-export const getTrendingPrompts = unstable_cache(
-  getTrendingPromptsData,
-  ['trending-prompts'],
-  {
-    revalidate: 300, // 5 minutes
-    tags: ['trending', 'prompts']
-  }
-);
+// Create cached version with userId in the key
+const getCachedTrendingPrompts = (params: {
+  metric?: TrendingMetric;
+  period?: TimePeriod;
+  category?: string;
+  limit?: number;
+  userId?: string;
+}) => {
+  return unstable_cache(
+    async () => getTrendingPromptsData(params),
+    ['trending-prompts', params.metric || 'views', params.period || 'week', params.category || 'all', params.userId || 'anonymous'],
+    {
+      revalidate: 300, // 5 minutes
+      tags: ['trending', 'prompts']
+    }
+  )();
+};
+
+// Public function that gets session and calls cached function
+export async function getTrendingPrompts(params: {
+  metric?: TrendingMetric;
+  period?: TimePeriod;
+  category?: string;
+  limit?: number;
+}) {
+  const session = await getServerSession(authOptions);
+  return getCachedTrendingPrompts({
+    ...params,
+    userId: session?.user?.id
+  });
+}
 
 /**
  * Get trending statistics for dashboard charts

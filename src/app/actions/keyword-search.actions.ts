@@ -36,7 +36,6 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
     // Build where clause
     const where: any = {
       userId: user.id,
-      deletedAt: null,
     };
 
     // Add search conditions if query is provided
@@ -52,9 +51,7 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
     if (validated.filters?.tags?.length) {
       where.tags = {
         some: {
-          tag: {
-            id: { in: validated.filters.tags }
-          }
+          id: { in: validated.filters.tags }
         }
       };
     }
@@ -64,7 +61,7 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
     }
 
     if (validated.filters?.hasEnhancement) {
-      where.enhancedVersionId = { not: null };
+      where.enhancedContent = { not: null };
     }
 
     if (validated.filters?.dateRange) {
@@ -162,9 +159,7 @@ export async function searchSharedPromptsKeyword(input: z.infer<typeof keywordSe
         ...where.prompt,
         tags: {
           some: {
-            tag: {
-              id: { in: validated.filters.tags }
-            }
+            id: { in: validated.filters.tags }
           }
         }
       };
