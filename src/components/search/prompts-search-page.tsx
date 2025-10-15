@@ -102,7 +102,7 @@ export function PromptsSearchPage() {
 
       <div className="space-y-2">
         <Label>Tags</Label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
           {availableTags.map(tag => (
             <Badge
               key={tag.id}

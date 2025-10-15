@@ -19,10 +19,7 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log('[AUTH] Authorization attempt:', { email: credentials?.email });
-
         if (!credentials?.email || !credentials?.password) {
-          console.log('[AUTH] Missing credentials');
           return null
         }
 
@@ -32,22 +29,16 @@ export const authOptions: AuthOptions = {
           }
         })
 
-        console.log('[AUTH] User found:', { exists: !!user, hasPassword: !!user?.password });
-
         if (!user || !user.password) {
-          console.log('[AUTH] User not found or no password');
           return null
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
-        console.log('[AUTH] Password valid:', isPasswordValid);
 
         if (!isPasswordValid) {
-          console.log('[AUTH] Invalid password');
           return null
         }
 
-        console.log('[AUTH] Login successful for user:', user.id);
         return {
           id: user.id,
           email: user.email,

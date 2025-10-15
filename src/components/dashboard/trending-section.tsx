@@ -121,26 +121,10 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
 
         if (result.success && result.prompts) {
           setTrendingPrompts(result.prompts);
-          
-          // Generate mock chart data for visualization
-          // In a real app, this would come from getTrendingStats
-          const days = selectedPeriod === 'today' ? 24 : selectedPeriod === 'week' ? 7 : 30;
-          const mockChartData = Array.from({ length: days }, (_, i) => {
-            const date = new Date();
-            if (selectedPeriod === 'today') {
-              date.setHours(date.getHours() - (days - i - 1));
-            } else {
-              date.setDate(date.getDate() - (days - i - 1));
-            }
-            
-            return {
-              date: selectedPeriod === 'today' 
-                ? date.toLocaleTimeString('en-US', { hour: 'numeric' })
-                : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-              value: Math.floor(Math.random() * 100) + 20
-            };
-          });
-          setChartData(mockChartData);
+
+          // TODO: Replace with real getTrendingStats data
+          // For now using simplified visualization
+          setChartData([]);
         } else {
           toast.error("Failed to load trending data");
         }
@@ -229,7 +213,7 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
       <CardContent className="space-y-6">
         {/* Metric Tabs */}
         <Tabs value={selectedMetric} onValueChange={(v) => setSelectedMetric(v as TrendingMetric)}>
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 w-full">
             {Object.entries(METRIC_CONFIG).map(([metric, config]) => {
               const Icon = config.icon;
               return (
@@ -258,41 +242,49 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
             </div>
 
             {/* Trend Chart */}
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke={chartColors.text}
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis 
-                    stroke={chartColors.text}
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: chartColors.tooltip.bg,
-                      border: `1px solid ${chartColors.tooltip.border}`,
-                      borderRadius: '6px'
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke={METRIC_CONFIG[selectedMetric].color}
-                    fill={METRIC_CONFIG[selectedMetric].color}
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            {isLoading ? (
+              <div className="h-[200px] bg-muted/30 rounded-lg animate-pulse" />
+            ) : chartData.length > 0 ? (
+              <div className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                    <XAxis
+                      dataKey="date"
+                      stroke={chartColors.text}
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke={chartColors.text}
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: chartColors.tooltip.bg,
+                        border: `1px solid ${chartColors.tooltip.border}`,
+                        borderRadius: '6px'
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke={METRIC_CONFIG[selectedMetric].color}
+                      fill={METRIC_CONFIG[selectedMetric].color}
+                      fillOpacity={0.2}
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[200px] flex items-center justify-center bg-muted/30 rounded-lg">
+                <p className="text-sm text-muted-foreground">Chart data will be available soon</p>
+              </div>
+            )}
 
             {/* Trending Prompts List */}
             {isLoading ? (

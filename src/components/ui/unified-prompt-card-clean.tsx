@@ -157,7 +157,7 @@ export function UnifiedPromptCardClean({
       >
         <CardHeader className="pb-3">
           <div className="space-y-1">
-            <CardTitle className="text-base font-bold text-foreground line-clamp-2 min-h-[3rem] leading-snug">
+            <CardTitle className="text-base font-bold text-foreground line-clamp-2 min-h-[3rem] leading-snug break-words">
               {title}
             </CardTitle>
             
