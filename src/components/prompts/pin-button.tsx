@@ -37,11 +37,12 @@ export function PinButton({
       const result = await pinPrompt(promptId);
       
       if (result.success) {
-        setIsPinned(result.isPinned);
+        const pinned = result.isPinned ?? false;
+        setIsPinned(pinned);
         toast({
-          title: result.isPinned ? "Prompt pinned" : "Prompt unpinned",
-          description: result.isPinned 
-            ? "This prompt will appear at the top of your list" 
+          title: pinned ? "Prompt pinned" : "Prompt unpinned",
+          description: pinned
+            ? "This prompt will appear at the top of your list"
             : "This prompt has been unpinned",
         });
       } else {

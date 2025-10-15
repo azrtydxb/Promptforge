@@ -138,7 +138,6 @@ export function PromptCard({
                   size="sm"
                   variant="ghost"
                   showCount={false}
-                  iconClasses="h-4 w-4"
                 />
               </div>
             )}
