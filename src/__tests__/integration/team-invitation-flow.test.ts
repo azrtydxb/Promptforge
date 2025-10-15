@@ -289,8 +289,8 @@ describe('Team Invitation Flow Integration Tests', () => {
       // Mock the canPerformAction to return true for MEMBER role
       jest.doMock('@/app/actions/team.actions', () => ({
         getUserTeamRole: jest.fn().mockResolvedValue(TeamRole.MEMBER),
-        canPerformAction: jest.fn((userRole, requiredRole) => {
-          const roleHierarchy = {
+        canPerformAction: jest.fn((userRole: TeamRole, requiredRole: TeamRole) => {
+          const roleHierarchy: Record<TeamRole, number> = {
             [TeamRole.OWNER]: 4,
             [TeamRole.ADMIN]: 3,
             [TeamRole.MEMBER]: 2,

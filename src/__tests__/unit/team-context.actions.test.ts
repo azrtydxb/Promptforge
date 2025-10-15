@@ -59,7 +59,11 @@ describe('Team Context Actions', () => {
     jest.clearAllMocks()
     ;(requireAuth as jest.Mock).mockResolvedValue(mockUser)
     // Reset environment
-    process.env.NODE_ENV = 'test'
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'test',
+      writable: true,
+      configurable: true
+    })
   })
 
   describe('setTeamContext', () => {
@@ -89,7 +93,11 @@ describe('Team Context Actions', () => {
     })
 
     it('should set secure cookie in production', async () => {
-      process.env.NODE_ENV = 'production'
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'production',
+        writable: true,
+        configurable: true
+      })
       const teamId = 'team-123'
       ;(getUserTeamRole as jest.Mock).mockResolvedValue(TeamRole.OWNER)
 
