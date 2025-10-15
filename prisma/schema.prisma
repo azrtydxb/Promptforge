@@ -56,6 +56,7 @@ model User {
   shareLinks       PromptShareLink[]
   searchHistory    SearchHistory[]
   promptRatings    PromptRating[]
+  drafts           PromptDraft[]
   // Team relations
   teamMemberships  TeamMember[]
   createdTeams     Team[]            @relation("TeamCreator")
@@ -400,6 +401,23 @@ model PromptRating {
   @@index([sharedPromptId])
   @@index([userId])
   @@index([rating])
+}
+
+model PromptDraft {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptId    String?  @unique // If editing existing prompt
+  title       String
+  description String?
+  content     String?
+  folderId    String?
+  tags        String[] // Tag names as array
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([updatedAt])
 }
 
 // Content moderation models
