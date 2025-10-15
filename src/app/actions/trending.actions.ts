@@ -166,7 +166,7 @@ const getTrendingPromptsData = cache(async ({
             prompt: {
               include: {
                 tags: true,
-                promptLikes: {
+                likes: {
                   where: {
                     createdAt: { gte: sinceDate }
                   },
@@ -185,11 +185,11 @@ const getTrendingPromptsData = cache(async ({
 
         trendingPrompts = sharedPrompts.map(prompt => ({
           ...prompt,
-          periodMetricCount: prompt.prompt.promptLikes.length,
+          periodMetricCount: prompt.prompt.likes.length,
           metricLabel: 'likes',
           prompt: {
             ...prompt.prompt,
-            promptLikes: undefined // Remove the likes array
+            likes: undefined // Remove the likes array
           }
         }));
         break;

@@ -71,7 +71,7 @@ export async function getCollection(collectionId: string) {
                     description: true,
                   },
                 },
-                user: {
+                author: {
                   select: {
                     name: true,
                     username: true,
@@ -439,7 +439,7 @@ export async function getCollectionPrompts(collectionId: string) {
                 description: true,
               },
             },
-            user: {
+            author: {
               select: {
                 name: true,
                 username: true,
@@ -447,7 +447,7 @@ export async function getCollectionPrompts(collectionId: string) {
             },
             _count: {
               select: {
-                likes: true,
+                ratings: true,
                 copies: true,
               },
             },

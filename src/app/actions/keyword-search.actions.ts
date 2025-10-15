@@ -85,23 +85,13 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
       db.prompt.findMany({
         where,
         include: {
-          tags: {
-            include: {
-              tag: true
-            }
-          },
+          tags: true,
           folder: true,
           likes: {
             where: { userId: user.id }
           },
           versions: {
             select: { id: true }
-          },
-          enhancedVersion: {
-            select: {
-              id: true,
-              content: true
-            }
           }
         },
         orderBy: [
@@ -119,14 +109,12 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
       title: prompt.title,
       description: prompt.description,
       content: prompt.content,
-      tags: prompt.tags.map(pt => pt.tag),
+      tags: prompt.tags,
       folder: prompt.folder,
       isLiked: prompt.likes.length > 0,
-      isFavorite: prompt.isFavorite,
-      likeCount: prompt.likeCount,
       hasVersions: prompt.versions.length > 1,
-      hasEnhancement: !!prompt.enhancedVersion,
-      enhancedContent: prompt.enhancedVersion?.content,
+      hasEnhancement: !!prompt.enhancedContent,
+      enhancedContent: prompt.enhancedContent,
       createdAt: prompt.createdAt,
       updatedAt: prompt.updatedAt,
     }));
@@ -198,11 +186,7 @@ export async function searchSharedPromptsKeyword(input: z.infer<typeof keywordSe
           },
           prompt: {
             include: {
-              tags: {
-                include: {
-                  tag: true
-                }
-              }
+              tags: true
             }
           }
         },
@@ -228,7 +212,7 @@ export async function searchSharedPromptsKeyword(input: z.infer<typeof keywordSe
       copyCount: sp.copyCount,
       author: sp.author,
       prompt: {
-        tags: sp.prompt.tags.map(pt => pt.tag)
+        tags: sp.prompt.tags
       }
     }));
 
