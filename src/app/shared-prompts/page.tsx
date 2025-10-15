@@ -186,12 +186,12 @@ export default function SharedPromptsPage() {
   };
 
   const renderFilterSidebar = () => (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 h-full">
       <div className="flex items-center gap-2">
         <Share2 className="h-5 w-5 text-[#546ee5]" />
         <h2 className="text-lg font-bold text-foreground">Find Prompts</h2>
       </div>
-      
+
       <MarketplaceFilters
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}

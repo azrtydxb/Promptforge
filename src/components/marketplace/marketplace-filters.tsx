@@ -92,7 +92,7 @@ export function MarketplaceFilters({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2">
           {sortOptions.map((option) => {
             const Icon = option.icon;
             const isActive = sortBy === option.value;
@@ -102,9 +102,9 @@ export function MarketplaceFilters({
                 variant={isActive ? "default" : "outline"}
                 size="sm"
                 onClick={() => onSortChange(option.value as 'recent' | 'popular' | 'liked' | 'copied')}
-                className={`justify-start text-xs h-8 ${
-                  isActive 
-                    ? 'bg-gradient-to-r from-[#6379c3] to-[#546ee5] text-white border-0' 
+                className={`justify-start text-xs h-8 w-full ${
+                  isActive
+                    ? 'bg-gradient-to-r from-[#6379c3] to-[#546ee5] text-white border-0'
                     : 'hover:bg-muted'
                 }`}
               >

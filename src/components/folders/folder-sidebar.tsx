@@ -311,12 +311,12 @@ export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarP
   };
 
   return (
-    <div className="border-r pb-4 pr-4">
+    <div className="flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
         <span className="font-medium">Folders</span>
       </div>
-      
-      <div className="h-[calc(100vh-12rem)] overflow-auto">
+
+      <div className="flex-1 overflow-auto">
         {isLoading ? (
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
