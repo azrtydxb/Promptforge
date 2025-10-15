@@ -215,7 +215,7 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                       )}
                     </div>
                     {sharedPrompt.author.reputationScore && (
-                      <UserReputation score={sharedPrompt.author.reputationScore} size="sm" />
+                      <UserReputation reputationScore={sharedPrompt.author.reputationScore} size="sm" />
                     )}
                   </div>
                 </div>
@@ -299,11 +299,13 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
-                        code({ node, inline, className, children, ...props }) {
+                        code({ node, className, children, ...props }) {
                           const match = /language-(\w+)/.exec(className || "");
-                          return !inline && match ? (
+                          const isInline = !match && !className;
+
+                          return !isInline && match ? (
                             <SyntaxHighlighter
-                              style={vscDarkPlus}
+                              style={vscDarkPlus as any}
                               language={match[1]}
                               PreTag="div"
                               {...props}
@@ -376,7 +378,7 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                 <div>
                   <p className="font-medium">{authorDisplayName}</p>
                   {sharedPrompt.author.reputationScore && (
-                    <UserReputation score={sharedPrompt.author.reputationScore} />
+                    <UserReputation reputationScore={sharedPrompt.author.reputationScore} />
                   )}
                 </div>
               </div>
@@ -398,9 +400,8 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
               <h3 className="font-semibold">Similar Prompts</h3>
             </CardHeader>
             <CardContent>
-              <SimilarPrompts 
+              <SimilarPrompts
                 promptId={sharedPrompt.promptId}
-                tags={sharedPrompt.prompt.tags.map(t => t.name)}
               />
             </CardContent>
           </Card>

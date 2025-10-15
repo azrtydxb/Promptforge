@@ -32,12 +32,15 @@ const MarkdownPreviewComponent = ({ content, className = "" }: MarkdownPreviewPr
               {children}
             </blockquote>
           ),
-          code: ({ inline, className, children }) => {
-            if (inline) {
-              return <code className="bg-muted px-1.5 py-0.5 rounded text-sm text-muted-foreground">{children}</code>;
+          code: ({ node, className, children, ...props }) => {
+            const match = /language-(\w+)/.exec(className || '');
+            const isInline = !match && !className;
+
+            if (isInline) {
+              return <code className="bg-muted px-1.5 py-0.5 rounded text-sm text-muted-foreground" {...props}>{children}</code>;
             }
             return (
-              <code className={className}>
+              <code className={className} {...props}>
                 {children}
               </code>
             );
