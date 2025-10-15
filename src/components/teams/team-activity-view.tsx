@@ -24,12 +24,21 @@ import {
   Trash,
   Plus
 } from "lucide-react";
-import type { Team, TeamActivity, User } from "@/generated/prisma";
+import type { Team, TeamActivity } from "@/generated/prisma";
+
+interface ActivityUser {
+  id: string;
+  name: string | null;
+  username: string;
+  email: string | null;
+  avatarType: string;
+  profilePicture: string | null;
+}
 
 interface TeamActivityViewProps {
   team: Team;
   activities: Array<TeamActivity & {
-    user: User;
+    user: ActivityUser;
   }>;
   pagination: {
     page: number;

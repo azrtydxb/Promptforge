@@ -39,7 +39,7 @@ interface TeamSettingsFormProps {
       role: string;
       user: {
         id: string;
-        email: string;
+        email: string | null;
         name: string | null;
       };
     }>;
