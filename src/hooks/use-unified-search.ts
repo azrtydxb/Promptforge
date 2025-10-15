@@ -94,7 +94,7 @@ export function useUnifiedSearch({
               },
             });
             results = response.prompts || [];
-            totalCount = response.total || results.length;
+            totalCount = results.length;
           } else {
             // Pure semantic search
             const response = await searchPrompts({
@@ -108,7 +108,7 @@ export function useUnifiedSearch({
               },
             });
             results = response.prompts || [];
-            totalCount = response.total || results.length;
+            totalCount = results.length;
           }
           break;
 

@@ -124,7 +124,7 @@ export function TemplatesSearchComponent() {
         </div>
       ) : (
         <EmptyState
-          icon="template"
+          type="noData"
           title="No templates found"
           description="Try adjusting your search query or filters"
         />

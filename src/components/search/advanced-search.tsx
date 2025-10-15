@@ -474,8 +474,8 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
                 <h3 className="text-lg font-medium">
                   Prompts ({results.prompts.length})
                 </h3>
-                <PromptGrid 
-                  prompts={results.prompts} 
+                <PromptGrid
+                  prompts={results.prompts as any}
                   showFavoriteButton={true}
                   onPromptClick={handlePromptClick}
                 />
@@ -489,7 +489,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
                   Templates ({results.templates.length})
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {results.templates?.map((template: { id: string; name: string; description?: string; category: string; similarity: number }) => (
+                  {(results.templates as any)?.map((template: { id: string; name: string; description?: string; category: string; similarity: number }) => (
                     <div
                       key={template.id}
                       className="rounded-lg border p-4 hover:shadow-md transition-shadow"

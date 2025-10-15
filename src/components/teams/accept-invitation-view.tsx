@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { acceptTeamInvitation, declineTeamInvitation } from "@/app/actions/team-members.actions";
 import { useToast } from "@/hooks/use-toast";
 import { Building2, Clock, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react";
@@ -173,7 +173,12 @@ export function AcceptInvitationView({
       <CardContent className="space-y-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={invitation.team.logo || undefined} />
+            {invitation.team.logo && (
+              <AvatarImage
+                src={invitation.team.logo}
+                alt={invitation.team.name}
+              />
+            )}
             <AvatarFallback className="text-2xl">
               <Building2 className="h-8 w-8" />
             </AvatarFallback>

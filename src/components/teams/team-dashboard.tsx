@@ -125,7 +125,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {Object.values(activitySummary.activityCounts).reduce((a: any, b: any) => a + b, 0)}
+                  {Number(Object.values(activitySummary.activityCounts).reduce((a: any, b: any) => a + b, 0))}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Last 30 days

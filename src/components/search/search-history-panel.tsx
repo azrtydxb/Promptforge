@@ -182,7 +182,7 @@ export function SearchHistoryPanel({
                     variant="ghost"
                     size="sm"
                     className="flex-1 justify-start text-left p-0"
-                    onClick={() => onSearchSelect(search.query, search.filters)}
+                    onClick={() => onSearchSelect(search.query, (search.filters as Record<string, unknown>) || undefined)}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">

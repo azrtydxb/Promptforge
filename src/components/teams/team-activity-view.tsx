@@ -51,11 +51,14 @@ interface TeamActivityViewProps {
   currentUserId: string;
 }
 
-const ACTION_ICONS = {
+const ACTION_ICONS: Record<string, any> = {
   TEAM_CREATED: Plus,
   TEAM_UPDATED: Edit,
   TEAM_DELETED: Trash,
   MEMBER_ADDED: UserPlus,
+  MEMBER_INVITED: UserPlus,
+  MEMBER_JOINED: UserPlus,
+  MEMBER_LEFT: UserMinus,
   MEMBER_REMOVED: UserMinus,
   MEMBER_ROLE_CHANGED: Shield,
   PROMPT_ADDED: FileText,
@@ -140,7 +143,7 @@ export function TeamActivityView({
                             name: activity.user.name,
                             username: activity.user.username,
                             email: activity.user.email,
-                            avatarType: activity.user.avatarType,
+                            avatarType: activity.user.avatarType as "INITIALS" | "GRAVATAR" | "UPLOAD",
                             profilePicture: activity.user.profilePicture,
                           }}
                           size="sm"

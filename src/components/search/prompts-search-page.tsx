@@ -173,18 +173,22 @@ export function PromptsSearchPage() {
           showModeSelector={true}
           showHistory={true}
           semanticSearchEnabled={semanticSearchEnabled}
-          onFiltersChange={setFilters}
+          onFiltersChange={(filters) => setFilters({
+            tags: filters.tags || [],
+            folderId: filters.folderId || null,
+            hasEnhancement: filters.hasEnhancement || false
+          })}
         />
 
         {error && (
           <EmptyState
-            icon="error"
+            type="error"
             title="Search Error"
             description={error}
-            action={{
+            actions={[{
               label: "Try Again",
               onClick: () => window.location.reload()
-            }}
+            }]}
           />
         )}
 
@@ -199,7 +203,7 @@ export function PromptsSearchPage() {
           </div>
         ) : (
           <EmptyState
-            icon="search"
+            type="noResults"
             title="No prompts found"
             description="Try adjusting your search query or filters"
           />

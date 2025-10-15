@@ -72,13 +72,13 @@ export function AIEnhancementPanel({
       if (result.success && !result.alreadyEnhanced) {
         setEnhancement({
           enhancedContent: result.enhancedContent!,
-          suggestions: result.suggestions as AIEnhancementSuggestion[],
+          suggestions: result.suggestions as unknown as AIEnhancementSuggestion[],
           explanation: (result as { explanation?: string }).explanation || "",
         });
       } else if (result.alreadyEnhanced) {
         setEnhancement({
           enhancedContent: result.enhancedContent!,
-          suggestions: result.suggestions as AIEnhancementSuggestion[],
+          suggestions: result.suggestions as unknown as AIEnhancementSuggestion[],
           explanation: "This prompt has already been enhanced.",
         });
       } else {

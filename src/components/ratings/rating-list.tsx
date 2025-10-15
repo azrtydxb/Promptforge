@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StarRating } from './star-rating';
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare } from 'lucide-react';
@@ -52,10 +52,12 @@ export function RatingList({
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage
-                      src={rating.user.image || undefined}
-                      alt={rating.user.name || 'User'}
-                    />
+                    {rating.user.image && (
+                      <AvatarImage
+                        src={rating.user.image}
+                        alt={rating.user.name || 'User'}
+                      />
+                    )}
                     <AvatarFallback>
                       {(rating.user.name || rating.user.username || 'U')[0].toUpperCase()}
                     </AvatarFallback>

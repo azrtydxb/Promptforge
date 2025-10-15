@@ -308,7 +308,7 @@ export async function hybridSearch(
     );
 
     return {
-      prompts: combinedPrompts.slice(0, options.limit || 20),
+      prompts: combinedPrompts.slice(0, options.limit || 20) as SearchResult['prompts'],
       templates: semanticResults.templates
     };
   } catch (error) {
@@ -389,37 +389,39 @@ function calculateKeywordRelevance(query: string, prompt: {
  * Combine semantic and keyword search results
  */
 function combineSearchResults(
-  semanticResults: Array<{ id: string; [key: string]: unknown }>,
+  semanticResults: Array<{ id: string; similarity: number; [key: string]: unknown }>,
   keywordResults: Array<{ id: string; similarity: number; [key: string]: unknown }>,
   keywordWeight: number
-): Array<{ id: string; [key: string]: unknown }> {
+): Array<{ id: string; similarity: number; [key: string]: unknown }> {
   const semanticWeight = 1 - keywordWeight;
-  const combined = new Map<string, { combinedScore: number; [key: string]: unknown }>();
-  
+  const combined = new Map<string, { id: string; combinedScore: number; [key: string]: unknown }>();
+
   // Add semantic results
   semanticResults.forEach(result => {
     combined.set(result.id, {
       ...result,
-      combinedScore: result.similarity * semanticWeight
+      id: result.id,
+      combinedScore: (result.similarity as number) * semanticWeight
     });
   });
-  
+
   // Add/update with keyword results
   keywordResults.forEach(result => {
     const existing = combined.get(result.id);
     if (existing) {
-      existing.combinedScore += result.similarity * keywordWeight;
+      existing.combinedScore += (result.similarity as number) * keywordWeight;
     } else {
       combined.set(result.id, {
         ...result,
+        id: result.id,
         combinedScore: result.similarity * keywordWeight
       });
     }
   });
-  
+
   // Sort by combined score
   return Array.from(combined.values())
-    .sort((a, b) => b.combinedScore - a.combinedScore)
+    .sort((a, b) => (b.combinedScore as number) - (a.combinedScore as number))
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .map(({ combinedScore: _combinedScore, ...rest }) => rest);
+    .map(({ combinedScore: _combinedScore, ...rest }) => rest as { id: string; similarity: number; [key: string]: unknown });
 }

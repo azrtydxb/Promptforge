@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Copy, Check, Lock, Calendar, Share2 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -211,7 +211,12 @@ export function PublicShareView({ shareData, shareId }: PublicShareViewProps) {
             {shareData.settings.showAuthor && (
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={shareData.user.image || ""} />
+                  {shareData.user.image && (
+                    <AvatarImage
+                      src={shareData.user.image}
+                      alt={shareData.user.name || shareData.user.username}
+                    />
+                  )}
                   <AvatarFallback>
                     {shareData.user.name?.[0] || shareData.user.username[0]}
                   </AvatarFallback>

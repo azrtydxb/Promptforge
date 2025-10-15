@@ -129,19 +129,18 @@ export function TeamPromptsView({
           icon={Users}
           title={searchQuery ? "No prompts found" : "No team prompts yet"}
           description={
-            searchQuery 
-              ? "Try adjusting your search query" 
+            searchQuery
+              ? "Try adjusting your search query"
               : "Create your first team prompt to get started"
           }
-          action={
-            !searchQuery && (
-              <Button asChild className="mt-4">
-                <Link href="/prompts/new">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create First Prompt
-                </Link>
-              </Button>
-            )
+          actions={
+            !searchQuery ? [
+              {
+                label: "Create First Prompt",
+                onClick: () => router.push("/prompts/new"),
+                variant: "default" as const
+              }
+            ] : undefined
           }
         />
       ) : (

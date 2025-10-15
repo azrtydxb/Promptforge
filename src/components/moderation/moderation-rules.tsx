@@ -81,12 +81,19 @@ export function ModerationRules() {
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    pattern: string;
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    action: 'FLAG' | 'BLOCK' | 'REJECT' | 'REQUIRE_REVIEW';
+    isActive: boolean;
+  }>({
     name: '',
     description: '',
     pattern: '',
-    severity: 'MEDIUM' as const,
-    action: 'FLAG' as const,
+    severity: 'MEDIUM',
+    action: 'FLAG',
     isActive: true,
   });
 

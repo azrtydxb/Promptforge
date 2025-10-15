@@ -106,7 +106,7 @@ export function UnifiedSearch({
           query: debouncedQuery,
           filters: currentFilters as any,
           searchType: dataSource,
-          resultsCount: 0, // This should be updated by the parent component
+          resultCount: 0, // This should be updated by the parent component
         });
       }
     } catch (error) {
