@@ -21,8 +21,19 @@ const bullMQConnection = new IORedis({
   password: process.env.REDIS_PASSWORD || 'redispassword',
   maxRetriesPerRequest: null, // Required by BullMQ
   enableReadyCheck: false,
-  // Remove settings that can interfere with BullMQ
-  // No lazyConnect, no commandTimeout, no enableOfflineQueue settings
+  connectTimeout: 10000, // 10 seconds timeout
+  // Add retry strategy with max attempts to prevent infinite loops
+  retryStrategy(times: number) {
+    if (times > 10) {
+      // Stop retrying after 10 attempts
+      logger.error('BullMQ Redis max retry attempts reached, stopping reconnection');
+      return null;
+    }
+    // Exponential backoff: 50ms, 100ms, 200ms... up to 2000ms
+    const delay = Math.min(times * 50, 2000);
+    logger.info(`BullMQ Redis retry attempt ${times}, waiting ${delay}ms`);
+    return delay;
+  },
 });
 
 // Log connection events for debugging
