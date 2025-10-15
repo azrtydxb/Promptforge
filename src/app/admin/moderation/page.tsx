@@ -35,8 +35,8 @@ export default async function ModerationPage() {
     return (
       <div className="container mx-auto py-6">
         <ModerationDashboard
-          initialData={data}
-          initialStats={stats}
+          initialData={data ?? { pending: [], flagged: [], recentLogs: [] }}
+          initialStats={stats ?? { pending: 0, flagged: 0, approved: 0, rejected: 0, todayActions: 0, total: 0 }}
           userRole={user.role}
         />
       </div>
