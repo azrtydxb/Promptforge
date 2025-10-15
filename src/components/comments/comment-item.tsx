@@ -57,7 +57,7 @@ interface CommentItemProps {
   onEditSuccess?: (comment: any) => void;
   onDeleteSuccess?: (commentId: string) => void;
   level?: number;
-  isPromptAuthor?: boolean;
+  isPromptAuthor?: string;
 }
 
 export function CommentItem({
@@ -67,7 +67,7 @@ export function CommentItem({
   onEditSuccess,
   onDeleteSuccess,
   level = 0,
-  isPromptAuthor = false
+  isPromptAuthor
 }: CommentItemProps) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
@@ -93,8 +93,8 @@ export function CommentItem({
       
       if (result.success) {
         setLocalLikeState({
-          isLiked: result.isLiked,
-          likeCount: result.likeCount
+          isLiked: result.isLiked ?? false,
+          likeCount: result.likeCount ?? 0
         });
       } else {
         // Revert on error
@@ -108,7 +108,7 @@ export function CommentItem({
       // Revert on error
       setLocalLikeState({
         isLiked: comment.isLiked || false,
-        likeCount: comment.likeCount
+        likeCount: comment.likeCount || 0
       });
       toast.error("Failed to like comment");
     } finally {
@@ -153,9 +153,7 @@ export function CommentItem({
     <div className={cn("group", level > 0 && "ml-12")}>
       <div className="flex gap-3">
         <Avatar className="h-10 w-10 flex-shrink-0">
-          {comment.user.profilePicture && (
-            <AvatarImage src={comment.user.profilePicture} alt={userDisplayName} />
-          )}
+          <AvatarImage src={comment.user.profilePicture || undefined} alt={userDisplayName} />
           <AvatarFallback>{userInitials}</AvatarFallback>
         </Avatar>
 
@@ -165,7 +163,7 @@ export function CommentItem({
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold text-sm">{userDisplayName}</span>
               {comment.user.reputationScore && comment.user.reputationScore > 100 && (
-                <Shield className="h-3 w-3 text-[#546ee5]" title={`Reputation: ${comment.user.reputationScore}`} />
+                <Shield className="h-3 w-3 text-[#546ee5]" />
               )}
               {isPromptAuthor && comment.user.id === isPromptAuthor && (
                 <span className="text-xs bg-[#546ee5] text-white px-1.5 py-0.5 rounded">Author</span>
