@@ -5,6 +5,7 @@ import { togglePromptFavorite } from "@/app/actions/prompt-favorites.actions";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface FavoriteButtonProps {
   promptId: string;

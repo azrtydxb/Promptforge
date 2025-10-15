@@ -308,7 +308,6 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                               style={vscDarkPlus as any}
                               language={match[1]}
                               PreTag="div"
-                              {...props}
                             >
                               {String(children).replace(/\n$/, "")}
                             </SyntaxHighlighter>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Flag, User, Calendar, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -167,10 +167,12 @@ export function ModerationQueue({ prompts, onModerated, type }: ModerationQueueP
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6">
-                    <AvatarImage
-                      src={prompt.author.image || undefined}
-                      alt={prompt.author.name || 'User'}
-                    />
+                    {prompt.author.image && (
+                      <AvatarImage
+                        src={prompt.author.image}
+                        alt={prompt.author.name || 'User'}
+                      />
+                    )}
                     <AvatarFallback>
                       {(prompt.author.name || prompt.author.username || 'U')[0].toUpperCase()}
                     </AvatarFallback>
