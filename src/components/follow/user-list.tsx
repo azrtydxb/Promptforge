@@ -58,7 +58,9 @@ export function UserList({
                 className="flex items-center gap-3 flex-1 min-w-0"
               >
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={user.profilePicture || undefined} alt={user.name || 'User'} />
+                  {user.profilePicture && (
+                    <AvatarImage src={user.profilePicture} alt={user.name || 'User'} />
+                  )}
                   <AvatarFallback>
                     {(user.name || user.username || 'U')[0].toUpperCase()}
                   </AvatarFallback>
