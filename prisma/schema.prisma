@@ -15,52 +15,53 @@ datasource db {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  name          String?
-  email         String?      @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
+  id               String            @id @default(cuid())
+  name             String?
+  email            String?           @unique
+  emailVerified    DateTime?
+  image            String?
+  password         String?
   // Profile management fields
-  username      String       @unique
-  avatarType    AvatarType   @default(INITIALS)
-  profilePicture String?
-  gravatarEmail String?
+  username         String            @unique
+  avatarType       AvatarType        @default(INITIALS)
+  profilePicture   String?
+  gravatarEmail    String?
   // Admin and role management
-  role          UserRole     @default(USER)
-  isActive      Boolean      @default(true)
+  role             UserRole          @default(USER)
+  isActive         Boolean           @default(true)
   // Reputation system
-  reputationScore Int        @default(0)
-  badges        UserBadge[]
+  reputationScore  Int               @default(0)
+  badges           UserBadge[]
   // Metadata
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   // Relations
-  accounts      Account[]
-  sessions      Session[]
-  folders       Folder[]
-  prompts       Prompt[]
-  promptLikes   PromptLike[]
-  promptFavorites PromptFavorite[]
-  promptComments PromptComment[]
-  promptViews   PromptView[]
-  promptCopies  PromptCopy[]
-  commentLikes  CommentLike[]
-  collections   Collection[]
-  following     UserFollow[] @relation("UserFollowing")
-  followers     UserFollow[] @relation("UserFollowers")
+  accounts         Account[]
+  sessions         Session[]
+  folders          Folder[]
+  prompts          Prompt[]
+  promptLikes      PromptLike[]
+  promptFavorites  PromptFavorite[]
+  promptComments   PromptComment[]
+  promptViews      PromptView[]
+  promptCopies     PromptCopy[]
+  commentLikes     CommentLike[]
+  collections      Collection[]
+  following        UserFollow[]      @relation("UserFollowing")
+  followers        UserFollow[]      @relation("UserFollowers")
   publishedPrompts SharedPrompt[]
-  moderatedPrompts SharedPrompt[] @relation("ModeratedBy")
-  promptTemplates PromptTemplate[]
-  aiUsageLogs AIUsageLog[]
-  shareLinks  PromptShareLink[]
-  searchHistory SearchHistory[]
+  moderatedPrompts SharedPrompt[]    @relation("ModeratedBy")
+  promptTemplates  PromptTemplate[]
+  aiUsageLogs      AIUsageLog[]
+  shareLinks       PromptShareLink[]
+  searchHistory    SearchHistory[]
+  promptRatings    PromptRating[]
   // Team relations
-  teamMemberships TeamMember[]
-  createdTeams Team[] @relation("TeamCreator")
-  teamInvitations TeamInvitation[]
-  teamActivities TeamActivity[]
-  teamPrompts TeamPrompt[]
+  teamMemberships  TeamMember[]
+  createdTeams     Team[]            @relation("TeamCreator")
+  teamInvitations  TeamInvitation[]
+  teamActivities   TeamActivity[]
+  teamPrompts      TeamPrompt[]
 }
 
 enum AvatarType {
@@ -79,13 +80,13 @@ enum BadgeType {
 }
 
 model UserBadge {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      BadgeType
-  title     String
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        BadgeType
+  title       String
   description String?
-  earnedAt  DateTime  @default(now())
+  earnedAt    DateTime  @default(now())
 
   @@unique([userId, type])
 }
@@ -137,54 +138,54 @@ model VerificationToken {
 }
 
 model Folder {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
   userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   parentId  String?
-  parent    Folder?   @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  children  Folder[]  @relation("FolderHierarchy")
+  parent    Folder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  Folder[] @relation("FolderHierarchy")
   prompts   Prompt[]
   order     Int?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([parentId])
 }
 
 model Prompt {
-  id          String          @id @default(cuid())
-  title       String
-  description String?
-  content     String?
-  userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  folderId    String?
-  folder      Folder?         @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  tags        Tag[]
-  versions    PromptVersion[]
-  likes       PromptLike[]
-  favorites   PromptFavorite[]
+  id                     String            @id @default(cuid())
+  title                  String
+  description            String?
+  content                String?
+  userId                 String
+  user                   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId               String?
+  folder                 Folder?           @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags                   Tag[]
+  versions               PromptVersion[]
+  likes                  PromptLike[]
+  favorites              PromptFavorite[]
   // Marketplace publishing
-  sharedPrompt SharedPrompt?
-  order       Int?
-  lastUsedAt  DateTime?       // Track when prompt was last accessed/used
-  pinnedAt    DateTime?       // Track when prompt was pinned
+  sharedPrompt           SharedPrompt?
+  order                  Int?
+  lastUsedAt             DateTime? // Track when prompt was last accessed/used
+  pinnedAt               DateTime? // Track when prompt was pinned
   // AI Enhancement fields
-  enhancedContent String?     // AI-enhanced version of the prompt
+  enhancedContent        String? // AI-enhanced version of the prompt
   enhancementSuggestions Json? // Stored suggestions from AI
-  autoTags    String[]        // AI-suggested tags
-  embedding   String?         // Vector embeddings as JSON string
-  embeddingVersion Int?        @default(1) // Track embedding model version
-  embeddingOutdated Boolean    @default(true) // Flag for re-generation
-  templateId  String?
-  template    PromptTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  aiUsageLogs AIUsageLog[]
-  shareLinks  PromptShareLink[]
-  searchHistoryClicks SearchHistory[] @relation("ClickedPrompt")
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  autoTags               String[] // AI-suggested tags
+  embedding              String? // Vector embeddings as JSON string
+  embeddingVersion       Int?              @default(1) // Track embedding model version
+  embeddingOutdated      Boolean           @default(true) // Flag for re-generation
+  templateId             String?
+  template               PromptTemplate?   @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  aiUsageLogs            AIUsageLog[]
+  shareLinks             PromptShareLink[]
+  searchHistoryClicks    SearchHistory[]   @relation("ClickedPrompt")
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
 
   @@index([userId])
   @@index([folderId])
@@ -193,36 +194,39 @@ model Prompt {
 }
 
 model SharedPrompt {
-  id            String                @id @default(cuid())
-  promptId      String                @unique
-  prompt        Prompt                @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  authorId      String
-  author        User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  title         String
-  description   String?
-  content       String
-  isPublished   Boolean               @default(false)
-  visibility    PromptVisibility      @default(PUBLIC)
-  status        ModerationStatus      @default(PENDING)
-  moderatedBy   String?
-  moderator     User?                 @relation("ModeratedBy", fields: [moderatedBy], references: [id])
-  moderatedAt   DateTime?
+  id              String             @id @default(cuid())
+  promptId        String             @unique
+  prompt          Prompt             @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  content         String
+  isPublished     Boolean            @default(false)
+  visibility      PromptVisibility   @default(PUBLIC)
+  status          ModerationStatus   @default(PENDING)
+  moderatedBy     String?
+  moderator       User?              @relation("ModeratedBy", fields: [moderatedBy], references: [id])
+  moderatedAt     DateTime?
   rejectionReason String?
   // Analytics
-  viewCount     Int                   @default(0)
-  likeCount     Int                   @default(0)
-  commentCount  Int                   @default(0)
-  copyCount     Int                   @default(0)
+  viewCount       Int                @default(0)
+  likeCount       Int                @default(0)
+  commentCount    Int                @default(0)
+  copyCount       Int                @default(0)
+  averageRating   Float?             @default(0)
+  ratingCount     Int                @default(0)
   // Collections
-  collections   CollectionPrompt[]
+  collections     CollectionPrompt[]
   // Social features
-  comments      PromptComment[]
-  views         PromptView[]
-  copies        PromptCopy[]
+  comments        PromptComment[]
+  views           PromptView[]
+  copies          PromptCopy[]
+  ratings         PromptRating[]
   // Timestamps
-  publishedAt   DateTime?
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  publishedAt     DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 
   @@index([authorId])
   @@index([status])
@@ -275,19 +279,19 @@ model CollectionPrompt {
 }
 
 model PromptComment {
-  id             String       @id @default(cuid())
+  id             String          @id @default(cuid())
   content        String
   userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   sharedPromptId String
-  sharedPrompt   SharedPrompt @relation(fields: [sharedPromptId], references: [id], onDelete: Cascade)
+  sharedPrompt   SharedPrompt    @relation(fields: [sharedPromptId], references: [id], onDelete: Cascade)
   parentId       String?
-  parent         PromptComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  parent         PromptComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies        PromptComment[] @relation("CommentReplies")
   likes          CommentLike[]
-  likeCount      Int          @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  likeCount      Int             @default(0)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
   @@index([sharedPromptId])
   @@index([userId])
@@ -295,12 +299,12 @@ model PromptComment {
 }
 
 model CommentLike {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   commentId String
   comment   PromptComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
 
   @@unique([commentId, userId])
   @@index([commentId])
@@ -344,8 +348,8 @@ model Tag {
 }
 
 model PromptVersion {
-  id        String   @id @default(cuid())
-  promptId  String
+  id            String   @id @default(cuid())
+  promptId      String
   prompt        Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
   content       String
   version       String?
@@ -356,11 +360,11 @@ model PromptVersion {
 }
 
 model PromptLike {
-  id       String   @id @default(cuid())
-  promptId String
-  prompt   Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  userId   String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
   @@unique([promptId, userId])
@@ -369,11 +373,11 @@ model PromptLike {
 }
 
 model PromptFavorite {
-  id       String   @id @default(cuid())
-  promptId String
-  prompt   Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
-  userId   String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
   @@unique([promptId, userId])
@@ -381,18 +385,35 @@ model PromptFavorite {
   @@index([userId])
 }
 
+model PromptRating {
+  id             String       @id @default(cuid())
+  sharedPromptId String
+  sharedPrompt   SharedPrompt @relation(fields: [sharedPromptId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating         Int // 1-5 stars
+  review         String? // Optional text review
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([sharedPromptId, userId])
+  @@index([sharedPromptId])
+  @@index([userId])
+  @@index([rating])
+}
+
 // Content moderation models
 model ModerationRule {
-  id          String              @id @default(cuid())
-  name        String              @unique
+  id          String             @id @default(cuid())
+  name        String             @unique
   description String?
-  pattern     String              // Regex pattern or keyword
+  pattern     String // Regex pattern or keyword
   severity    ModerationSeverity
   action      ModerationAction
-  isActive    Boolean             @default(true)
+  isActive    Boolean            @default(true)
   logs        ModerationLog[]
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 }
 
 enum ModerationSeverity {
@@ -410,16 +431,16 @@ enum ModerationAction {
 }
 
 model ModerationLog {
-  id          String            @id @default(cuid())
-  contentType String            // 'prompt', 'comment', etc.
+  id          String           @id @default(cuid())
+  contentType String // 'prompt', 'comment', etc.
   contentId   String
   ruleId      String?
-  rule        ModerationRule?   @relation(fields: [ruleId], references: [id])
+  rule        ModerationRule?  @relation(fields: [ruleId], references: [id])
   action      ModerationAction
   reason      String?
-  automated   Boolean           @default(true)
+  automated   Boolean          @default(true)
   reviewedBy  String?
-  createdAt   DateTime          @default(now())
+  createdAt   DateTime         @default(now())
 
   @@index([contentType, contentId])
   @@index([createdAt])
@@ -433,61 +454,61 @@ enum UserRole {
 
 // System Settings for global configuration
 model SystemSettings {
-  id                      String   @id @default(cuid())
-  key                     String   @unique
-  value                   String
-  description             String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // AI Configuration Settings
 model AISettings {
-  id          String   @id @default(cuid())
-  name        String   @unique // e.g., "primary", "fallback"
-  provider    String   // e.g., "openai", "anthropic", "google"
-  model       String   // e.g., "gpt-4", "claude-3", "gemini-pro"
-  apiKey      String   // Encrypted API key
-  isActive    Boolean  @default(true)
-  isDefault   Boolean  @default(false)
+  id           String    @id @default(cuid())
+  name         String    @unique // e.g., "primary", "fallback"
+  provider     String // e.g., "openai", "anthropic", "google"
+  model        String // e.g., "gpt-4", "claude-3", "gemini-pro"
+  apiKey       String // Encrypted API key
+  isActive     Boolean   @default(true)
+  isDefault    Boolean   @default(false)
   // Configuration
-  maxTokens   Int?     @default(4096)
-  temperature Float?   @default(0.7)
-  topP        Float?   @default(1.0)
+  maxTokens    Int?      @default(4096)
+  temperature  Float?    @default(0.7)
+  topP         Float?    @default(1.0)
   // Rate limits
-  rateLimit   Int?     // Requests per minute
-  monthlyQuota Int?    // Total requests per month
-  usageCount  Int      @default(0) // Current month usage
+  rateLimit    Int? // Requests per minute
+  monthlyQuota Int? // Total requests per month
+  usageCount   Int       @default(0) // Current month usage
   // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  lastUsedAt  DateTime?
-  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastUsedAt   DateTime?
+
   @@index([provider])
   @@index([isActive, isDefault])
 }
 
 // Prompt Templates
 model PromptTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  category    String   // e.g., "coding", "writing", "analysis"
-  content     String   // Template with variables like {{variable}}
-  variables   Json     // Variable definitions with descriptions
-  example     String?  // Example of filled template
-  icon        String?  // Icon identifier
-  isPublic    Boolean  @default(true)
-  authorId    String?
-  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  prompts     Prompt[] // Prompts created from this template
-  usageCount  Int      @default(0)
-  rating      Float?   @default(0)
-  embedding   String?  // Vector embeddings as JSON string
-  embeddingVersion Int? @default(1) // Track embedding model version
-  embeddingOutdated Boolean @default(true) // Flag for re-generation
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  category          String // e.g., "coding", "writing", "analysis"
+  content           String // Template with variables like {{variable}}
+  variables         Json // Variable definitions with descriptions
+  example           String? // Example of filled template
+  icon              String? // Icon identifier
+  isPublic          Boolean  @default(true)
+  authorId          String?
+  author            User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  prompts           Prompt[] // Prompts created from this template
+  usageCount        Int      @default(0)
+  rating            Float?   @default(0)
+  embedding         String? // Vector embeddings as JSON string
+  embeddingVersion  Int?     @default(1) // Track embedding model version
+  embeddingOutdated Boolean  @default(true) // Flag for re-generation
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([category])
   @@index([isPublic])
@@ -501,15 +522,15 @@ model AIUsageLog {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   promptId   String?
   prompt     Prompt?  @relation(fields: [promptId], references: [id], onDelete: SetNull)
-  operation  String   // "enhance", "auto-tag", "similarity", "embedding"
-  provider   String   // "openai", "anthropic", etc.
-  model      String   // Model used
-  tokensUsed Int      // Tokens consumed
-  cost       Float?   // Estimated cost in USD
-  duration   Int      // Response time in ms
+  operation  String // "enhance", "auto-tag", "similarity", "embedding"
+  provider   String // "openai", "anthropic", etc.
+  model      String // Model used
+  tokensUsed Int // Tokens consumed
+  cost       Float? // Estimated cost in USD
+  duration   Int // Response time in ms
   success    Boolean
   error      String?
-  metadata   Json?    // Additional data
+  metadata   Json? // Additional data
   createdAt  DateTime @default(now())
 
   @@index([userId])
@@ -519,23 +540,23 @@ model AIUsageLog {
 
 // Prompt Share Links
 model PromptShareLink {
-  id          String   @id @default(cuid())
+  id          String            @id @default(cuid())
   promptId    String
-  prompt      Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  prompt      Prompt            @relation(fields: [promptId], references: [id], onDelete: Cascade)
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shareId     String   @unique // Short unique identifier for URL
-  title       String   // Public title (can differ from prompt title)
-  description String?  // Public description
-  content     String   // Snapshot of prompt content at share time
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shareId     String            @unique // Short unique identifier for URL
+  title       String // Public title (can differ from prompt title)
+  description String? // Public description
+  content     String // Snapshot of prompt content at share time
   tags        String[] // Snapshot of tags
-  settings    Json     // Share settings (password, theme, etc.)
+  settings    Json // Share settings (password, theme, etc.)
   expiresAt   DateTime? // Optional expiration date
-  password    String?  // Optional password hash
-  maxViews    Int?     // Optional view limit
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  password    String? // Optional password hash
+  maxViews    Int? // Optional view limit
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   views       PromptShareView[]
 
   @@index([shareId])
@@ -546,29 +567,29 @@ model PromptShareLink {
 
 // Prompt Share View Tracking
 model PromptShareView {
-  id           String   @id @default(cuid())
-  shareLinkId  String
-  shareLink    PromptShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
-  ipAddress    String?
-  userAgent    String?
-  referer      String?
-  viewedAt     DateTime @default(now())
+  id          String          @id @default(cuid())
+  shareLinkId String
+  shareLink   PromptShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+  ipAddress   String?
+  userAgent   String?
+  referer     String?
+  viewedAt    DateTime        @default(now())
 
   @@index([shareLinkId])
 }
 
 // Search History
 model SearchHistory {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  query       String
-  searchType  String   @default("hybrid") // "semantic", "hybrid", "keyword"
-  filters     Json?    // Store selected tags, folders, etc.
-  resultCount Int      @default(0)
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query           String
+  searchType      String   @default("hybrid") // "semantic", "hybrid", "keyword"
+  filters         Json? // Store selected tags, folders, etc.
+  resultCount     Int      @default(0)
   clickedPromptId String? // Track which result was clicked
-  clickedPrompt Prompt? @relation("ClickedPrompt", fields: [clickedPromptId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
+  clickedPrompt   Prompt?  @relation("ClickedPrompt", fields: [clickedPromptId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
 
   @@index([userId])
   @@index([createdAt])
@@ -585,10 +606,10 @@ model Team {
   createdById String
   createdBy   User     @relation("TeamCreator", fields: [createdById], references: [id])
   isActive    Boolean  @default(true)
-  settings    Json?    // Team-specific settings
+  settings    Json? // Team-specific settings
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relations
   members     TeamMember[]
   prompts     TeamPrompt[]
@@ -596,21 +617,21 @@ model Team {
   activities  TeamActivity[]
   folders     TeamFolder[]
   tags        TeamTag[]
-  
+
   @@index([slug])
   @@index([createdById])
 }
 
 model TeamMember {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   teamId    String
-  team      Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   role      TeamRole
-  joinedAt  DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([teamId, userId])
   @@index([teamId])
   @@index([userId])
@@ -624,35 +645,35 @@ enum TeamRole {
 }
 
 model TeamPrompt {
-  id          String   @id @default(cuid())
-  teamId      String
-  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  title       String
-  description String?
-  content     String?
-  createdById String
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  folderId    String?
-  folder      TeamFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  tags        TeamTag[]
-  isArchived  Boolean  @default(false)
+  id                     String              @id @default(cuid())
+  teamId                 String
+  team                   Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  title                  String
+  description            String?
+  content                String?
+  createdById            String
+  createdBy              User                @relation(fields: [createdById], references: [id])
+  folderId               String?
+  folder                 TeamFolder?         @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags                   TeamTag[]
+  isArchived             Boolean             @default(false)
   // AI Enhancement fields (similar to Prompt model)
-  enhancedContent String?
+  enhancedContent        String?
   enhancementSuggestions Json?
-  autoTags    String[]
-  embedding   String?
-  embeddingVersion Int? @default(1)
-  embeddingOutdated Boolean @default(true)
+  autoTags               String[]
+  embedding              String?
+  embeddingVersion       Int?                @default(1)
+  embeddingOutdated      Boolean             @default(true)
   // Versioning
-  versions    TeamPromptVersion[]
+  versions               TeamPromptVersion[]
   // Analytics
-  viewCount   Int      @default(0)
-  copyCount   Int      @default(0)
-  lastUsedAt  DateTime?
-  pinnedAt    DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  viewCount              Int                 @default(0)
+  copyCount              Int                 @default(0)
+  lastUsedAt             DateTime?
+  pinnedAt               DateTime?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
   @@index([teamId])
   @@index([createdById])
   @@index([folderId])
@@ -661,15 +682,15 @@ model TeamPrompt {
 }
 
 model TeamPromptVersion {
-  id            String      @id @default(cuid())
+  id            String     @id @default(cuid())
   teamPromptId  String
-  teamPrompt    TeamPrompt  @relation(fields: [teamPromptId], references: [id], onDelete: Cascade)
+  teamPrompt    TeamPrompt @relation(fields: [teamPromptId], references: [id], onDelete: Cascade)
   content       String
   version       String?
   changeMessage String?
   createdById   String
-  createdAt     DateTime    @default(now())
-  
+  createdAt     DateTime   @default(now())
+
   @@index([teamPromptId])
 }
 
@@ -685,7 +706,7 @@ model TeamFolder {
   order     Int?
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-  
+
   @@index([teamId])
   @@index([parentId])
 }
@@ -699,26 +720,26 @@ model TeamTag {
   prompts     TeamPrompt[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  
+
   @@unique([name, teamId])
   @@index([teamId])
 }
 
 model TeamInvitation {
-  id         String             @id @default(cuid())
-  teamId     String
-  team       Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  email      String
-  role       TeamRole           @default(MEMBER)
+  id          String           @id @default(cuid())
+  teamId      String
+  team        Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email       String
+  role        TeamRole         @default(MEMBER)
   invitedById String
-  invitedBy  User               @relation(fields: [invitedById], references: [id])
-  token      String             @unique @default(cuid())
-  status     InvitationStatus   @default(PENDING)
-  expiresAt  DateTime
-  acceptedAt DateTime?
-  declinedAt DateTime?
-  createdAt  DateTime           @default(now())
-  
+  invitedBy   User             @relation(fields: [invitedById], references: [id])
+  token       String           @unique @default(cuid())
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  declinedAt  DateTime?
+  createdAt   DateTime         @default(now())
+
   @@index([teamId])
   @@index([email])
   @@index([token])
@@ -733,18 +754,18 @@ enum InvitationStatus {
 }
 
 model TeamActivity {
-  id          String         @id @default(cuid())
-  teamId      String
-  team        Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User           @relation(fields: [userId], references: [id])
-  action      TeamAction
-  entityType  String?        // "prompt", "member", "folder", etc.
-  entityId    String?        // ID of the affected entity
-  entityName  String?        // Name/title for display
-  metadata    Json?          // Additional data about the action
-  createdAt   DateTime       @default(now())
-  
+  id         String     @id @default(cuid())
+  teamId     String
+  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
+  action     TeamAction
+  entityType String? // "prompt", "member", "folder", etc.
+  entityId   String? // ID of the affected entity
+  entityName String? // Name/title for display
+  metadata   Json? // Additional data about the action
+  createdAt  DateTime   @default(now())
+
   @@index([teamId])
   @@index([userId])
   @@index([createdAt])
