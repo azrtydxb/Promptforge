@@ -51,7 +51,7 @@ interface AISettingsItem {
   name: string;
   provider: string;
   model: string;
-  apiKey: string;
+  apiKey: string | undefined;
   isActive: boolean;
   isDefault: boolean;
   maxTokens: number | null;
@@ -221,7 +221,7 @@ export function AISettings() {
     try {
       const formData = type === "general" ? generalForm : embeddingForm;
       const existingSettings = settings[type];
-      
+
       const data = {
         name: type,
         ...formData,
@@ -231,14 +231,24 @@ export function AISettings() {
       if (existingSettings) {
         await updateAISettings(existingSettings.id, data);
       } else {
-        await createAISettings(data);
+        // For new settings, API key is required
+        if (!formData.apiKey) {
+          toast({
+            title: "API Key Required",
+            description: "Please enter an API key to create new AI settings",
+            variant: "destructive"
+          });
+          setSaving(null);
+          return;
+        }
+        await createAISettings(data as typeof data & { apiKey: string });
       }
 
       toast({
         title: "Success",
         description: `${type === "general" ? "General AI" : "Embedding"} settings saved successfully`
       });
-      
+
       await fetchSettings();
     } catch {
       toast({
