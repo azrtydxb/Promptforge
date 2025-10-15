@@ -41,10 +41,12 @@ export async function searchPrompts(input: z.infer<typeof searchSchema>) {
       query: validated.query.substring(0, 50)
     });
 
+    const startTime = Date.now();
     const results = await semanticSearch({
       ...validated,
       userId: user.id
     });
+    const duration = Date.now() - startTime;
 
     // Log search in AI usage
     await db.aIUsageLog.create({
@@ -55,7 +57,7 @@ export async function searchPrompts(input: z.infer<typeof searchSchema>) {
         model: 'text-embedding-3-small',
         tokensUsed: validated.query.split(' ').length,
         cost: 0.00002, // Cost per embedding
-        duration: 0, // TODO: Track actual duration
+        duration,
         success: true
       }
     });
@@ -81,10 +83,12 @@ export async function searchPromptsHybrid(input: z.infer<typeof hybridSearchSche
       keywordWeight: validated.keywordWeight
     });
 
+    const startTime = Date.now();
     const results = await hybridSearch({
       ...validated,
       userId: user.id
     });
+    const duration = Date.now() - startTime;
 
     // Log search in AI usage
     await db.aIUsageLog.create({
@@ -95,7 +99,7 @@ export async function searchPromptsHybrid(input: z.infer<typeof hybridSearchSche
         model: 'text-embedding-3-small',
         tokensUsed: validated.query.split(' ').length,
         cost: 0.00002,
-        duration: 0, // TODO: Track actual duration
+        duration,
         success: true
       }
     });

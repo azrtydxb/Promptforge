@@ -51,13 +51,18 @@ class ErrorBoundaryClass extends Component<Props, State> {
     }
 
     // Log to monitoring service in production
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Send to error monitoring service (e.g., Sentry)
-      console.error('Production error:', {
-        error: error.toString(),
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-        timestamp: new Date().toISOString(),
+    if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      // Send to Sentry
+      import('@sentry/nextjs').then((Sentry) => {
+        Sentry.captureException(error, {
+          contexts: {
+            react: {
+              componentStack: errorInfo.componentStack,
+            },
+          },
+        });
+      }).catch(err => {
+        console.error('Failed to send error to Sentry:', err);
       });
     }
 

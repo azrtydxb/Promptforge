@@ -160,14 +160,16 @@ export async function updatePromptEmbeddings(userId?: string, limit = BATCH_SIZE
 
     logger.info(`Updating embeddings for ${prompts.length} prompts`);
 
+    const startTime = Date.now();
+
     // Prepare texts for embedding
     const texts = prompts.map(prompt => preparePromptText(prompt));
-    
+
     // Generate embeddings in batch
     const embeddings = await generateEmbeddings(texts);
-    
+
     // Update prompts with embeddings
-    const updatePromises = prompts.map((prompt, index) => 
+    const updatePromises = prompts.map((prompt, index) =>
       db.prompt.update({
         where: { id: prompt.id },
         data: {
@@ -180,6 +182,8 @@ export async function updatePromptEmbeddings(userId?: string, limit = BATCH_SIZE
 
     await Promise.all(updatePromises);
 
+    const duration = Date.now() - startTime;
+
     // Log AI usage
     if (userId) {
       await db.aIUsageLog.create({
@@ -190,7 +194,7 @@ export async function updatePromptEmbeddings(userId?: string, limit = BATCH_SIZE
           model: EMBEDDING_MODEL,
           tokensUsed: texts.reduce((sum, text) => sum + text.split(' ').length, 0),
           cost: prompts.length * 0.00002, // Approximate cost per embedding
-          duration: 0, // TODO: Track actual duration
+          duration,
           success: true
         }
       });
