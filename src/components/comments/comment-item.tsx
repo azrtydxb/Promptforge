@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "./comment-form";
 import { deleteComment, toggleCommentLike } from "@/app/actions/comments.actions";
 import { 
@@ -153,8 +153,11 @@ export function CommentItem({
     <div className={cn("group", level > 0 && "ml-12")}>
       <div className="flex gap-3">
         <Avatar className="h-10 w-10 flex-shrink-0">
-          <AvatarImage src={comment.user.profilePicture || undefined} alt={userDisplayName} />
-          <AvatarFallback>{userInitials}</AvatarFallback>
+          {comment.user.profilePicture ? (
+            <AvatarImage src={comment.user.profilePicture} alt={userDisplayName} />
+          ) : (
+            <AvatarFallback>{userInitials}</AvatarFallback>
+          )}
         </Avatar>
 
         <div className="flex-1 space-y-2">
