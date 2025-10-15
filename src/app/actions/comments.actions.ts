@@ -112,11 +112,11 @@ export async function createComment(data: z.infer<typeof createCommentSchema>) {
 
     revalidatePath(`/shared-prompts/${validated.sharedPromptId}`);
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       comment: {
         ...comment,
-        isLiked: comment.likes.length > 0,
+        isLiked: false,
         canEdit: true,
         canDelete: true
       }
