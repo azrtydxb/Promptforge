@@ -318,8 +318,8 @@ export default function SharedPromptsPage() {
             </SectionErrorBoundary>
           </div>
         }
-        defaultLeftWidth={210}
-        minLeftWidth={150}
+        defaultLeftWidth={280}
+        minLeftWidth={200}
         maxLeftWidth={500}
       />
     </SectionErrorBoundary>
