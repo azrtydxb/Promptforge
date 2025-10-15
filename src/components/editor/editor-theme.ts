@@ -38,5 +38,18 @@ export const hyperEditorTheme: Extension = [
     ".cm-activeLineGutter": {
       backgroundColor: "hsl(var(--primary) / 0.1)",
     },
+    // Hide keyboard shortcut hint boxes that show as white borders
+    ".cm-button": {
+      display: "none !important",
+    },
+    ".cm-textfield": {
+      backgroundColor: "hsl(var(--background))",
+      border: "1px solid hsl(var(--border))",
+      color: "hsl(var(--foreground))",
+    },
+    ".cm-panel": {
+      backgroundColor: "hsl(var(--background))",
+      border: "1px solid hsl(var(--border))",
+    },
   }),
 ];

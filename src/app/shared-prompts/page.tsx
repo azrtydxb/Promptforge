@@ -235,10 +235,9 @@ export default function SharedPromptsPage() {
         <div className="space-y-6">
           <EmptyState
             type={searchQuery || selectedTags.length > 0 ? "noResults" : "noData"}
-            icon={Share2}
             title="No prompts found"
             description={
-              searchQuery || selectedTags.length > 0 
+              searchQuery || selectedTags.length > 0
                 ? 'Try adjusting your search or filters'
                 : 'Be the first to share a prompt with the community!'
             }

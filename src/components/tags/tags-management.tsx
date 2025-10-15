@@ -88,15 +88,28 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
       ) : (
         <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {tags.map((tag, index) => {
-            // Cycle through gradient colors for visual variety
-            const gradients = [
-              'from-blue-500 to-purple-600',
-              'from-purple-500 to-pink-600',
-              'from-emerald-500 to-teal-600',
-              'from-amber-500 to-orange-600',
-              'from-rose-500 to-red-600',
-            ];
-            const gradient = gradients[index % gradients.length];
+            // Cycle through gradient colors for visual variety - using full class strings for Tailwind JIT
+            const getIconBgClass = () => {
+              switch (index % 5) {
+                case 0: return "bg-gradient-to-br from-blue-500 to-purple-600";
+                case 1: return "bg-gradient-to-br from-purple-500 to-pink-600";
+                case 2: return "bg-gradient-to-br from-emerald-500 to-teal-600";
+                case 3: return "bg-gradient-to-br from-amber-500 to-orange-600";
+                case 4: return "bg-gradient-to-br from-rose-500 to-red-600";
+                default: return "bg-gradient-to-br from-blue-500 to-purple-600";
+              }
+            };
+
+            const getHoverLineClass = () => {
+              switch (index % 5) {
+                case 0: return "bg-gradient-to-r from-blue-500 to-purple-600";
+                case 1: return "bg-gradient-to-r from-purple-500 to-pink-600";
+                case 2: return "bg-gradient-to-r from-emerald-500 to-teal-600";
+                case 3: return "bg-gradient-to-r from-amber-500 to-orange-600";
+                case 4: return "bg-gradient-to-r from-rose-500 to-red-600";
+                default: return "bg-gradient-to-r from-blue-500 to-purple-600";
+              }
+            };
 
             return (
               <Card
@@ -106,7 +119,7 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-3">
-                    <div className={`p-2 rounded-lg bg-gradient-to-br ${gradient} shadow-md`}>
+                    <div className={`p-2 rounded-lg shadow-md ${getIconBgClass()}`}>
                       <TagIcon className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -141,7 +154,7 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
                   </div>
 
                   {/* Hover indicator line */}
-                  <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg`} />
+                  <div className={`absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg ${getHoverLineClass()}`} />
                 </CardContent>
               </Card>
             );

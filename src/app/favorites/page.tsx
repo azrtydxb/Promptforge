@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { getFavoritePrompts } from "@/app/actions/prompt-favorites.actions";
 import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Star } from "lucide-react";
 
 async function FavoritesList() {
   const favorites = await getFavoritePrompts();
@@ -10,7 +9,6 @@ async function FavoritesList() {
   if (favorites.length === 0) {
     return (
       <EmptyState
-        icon={Star}
         type="noData"
         title="No favorites yet"
         description="Start favoriting prompts by clicking the star icon to quickly access them here. Your favorite prompts will appear in this collection for easy reference."

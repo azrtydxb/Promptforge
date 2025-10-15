@@ -169,7 +169,7 @@ export function MarketplaceFilters({
 
       {/* Active Filters Summary */}
       {hasActiveFilters && (
-        <div className="text-xs text-muted-foreground pt-2 border-t">
+        <div className="text-xs text-muted-foreground pt-2">
           {searchQuery && (
             <span>Search: &ldquo;{searchQuery}&rdquo; • </span>
           )}

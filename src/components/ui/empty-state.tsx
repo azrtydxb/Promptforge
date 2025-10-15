@@ -79,18 +79,32 @@ export function EmptyState({
 
   const sizes = sizeClasses[size];
 
-  // Map types to gradient colors
-  const typeGradients = {
-    noData: "from-blue-500 to-purple-600",
-    noResults: "from-purple-500 to-pink-600",
-    noFolders: "from-emerald-500 to-teal-600",
-    noTags: "from-amber-500 to-orange-600",
-    notFound: "from-rose-500 to-red-600",
-    error: "from-red-500 to-orange-600",
-    offline: "from-gray-500 to-slate-600",
+  // Get gradient classes based on type - using full strings for Tailwind JIT
+  const getGlowClass = () => {
+    switch (type) {
+      case "noData": return "bg-gradient-to-r from-blue-500 to-purple-600";
+      case "noResults": return "bg-gradient-to-r from-purple-500 to-pink-600";
+      case "noFolders": return "bg-gradient-to-r from-emerald-500 to-teal-600";
+      case "noTags": return "bg-gradient-to-r from-amber-500 to-orange-600";
+      case "notFound": return "bg-gradient-to-r from-rose-500 to-red-600";
+      case "error": return "bg-gradient-to-r from-red-500 to-orange-600";
+      case "offline": return "bg-gradient-to-r from-gray-500 to-slate-600";
+      default: return "bg-gradient-to-r from-blue-500 to-purple-600";
+    }
   };
 
-  const gradient = typeGradients[type];
+  const getIconBgClass = () => {
+    switch (type) {
+      case "noData": return "bg-gradient-to-br from-blue-500 to-purple-600";
+      case "noResults": return "bg-gradient-to-br from-purple-500 to-pink-600";
+      case "noFolders": return "bg-gradient-to-br from-emerald-500 to-teal-600";
+      case "noTags": return "bg-gradient-to-br from-amber-500 to-orange-600";
+      case "notFound": return "bg-gradient-to-br from-rose-500 to-red-600";
+      case "error": return "bg-gradient-to-br from-red-500 to-orange-600";
+      case "offline": return "bg-gradient-to-br from-gray-500 to-slate-600";
+      default: return "bg-gradient-to-br from-blue-500 to-purple-600";
+    }
+  };
 
   return (
     <div
@@ -105,14 +119,14 @@ export function EmptyState({
         {/* Glow effect */}
         <div className={cn(
           "absolute inset-0 rounded-full opacity-20 blur-2xl",
-          `bg-gradient-to-r ${gradient}`,
+          getGlowClass(),
           "animate-in fade-in zoom-in duration-700"
         )} />
 
         {/* Icon container */}
         <div className={cn(
           "relative rounded-full p-5 shadow-lg",
-          `bg-gradient-to-br ${gradient}`,
+          getIconBgClass(),
           "animate-in fade-in zoom-in duration-500",
           "hover:scale-110 transition-transform duration-300"
         )}>
@@ -151,13 +165,7 @@ export function EmptyState({
               key={index}
               variant={action.variant || "default"}
               onClick={action.onClick}
-              className={cn(
-                sizes.button,
-                "shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200",
-                action.variant === "primary" || action.variant === "default"
-                  ? `bg-gradient-to-r ${gradient} hover:opacity-90 text-white border-0`
-                  : ""
-              )}
+              className={sizes.button}
             >
               {action.label}
             </Button>

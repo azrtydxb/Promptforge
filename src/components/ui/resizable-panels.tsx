@@ -126,9 +126,9 @@ export function ResizablePanels({
   return (
     <div ref={containerRef} className={cn("flex h-full", className)}>
       {/* Left Panel */}
-      <div 
+      <div
         style={{ width: `${leftWidth}px` }}
-        className="flex-shrink-0 overflow-auto hidden md:block"
+        className="flex-shrink-0 overflow-y-auto overflow-x-hidden hidden md:block p-4"
       >
         {leftPanel}
       </div>
