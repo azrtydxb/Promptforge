@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
-import { getTrendingPrompts, getTrendingCategories, type TimePeriod, type TrendingMetric } from "@/app/actions/trending.actions";
+import { getTrendingPrompts, getTrendingCategories, getTrendingStats, type TimePeriod, type TrendingMetric } from "@/app/actions/trending.actions";
 import { 
   TrendingUp, 
   Eye, 
@@ -110,23 +110,48 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
   useEffect(() => {
     const loadTrendingData = async () => {
       setIsLoading(true);
-      
+
       try {
-        const result = await getTrendingPrompts({
-          metric: selectedMetric,
-          period: selectedPeriod,
-          category: selectedCategory,
-          limit: 5
-        });
+        const [promptsResult, statsResult] = await Promise.all([
+          getTrendingPrompts({
+            metric: selectedMetric,
+            period: selectedPeriod,
+            category: selectedCategory,
+            limit: 5
+          }),
+          getTrendingStats({ period: selectedPeriod, userId })
+        ]);
 
-        if (result.success && result.prompts) {
-          setTrendingPrompts(result.prompts);
-
-          // TODO: Replace with real getTrendingStats data
-          // For now using simplified visualization
-          setChartData([]);
+        if (promptsResult.success && promptsResult.prompts) {
+          setTrendingPrompts(promptsResult.prompts);
         } else {
           toast.error("Failed to load trending data");
+        }
+
+        // Process stats data for chart based on selected metric
+        if (statsResult.success && statsResult.stats) {
+          const stats = statsResult.stats;
+          let dataSource = stats.viewsByDay;
+
+          switch (selectedMetric) {
+            case 'likes':
+              dataSource = stats.likesByDay;
+              break;
+            case 'copies':
+              dataSource = stats.copiesByDay;
+              break;
+            case 'views':
+            default:
+              dataSource = stats.viewsByDay;
+              break;
+          }
+
+          const chartData = dataSource.map(item => ({
+            date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            value: item.count
+          }));
+
+          setChartData(chartData);
         }
       } catch (error) {
         console.error("Error loading trending data:", error);
@@ -137,7 +162,7 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
     };
 
     loadTrendingData();
-  }, [selectedMetric, selectedPeriod, selectedCategory]);
+  }, [selectedMetric, selectedPeriod, selectedCategory, userId]);
 
   const handlePromptLike = (promptId: string, isLiked: boolean) => {
     setTrendingPrompts(prev => prev.map(prompt => 
