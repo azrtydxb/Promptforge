@@ -106,7 +106,7 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
   return (
     <aside 
       className={cn(
-        "fixed left-0 top-0 bottom-0 hidden border-r border-border bg-[hsl(var(--menu-bg))] md:block overflow-hidden z-40 transition-all duration-300",
+        "fixed left-0 top-0 bottom-0 hidden border-r border-border bg-[hsl(var(--menu-bg))] md:block overflow-hidden z-30 transition-all duration-300",
         isCollapsed ? "w-[70px]" : "w-[260px]"
       )}
       onMouseEnter={handleMouseEnter}
