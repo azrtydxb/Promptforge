@@ -8,6 +8,7 @@ import { getSharedPrompts } from "@/app/actions/shared-prompts.actions";
 import { LoadingStates } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MarketplaceFilters } from "@/components/marketplace/marketplace-filters";
+import { Share, FileText } from "lucide-react";
 import type { SearchMode, SearchFilters } from "@/components/search/unified-search";
 
 interface SharedPromptsSearchProps {
@@ -25,6 +26,9 @@ export function SharedPromptsSearch({
   const [sortBy, setSortBy] = useState<"recent" | "popular" | "liked" | "copied">("recent");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags] = useState<Array<{ id: string; name: string; count: number }>>([]);
 
   const handleSearch = useCallback(async (
     query: string, 
@@ -41,8 +45,10 @@ export function SharedPromptsSearch({
         limit: 20,
       });
 
-      setPrompts(response.prompts);
-      setTotalPages(Math.ceil(response.pagination.total / response.pagination.limit));
+      setPrompts(response.prompts || []);
+      if (response.pagination) {
+        setTotalPages(Math.ceil(response.pagination.total / response.pagination.limit));
+      }
     } catch (error) {
       console.error("Error searching shared prompts:", error);
       setPrompts([]);
@@ -88,8 +94,15 @@ export function SharedPromptsSearch({
       />
 
       <MarketplaceFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedTags={selectedTags}
+        onTagToggle={(tag) => setSelectedTags(prev =>
+          prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+        )}
+        sortBy={sortBy}
         onSortChange={handleSortChange}
-        currentSort={sortBy}
+        availableTags={availableTags}
       />
 
       {isLoading ? (
@@ -108,7 +121,7 @@ export function SharedPromptsSearch({
         </div>
       ) : (
         <EmptyState
-          icon="share"
+          icon={Share}
           title="No shared prompts found"
           description="Try adjusting your search query"
         />
@@ -150,7 +163,7 @@ export function SharedPromptsSearch({
     </div>
   ) : (
     <EmptyState
-      icon="file"
+      icon={FileText}
       title="Select a prompt"
       description="Click on a prompt to view its details"
     />
@@ -160,7 +173,7 @@ export function SharedPromptsSearch({
     <ResizablePanels
       leftPanel={leftPanel}
       rightPanel={rightPanel}
-      defaultSize={60}
+      defaultLeftWidth={360}
     />
   );
 }
