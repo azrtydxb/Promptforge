@@ -79,7 +79,7 @@ export async function getCollection(collectionId: string) {
                 },
                 _count: {
                   select: {
-                    likes: true,
+                    ratings: true,
                     copies: true,
                   },
                 },
