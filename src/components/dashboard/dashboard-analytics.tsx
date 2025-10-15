@@ -86,60 +86,68 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="min-h-[var(--card-min-height)]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-foreground">Total Prompts</CardTitle>
-            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
-              <FileText className="h-5 w-5 text-[#546ee5]" />
+        {/* Total Prompts Card */}
+        <Card className="group relative overflow-hidden border-l-4 border-l-blue-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br from-blue-50/30 to-transparent dark:from-blue-950/10">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+            <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">TOTAL PROMPTS</CardTitle>
+            <div className="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+              <FileText className="h-5 w-5 text-white" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{data.totalPrompts}</div>
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{data.totalPrompts}</div>
             <p className="text-sm text-muted-foreground mt-1">
               Active prompt templates
             </p>
           </CardContent>
         </Card>
 
-        <Card className="min-h-[var(--card-min-height)]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-foreground">Folders</CardTitle>
-            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
-              <Folder className="h-5 w-5 text-[#546ee5]" />
+        {/* Folders Card */}
+        <Card className="group relative overflow-hidden border-l-4 border-l-purple-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br from-purple-50/30 to-transparent dark:from-purple-950/10">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+            <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">FOLDERS</CardTitle>
+            <div className="p-2.5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 shadow-md">
+              <Folder className="h-5 w-5 text-white" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{data.totalFolders}</div>
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{data.totalFolders}</div>
             <p className="text-sm text-muted-foreground mt-1">
               Organization structures
             </p>
           </CardContent>
         </Card>
 
-        <Card className="min-h-[var(--card-min-height)]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-foreground">Tags</CardTitle>
-            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
-              <Tag className="h-5 w-5 text-[#546ee5]" />
+        {/* Tags Card */}
+        <Card className="group relative overflow-hidden border-l-4 border-l-emerald-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br from-emerald-50/30 to-transparent dark:from-emerald-950/10">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+            <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">TAGS</CardTitle>
+            <div className="p-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-md">
+              <Tag className="h-5 w-5 text-white" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{data.totalTags}</div>
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{data.totalTags}</div>
             <p className="text-sm text-muted-foreground mt-1">
               Unique categories
             </p>
           </CardContent>
         </Card>
 
-        <Card className="min-h-[var(--card-min-height)]">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-foreground">Versions</CardTitle>
-            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20">
-              <BarChart3 className="h-5 w-5 text-[#546ee5]" />
+        {/* Versions Card */}
+        <Card className="group relative overflow-hidden border-l-4 border-l-amber-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br from-amber-50/30 to-transparent dark:from-amber-950/10">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+            <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">VERSIONS</CardTitle>
+            <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-md">
+              <BarChart3 className="h-5 w-5 text-white" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{data.totalVersions}</div>
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">{data.totalVersions}</div>
             <p className="text-sm text-muted-foreground mt-1">
               Total revisions
             </p>
@@ -150,51 +158,72 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
       {/* All Charts in Single Horizontal Row */}
       <div className="grid gap-3 grid-cols-1 lg:grid-cols-4">
         {/* Trends */}
-        <Card>
+        <Card className="border border-border/50 hover:border-blue-500/50 hover:shadow-md transition-all duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Trends</CardTitle>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse" />
+              Trends
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={data.promptGrowth}>
-                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                <XAxis
-                  dataKey="date"
-                  stroke={chartColors.text}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke={chartColors.text}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => `${value}`}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: chartColors.tooltip.bg,
-                    border: `1px solid ${chartColors.tooltip.border}`,
-                    borderRadius: '6px'
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="prompts"
-                  stroke="#6379c3"
-                  strokeWidth={2}
-                  name="New Prompts"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="#546ee5"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  name="Total Prompts"
-                />
+                  <defs>
+                    <linearGradient id="colorPrompts" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                  <XAxis
+                    dataKey="date"
+                    stroke={chartColors.text}
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke={chartColors.text}
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${value}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: chartColors.tooltip.bg,
+                      border: `1px solid ${chartColors.tooltip.border}`,
+                      borderRadius: '6px'
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="prompts"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    name="New Prompts"
+                    fill="url(#colorPrompts)"
+                    animationDuration={750}
+                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="cumulative"
+                    stroke="#8b5cf6"
+                    strokeWidth={3}
+                    strokeDasharray="5 5"
+                    name="Total Prompts"
+                    fill="url(#colorCumulative)"
+                    animationDuration={750}
+                    dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </SectionErrorBoundary>
@@ -202,29 +231,43 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         </Card>
 
         {/* Folders */}
-        <Card>
+        <Card className="border border-border/50 hover:border-purple-500/50 hover:shadow-md transition-all duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Folders</CardTitle>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse" />
+              Folders
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                <Pie
-                  data={data.promptsByFolder}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={false}
-                  outerRadius={70}
-                  fill="#6379c3"
-                  dataKey="count"
-                >
-                  {data.promptsByFolder.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value, name) => [`${value}`, name]} />
+                  <defs>
+                    <linearGradient id="pieGradient1" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="100%" stopColor="#8b5cf6" />
+                    </linearGradient>
+                    <linearGradient id="pieGradient2" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#a855f7" />
+                    </linearGradient>
+                  </defs>
+                  <Pie
+                    data={data.promptsByFolder}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={70}
+                    fill="#6379c3"
+                    dataKey="count"
+                    animationDuration={750}
+                  >
+                    {data.promptsByFolder.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value, name) => [`${value} prompts`, name]} />
                 </PieChart>
               </ResponsiveContainer>
             </SectionErrorBoundary>
@@ -232,37 +275,51 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         </Card>
 
         {/* Activity */}
-        <Card>
+        <Card className="border border-border/50 hover:border-emerald-500/50 hover:shadow-md transition-all duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Activity</CardTitle>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 animate-pulse" />
+              Activity
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={data.promptsByMonth}>
-                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                <XAxis
-                  dataKey="month"
-                  stroke={chartColors.text}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke={chartColors.text}
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => `${value}`}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: chartColors.tooltip.bg,
-                    border: `1px solid ${chartColors.tooltip.border}`,
-                    borderRadius: '6px'
-                  }}
-                />
-                <Bar dataKey="count" fill="#6379c3" radius={[4, 4, 0, 0]} />
+                  <defs>
+                    <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="100%" stopColor="#14b8a6" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                  <XAxis
+                    dataKey="month"
+                    stroke={chartColors.text}
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke={chartColors.text}
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `${value}`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: chartColors.tooltip.bg,
+                      border: `1px solid ${chartColors.tooltip.border}`,
+                      borderRadius: '6px'
+                    }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    fill="url(#colorActivity)"
+                    radius={[8, 8, 0, 0]}
+                    animationDuration={750}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </SectionErrorBoundary>
@@ -270,23 +327,28 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         </Card>
 
         {/* Tags */}
-        <Card>
+        <Card className="border border-border/50 hover:border-amber-500/50 hover:shadow-md transition-all duration-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Tags</CardTitle>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 animate-pulse" />
+              Tags
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
-            <div className="space-y-2 max-h-[180px] overflow-y-auto">
-              {data.topTags.map((tag) => (
-                <div key={tag.name} className="flex items-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#546ee5] mr-2 flex-shrink-0" />
+            <div className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1">
+              {data.topTags.map((tag, index) => (
+                <div key={tag.name} className="flex items-center group hover:bg-muted/50 rounded-md p-1.5 -mx-1.5 transition-colors">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mr-2 shadow-sm">
+                    <span className="text-xs font-bold text-white">{index + 1}</span>
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-medium leading-none truncate pr-1">{tag.name}</p>
-                      <p className="text-xs text-foreground/70 font-medium whitespace-nowrap">{tag.count}</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs font-semibold leading-none truncate pr-2">{tag.name}</p>
+                      <p className="text-xs text-foreground/70 font-bold whitespace-nowrap">{tag.count}</p>
                     </div>
-                    <div className="mt-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-[#6379c3] to-[#546ee5] transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 transition-all duration-500 group-hover:scale-x-105"
                         style={{
                           width: `${(tag.count / Math.max(...data.topTags.map(t => t.count))) * 100}%`
                         }}

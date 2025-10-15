@@ -145,27 +145,32 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 group relative",
+                    "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative mb-1",
                     isActive
-                      ? 'bg-primary/20 text-white'
-                      : 'text-[hsl(var(--menu-item-color))] hover:text-[hsl(var(--menu-item-hover-color))] hover:bg-white/5'
+                      ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-white shadow-md border-l-4 border-l-primary'
+                      : 'text-[hsl(var(--menu-item-color))] hover:text-white hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:shadow-sm hover:border-l-4 hover:border-l-primary/50'
                   )}
                   title={isCollapsed ? item.label : undefined}
                 >
-                  <Icon className={cn(
-                    "h-5 w-5 flex-shrink-0",
-                    isActive ? 'text-white' : ''
-                  )} />
+                  <div className={cn(
+                    "p-1.5 rounded-md transition-all duration-200",
+                    isActive
+                      ? 'bg-gradient-to-br from-blue-500 to-purple-600 shadow-md'
+                      : 'bg-white/5 group-hover:bg-gradient-to-br group-hover:from-blue-500/80 group-hover:to-purple-600/80'
+                  )}>
+                    <Icon className="h-4 w-4 text-white flex-shrink-0" />
+                  </div>
                   <span className={cn(
                     "font-medium transition-all duration-300 overflow-hidden whitespace-nowrap",
-                    isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                    isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100",
+                    isActive && "font-semibold"
                   )}>
                     {item.label}
                   </span>
 
-                  {/* Active indicator bar */}
+                  {/* Subtle glow effect for active item */}
                   {isActive && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[hsl(var(--primary))] rounded-r-full" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-lg opacity-50 pointer-events-none" />
                   )}
                 </Link>
               )

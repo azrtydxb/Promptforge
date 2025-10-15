@@ -5,29 +5,29 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:saturate-50",
   {
     variants: {
       variant: {
-        default: "bg-[hsl(var(--primary))] text-white shadow-[0_2px_0_rgba(0,0,0,0.045)] hover:bg-[hsl(var(--primary))]/90 active:scale-[0.98]",
-        primary: "bg-[hsl(var(--primary))] text-white shadow-[0_2px_0_rgba(0,0,0,0.045)] hover:bg-[hsl(var(--primary))]/90 active:scale-[0.98]",
+        default: "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] hover:from-blue-700 hover:to-purple-700",
+        primary: "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] hover:from-blue-700 hover:to-purple-700",
         destructive:
-          "bg-[hsl(var(--destructive))] text-white shadow-[0_2px_0_rgba(0,0,0,0.045)] hover:bg-[hsl(var(--destructive))]/90",
+          "bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] hover:from-red-700 hover:to-rose-700",
         outline:
-          "border border-input bg-background hover:bg-muted hover:text-accent-foreground shadow-sm",
+          "border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-primary/50 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-muted shadow-sm",
-        ghost: "hover:bg-muted hover:text-accent-foreground",
-        link: "text-[hsl(var(--primary))] underline-offset-4 hover:underline",
-        success: "bg-[hsl(var(--success))] text-white shadow-[0_2px_0_rgba(0,0,0,0.045)] hover:bg-[hsl(var(--success))]/90",
-        warning: "bg-[hsl(var(--warning))] text-white shadow-[0_2px_0_rgba(0,0,0,0.045)] hover:bg-[hsl(var(--warning))]/90",
-        info: "bg-[hsl(var(--info))] text-white shadow-[0_2px_0_rgba(0,0,0,0.045)] hover:bg-[hsl(var(--info))]/90",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99]",
+        ghost: "hover:bg-accent hover:text-accent-foreground hover:scale-[1.01] active:scale-[0.99]",
+        link: "text-[hsl(var(--primary))] underline-offset-4 hover:underline hover:text-[hsl(var(--primary))]/80",
+        success: "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] hover:from-emerald-700 hover:to-teal-700",
+        warning: "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] hover:from-amber-700 hover:to-orange-700",
+        info: "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] hover:from-cyan-700 hover:to-blue-700",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded px-3 text-xs",
-        lg: "h-10 rounded px-8",
-        icon: "h-9 w-9",
+        default: "h-10 px-5 py-2.5",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-12 rounded-lg px-8 text-base",
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {

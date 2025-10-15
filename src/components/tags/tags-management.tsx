@@ -86,46 +86,66 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {tags.map((tag) => (
-            <Card
-              key={tag.id}
-              className={cardHover("relative group text-sm")}
-              onClick={() => handleEditTag(tag)}
-            >
-              <CardContent className="p-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 font-semibold">
-                      <TagIcon className="h-3 w-3" />
-                      {tag.name}
+        <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {tags.map((tag, index) => {
+            // Cycle through gradient colors for visual variety
+            const gradients = [
+              'from-blue-500 to-purple-600',
+              'from-purple-500 to-pink-600',
+              'from-emerald-500 to-teal-600',
+              'from-amber-500 to-orange-600',
+              'from-rose-500 to-red-600',
+            ];
+            const gradient = gradients[index % gradients.length];
+
+            return (
+              <Card
+                key={tag.id}
+                className="relative group cursor-pointer border border-border/50 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
+                onClick={() => handleEditTag(tag)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`p-2 rounded-lg bg-gradient-to-br ${gradient} shadow-md`}>
+                      <TagIcon className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTag(tag);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 text-destructive hover:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteTag(tag);
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-sm mb-1 truncate">{tag.name}</h3>
+                    {tag.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">{tag.description}</p>
+                    )}
                   </div>
-                </div>
-                <div className="flex items-center justify-between text-xs mt-2">
-                  <Badge variant="secondary" className="px-1.5 py-0.5">
-                    {tag._count.prompts} prompt{tag._count.prompts !== 1 ? 's' : ''}
-                  </Badge>
-                  <span className="text-muted-foreground">
-                    {new Date(tag.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                  <div className="flex items-center justify-between text-xs">
+                    <Badge variant="secondary" className="px-2 py-0.5 font-medium">
+                      {tag._count.prompts} prompt{tag._count.prompts !== 1 ? 's' : ''}
+                    </Badge>
+                    <span className="text-muted-foreground">
+                      {new Date(tag.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+
+                  {/* Hover indicator line */}
+                  <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg`} />
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>
