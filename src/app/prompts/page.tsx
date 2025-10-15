@@ -119,12 +119,12 @@ export default function Prompts() {
     <ResizablePanels
       leftPanel={sidebar}
       rightPanel={
-        <div className="pb-4 px-4">
+        <div className="pb-4 px-4 overflow-x-hidden">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 pt-4">
             <h1 className="sr-only">Prompts Management</h1>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">View by:</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 max-w-full">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">View by:</span>
                 <Tabs value={viewMode} onValueChange={(v) => handleViewModeChange(v as ViewMode)}>
                   <TabsList>
                     <TabsTrigger value="folders" className="flex items-center gap-1 sm:gap-2">
@@ -138,7 +138,7 @@ export default function Prompts() {
                   </TabsList>
                 </Tabs>
               </div>
-              <span className="font-medium text-sm sm:text-base">
+              <span className="font-medium text-sm sm:text-base truncate max-w-full">
                 {viewMode === "folders" ? (
                   <>Selected: <span className="text-[#546ee5] font-semibold">{selectedFolder.name}</span></>
                 ) : (

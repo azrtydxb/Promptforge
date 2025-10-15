@@ -89,36 +89,36 @@ export const AuthUserButton = React.memo(() => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64 bg-white" align="end" forceMount>
-        <div className="flex items-center space-x-2 p-2">
+      <DropdownMenuContent className="w-64 bg-background border border-border" align="end" forceMount>
+        <div className="flex items-center space-x-3 p-4">
           <Avatar user={avatarUser} size="md" />
-          <div className="flex flex-col space-y-1">
-            <div className="font-medium text-sm">{displayName}</div>
-            <div className="text-xs text-muted-foreground">{displayEmail}</div>
+          <div className="flex flex-col space-y-1 min-w-0 flex-1">
+            <div className="font-medium text-sm text-foreground truncate">{displayName}</div>
+            <div className="text-xs text-muted-foreground truncate">{displayEmail}</div>
             {userProfile?.username && (
-              <div className="text-xs text-muted-foreground">@{userProfile.username}</div>
+              <div className="text-xs text-muted-foreground truncate">@{userProfile.username}</div>
             )}
           </div>
         </div>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuItem
           onClick={handleProfileSettings}
-          className="cursor-pointer"
+          className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted focus:text-foreground mx-2 my-1 rounded-md"
         >
           <User className="mr-2 h-4 w-4" />
           Profile Settings
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={handleChangePassword}
-          className="cursor-pointer"
+          className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted focus:text-foreground mx-2 my-1 rounded-md"
         >
           <Key className="mr-2 h-4 w-4" />
           Change Password
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuItem
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="cursor-pointer"
+          className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted focus:text-foreground mx-2 my-1 mb-2 rounded-md"
         >
           <Settings className="mr-2 h-4 w-4" />
           Sign out

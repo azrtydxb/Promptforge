@@ -160,16 +160,22 @@ export function EmptyState({
           "flex flex-wrap gap-3 justify-center",
           "animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300"
         )}>
-          {actions.map((action, index) => (
-            <Button
-              key={index}
-              variant={action.variant || "default"}
-              onClick={action.onClick}
-              className={sizes.button}
-            >
-              {action.label}
-            </Button>
-          ))}
+          {actions.map((action, index) => {
+            const isDefaultVariant = action.variant === "default" || action.variant === "primary" || !action.variant;
+            return (
+              <Button
+                key={index}
+                variant={action.variant === "primary" ? "default" : action.variant}
+                onClick={action.onClick}
+                className={cn(
+                  sizes.button,
+                  isDefaultVariant && "bg-gradient-to-r from-[#6379c3] to-[#546ee5] hover:from-[#546ee5] hover:to-[#6379c3] text-white border-0"
+                )}
+              >
+                {action.label}
+              </Button>
+            );
+          })}
         </div>
       )}
     </div>
