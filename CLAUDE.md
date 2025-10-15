@@ -178,6 +178,20 @@ npx prisma migrate dev # Create migration
 npx prisma studio     # Open database GUI
 ```
 
+### Current Migration Status
+After implementing rating/draft features, run migration to apply schema changes:
+```bash
+npx prisma migrate dev --name add_ratings_and_drafts
+npx prisma generate
+```
+
+This creates:
+- PromptRating table (1-5 star ratings with reviews)
+- PromptDraft table (auto-save drafts)
+- averageRating/ratingCount fields on SharedPrompt
+
+TypeScript errors (~92) are schema-related and will resolve after migration.
+
 ## Code Style
 
 - Use functional components with TypeScript
