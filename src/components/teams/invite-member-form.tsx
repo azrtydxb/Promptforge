@@ -19,10 +19,9 @@ import { Loader2, Mail } from "lucide-react";
 
 interface InviteMemberFormProps {
   teamId: string;
-  teamSlug: string;
 }
 
-export function InviteMemberForm({ teamId, teamSlug }: InviteMemberFormProps) {
+export function InviteMemberForm({ teamId }: InviteMemberFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +74,7 @@ export function InviteMemberForm({ teamId, teamSlug }: InviteMemberFormProps) {
         });
         
         // Redirect back to team members page
-        router.push(`/teams/${teamSlug}/members`);
+        router.push(`/teams/${teamId}/members`);
       }
     } catch (error) {
       console.error("Error inviting member:", error);

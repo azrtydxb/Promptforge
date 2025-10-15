@@ -188,7 +188,7 @@ export function CommentItem({
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-white">
                 {comment.canEdit && (
                   <>
                     <DropdownMenuItem onClick={() => setIsEditing(true)}>

@@ -119,7 +119,8 @@ export function UnifiedPromptCardClean({
     const newIsLiked = !data.isLiked;
     
     try {
-      const result = await togglePromptLike(data.id);
+      // Use promptId for shared prompts, not the sharedPrompt id
+      const result = await togglePromptLike(data.promptId);
       if (result.success && onLikeToggle) {
         onLikeToggle(data.id, newIsLiked);
       }

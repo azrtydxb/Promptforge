@@ -88,28 +88,8 @@ export function TemplatesSearchComponent() {
     </div>
   );
 
-  const formatTemplateForCard = (template: any) => ({
-    id: template.id,
-    title: template.name,
-    description: template.description,
-    content: template.content,
-    type: "template" as const,
-    tags: [],
-    isLiked: false,
-    isPublic: template.isPublic,
-    metrics: {
-      likes: 0,
-      views: template.usageCount || 0,
-      copies: template.usageCount || 0,
-      comments: 0,
-    },
-    author: template.author || null,
-    createdAt: template.createdAt,
-    updatedAt: template.updatedAt,
-  });
-
   if (isLoading) {
-    return <LoadingStates.PromptGrid />;
+    return <LoadingStates.CardGrid />;
   }
 
   return (
@@ -133,7 +113,11 @@ export function TemplatesSearchComponent() {
             {filteredTemplates.map((template) => (
               <UnifiedPromptCard
                 key={template.id}
-                {...formatTemplateForCard(template)}
+                variant="template"
+                data={{
+                  ...template,
+                  name: template.name || template.title,
+                }}
               />
             ))}
           </div>

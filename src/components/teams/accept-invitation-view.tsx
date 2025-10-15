@@ -43,7 +43,7 @@ export function AcceptInvitationView({
           title: "Welcome to the team!",
           description: `You've successfully joined ${invitation.team.name}`,
         });
-        router.push(`/teams/${invitation.team.slug}`);
+        router.push(`/teams/${invitation.team.id}`);
       }
     } catch (error) {
       console.error("Error accepting invitation:", error);

@@ -72,7 +72,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
         
         {isAdmin && (
           <Button
-            onClick={() => router.push(`/teams/${team.slug}/settings`)}
+            onClick={() => router.push(`/teams/${team.id}/settings`)}
             variant="outline"
           >
             <Settings className="h-4 w-4 mr-2" />
@@ -207,7 +207,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
                   <CardTitle>Team Prompts</CardTitle>
                   <CardDescription>Prompts shared within this team</CardDescription>
                 </div>
-                <Button onClick={() => router.push(`/teams/${team.slug}/prompts/new`)}>
+                <Button onClick={() => router.push(`/teams/${team.id}/prompts/new`)}>
                   <Plus className="h-4 w-4 mr-2" />
                   New Prompt
                 </Button>
@@ -215,7 +215,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
             </CardHeader>
             <CardContent>
               <Link 
-                href={`/teams/${team.slug}/prompts`}
+                href={`/teams/${team.id}/prompts`}
                 className="text-primary hover:underline"
               >
                 View all team prompts →
@@ -233,7 +233,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
                   <CardDescription>People in this team</CardDescription>
                 </div>
                 {isAdmin && (
-                  <Button onClick={() => router.push(`/teams/${team.slug}/members/invite`)}>
+                  <Button onClick={() => router.push(`/teams/${team.id}/members/invite`)}>
                     <UserPlus className="h-4 w-4 mr-2" />
                     Invite Member
                   </Button>
@@ -270,7 +270,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
               </div>
               {isAdmin && (
                 <Link 
-                  href={`/teams/${team.slug}/members`}
+                  href={`/teams/${team.id}/members`}
                   className="text-primary hover:underline mt-4 inline-block"
                 >
                   Manage all members →
@@ -288,7 +288,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
             </CardHeader>
             <CardContent>
               <Link 
-                href={`/teams/${team.slug}/activity`}
+                href={`/teams/${team.id}/activity`}
                 className="text-primary hover:underline"
               >
                 View full activity log →

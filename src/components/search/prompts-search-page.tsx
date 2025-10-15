@@ -189,7 +189,7 @@ export function PromptsSearchPage() {
         )}
 
         {isLoading ? (
-          <LoadingStates.PromptGrid />
+          <LoadingStates.CardGrid />
         ) : results.length > 0 ? (
           <div>
             <p className="text-sm text-muted-foreground mb-4">

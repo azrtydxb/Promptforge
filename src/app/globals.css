@@ -147,24 +147,24 @@
 
 @layer base {
   :root {
-    /* Hyper Template Professional Design System - Light Mode */
-    --background: 240 60% 99%; /* #fafbfe - Hyper light background */
-    --foreground: 210 10% 45%; /* #6c757d - Hyper text color */
+    /* Hyper Template Professional Design System - Light Mode with Improved Contrast */
+    --background: 220 25% 96%; /* #f3f5f8 - Slightly darker background for better contrast */
+    --foreground: 220 25% 25%; /* #323943 - Darker text for better readability */
 
-    --card: 0 0% 100%; /* #FFFFFF - White cards */
-    --card-foreground: 214 17% 24%; /* #343a40 - Card text color */
+    --card: 0 0% 100%; /* #FFFFFF - White cards for maximum contrast */
+    --card-foreground: 220 25% 20%; /* #282d35 - Very dark text on cards */
  
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 10% 40%;
+    --popover: 0 0% 100%; /* White popovers */
+    --popover-foreground: 220 25% 20%; /* Dark text in popovers */
  
     --primary: 226 42% 56%; /* #546ee5 - Hyper gradient end color */
     --primary-foreground: 0 0% 100%; /* White text on primary */
  
-    --secondary: 210 16% 96%; /* #f7f9fc - Light background */
-    --secondary-foreground: 218 12% 30%; /* #3e4954 - Dark text */
+    --secondary: 220 20% 92%; /* #e8eaed - Clearly different from background */
+    --secondary-foreground: 220 25% 25%; /* #323943 - Dark text */
  
-    --muted: 210 16% 96%; /* #f7f9fc */
-    --muted-foreground: 210 9% 55%; /* #8a92a6 - Muted text */
+    --muted: 220 20% 90%; /* #e1e4e8 - More distinct muted background */
+    --muted-foreground: 220 15% 45%; /* #626973 - Readable muted text */
  
     --accent: 226 42% 56%; /* #546ee5 - Hyper gradient end */
     --accent-foreground: 0 0% 100%;
@@ -182,12 +182,12 @@
     --success-foreground: 0 0% 100%;
  
     --warning: 45 95% 64%; /* #ffbc00 - Hyper warning */
-    --warning-foreground: 218 12% 30%;
+    --warning-foreground: 220 25% 25%;
  
     --info: 188 78% 41%; /* #39afd1 - Hyper info */
     --info-foreground: 0 0% 100%;
 
-    --border: 210 17% 93%; /* #e7ebf0 - Light border */
+    --border: 220 20% 82%; /* #c8cdd5 - Stronger borders for better definition */
     --input: 0 0% 100%; /* White inputs */
     --ring: 226 42% 56%; /* Primary focus ring */
 
@@ -198,13 +198,17 @@
     --sidebar-width: 260px;
     --sidebar-width-sm: 70px;
     --sidebar-width-md: 160px;
-    --box-shadow: 0px 0px 35px 0px rgba(154, 161, 171, 0.15);
+    --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     --card-min-height: 120px;
     --editor-font-size: 14px;
     
     /* Hyper gradient colors */
     --gradient-start: 225 33% 58%; /* #6379c3 */
     --gradient-end: 226 42% 56%; /* #546ee5 */
+    
+    /* Additional contrast improvements */
+    --hover-overlay: 0 0% 0%; /* Black for hover overlays */
+    --hover-opacity: 0.04; /* 4% opacity for subtle hovers */
   }
  
 

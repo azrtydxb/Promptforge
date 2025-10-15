@@ -424,7 +424,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
                       <ChevronDown className="ml-2 h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
+                  <DropdownMenuContent align="start" className="bg-white">
                     {languageOptions.map((language) => (
                       <DropdownMenuItem
                         key={language}
@@ -487,7 +487,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-white">
                   <DropdownMenuItem onClick={handleCopy}>
                     <Copy className="h-4 w-4 mr-2" />
                     Copy Content

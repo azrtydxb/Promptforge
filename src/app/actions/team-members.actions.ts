@@ -189,7 +189,7 @@ export async function acceptTeamInvitation(token: string) {
     });
     
     revalidatePath('/dashboard');
-    revalidatePath(`/teams/${invitation.team.slug}`);
+    revalidatePath(`/teams/${invitation.team.id}`);
     
     logger.info("Team invitation accepted", { 
       userId: user.id, 

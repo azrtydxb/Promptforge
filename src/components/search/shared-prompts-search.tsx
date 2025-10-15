@@ -56,6 +56,19 @@ export function SharedPromptsSearch({
     setCurrentPage(1);
   };
 
+  const handlePromptLike = useCallback((promptId: string, isLiked: boolean) => {
+    setPrompts(prev => prev.map(p => 
+      p.id === promptId 
+        ? { ...p, isLiked, likeCount: p.likeCount + (isLiked ? 1 : -1) }
+        : p
+    ));
+  }, []);
+
+  const handlePromptCopy = useCallback((promptId: string) => {
+    // Handle copy functionality if needed
+    console.log('Copy prompt:', promptId);
+  }, []);
+
   const leftPanel = (
     <div className="space-y-6">
       <div>
@@ -80,30 +93,16 @@ export function SharedPromptsSearch({
       />
 
       {isLoading ? (
-        <LoadingStates.PromptGrid />
+        <LoadingStates.CardGrid />
       ) : prompts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {prompts.map((prompt) => (
             <UnifiedPromptCard
               key={prompt.id}
-              id={prompt.id}
-              title={prompt.title}
-              description={prompt.description}
-              content={prompt.content}
-              type="shared"
-              tags={prompt.prompt?.tags || []}
-              isLiked={prompt.isLiked}
-              isPublic={true}
-              metrics={{
-                likes: prompt.likeCount,
-                views: prompt.viewCount,
-                copies: prompt.copyCount,
-                comments: prompt.commentCount,
-              }}
-              author={prompt.author}
-              createdAt={prompt.publishedAt}
-              updatedAt={prompt.publishedAt}
-              onClick={() => setSelectedPrompt(prompt)}
+              variant="shared"
+              data={prompt}
+              onLikeToggle={handlePromptLike}
+              onCopy={handlePromptCopy}
             />
           ))}
         </div>

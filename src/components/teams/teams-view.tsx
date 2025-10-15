@@ -69,8 +69,8 @@ export function TeamsView({ data }: TeamsViewProps) {
     router.push('/teams/new');
   };
 
-  const handleTeamClick = (slug: string) => {
-    router.push(`/teams/${slug}`);
+  const handleTeamClick = (teamId: string) => {
+    router.push(`/teams/${teamId}`);
   };
 
   if (!data || data.teams.length === 0) {
@@ -123,7 +123,7 @@ export function TeamsView({ data }: TeamsViewProps) {
             <Card 
               key={team.id} 
               className="group hover:shadow-lg transition-all duration-200 cursor-pointer"
-              onClick={() => handleTeamClick(team.slug)}
+              onClick={() => handleTeamClick(team.id)}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -185,7 +185,7 @@ export function TeamsView({ data }: TeamsViewProps) {
                   className="w-full group-hover:bg-accent"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleTeamClick(team.slug);
+                    handleTeamClick(team.id);
                   }}
                 >
                   View Team

@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +16,7 @@ import { Avatar, AvatarUser } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { getCurrentUserProfile } from "@/app/actions/profile.actions";
 
-export const AuthUserButton = () => {
+export const AuthUserButton = React.memo(() => {
   const { data: session } = useSession();
   const { onOpen } = useModal();
   const [userProfile, setUserProfile] = useState<AvatarUser | null>(null);
@@ -48,18 +49,18 @@ export const AuthUserButton = () => {
     fetchUserProfile();
   }, [session?.user?.email]);
 
+  const handleChangePassword = React.useCallback(() => {
+    onOpen("changePassword");
+  }, [onOpen]);
+
+  const handleProfileSettings = React.useCallback(() => {
+    // Navigate to profile page instead of opening modal
+    window.location.href = '/profile';
+  }, []);
+
   if (!session?.user) {
     return null;
   }
-
-  const handleChangePassword = () => {
-    onOpen("changePassword");
-  };
-
-  const handleProfileSettings = () => {
-    // Navigate to profile page instead of opening modal
-    window.location.href = '/profile';
-  };
 
   const displayName = userProfile?.username || session.user.name || "User";
   const displayEmail = session.user.email;
@@ -88,7 +89,7 @@ export const AuthUserButton = () => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64" align="end" forceMount>
+      <DropdownMenuContent className="w-64 bg-white" align="end" forceMount>
         <div className="flex items-center space-x-2 p-2">
           <Avatar user={avatarUser} size="md" />
           <div className="flex flex-col space-y-1">
@@ -125,4 +126,6 @@ export const AuthUserButton = () => {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-};
+});
+
+AuthUserButton.displayName = "AuthUserButton";

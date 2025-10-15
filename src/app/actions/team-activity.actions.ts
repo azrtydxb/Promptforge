@@ -72,18 +72,13 @@ export async function getTeamActivity(params: GetTeamActivityParams) {
   }
 }
 
-export async function getTeamActivitySummary(teamIdOrSlug: string) {
+export async function getTeamActivitySummary(teamId: string) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     
-    // Get the team to ensure we have the correct ID
-    const team = await db.team.findFirst({
-      where: {
-        OR: [
-          { id: teamIdOrSlug },
-          { slug: teamIdOrSlug }
-        ]
-      }
+    // Get the team to ensure it exists
+    const team = await db.team.findUnique({
+      where: { id: teamId }
     });
     
     if (!team) {
@@ -95,8 +90,6 @@ export async function getTeamActivitySummary(teamIdOrSlug: string) {
     if (!userRole) {
       throw new Error("You are not a member of this team");
     }
-    
-    const teamId = team.id;
     
     // Get activity counts for the last 30 days
     const thirtyDaysAgo = new Date();
@@ -180,6 +173,74 @@ export async function getTeamActivitySummary(teamIdOrSlug: string) {
     };
   } catch (error) {
     logger.error("Error getting team activity summary", error);
+    throw error;
+  }
+}
+
+/**
+ * Get paginated team activity log
+ */
+export async function getTeamActivityLog(
+  teamId: string,
+  options: {
+    page?: number;
+    limit?: number;
+  } = {}
+) {
+  try {
+    const user = await requireAuth();
+    
+    // Verify user is a member of the team
+    const member = await db.teamMember.findFirst({
+      where: {
+        teamId,
+        userId: user.id,
+      },
+    });
+    
+    if (!member) {
+      throw new Error("You are not a member of this team");
+    }
+    
+    const { page = 1, limit = 50 } = options;
+    const skip = (page - 1) * limit;
+    
+    // Get activities and count
+    const [activities, total] = await Promise.all([
+      db.teamActivity.findMany({
+        where: { teamId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              email: true,
+              avatarType: true,
+              profilePicture: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      db.teamActivity.count({ where: { teamId } }),
+    ]);
+    
+    return {
+      activities,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: skip + activities.length < total,
+        hasPrev: page > 1,
+      },
+    };
+  } catch (error) {
+    logger.error("Error getting team activity log", error);
     throw error;
   }
 }

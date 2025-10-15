@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { TeamRole, TeamAction } from "@/generated/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-config";
 
 // Team CRUD Operations
 
@@ -18,19 +20,12 @@ export async function createTeam(params: CreateTeamParams) {
   try {
     const user = await requireAuth();
     
-    // Generate a URL-friendly slug from the team name
-    const baseSlug = params.name
+    // Generate a URL-friendly slug from the team name (for display purposes only)
+    // Since we use UUIDs in URLs, slugs don't need to be unique
+    const slug = params.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
-    
-    // Ensure slug is unique
-    let slug = baseSlug;
-    let counter = 1;
-    while (await db.team.findUnique({ where: { slug } })) {
-      slug = `${baseSlug}-${counter}`;
-      counter++;
-    }
     
     // Create the team with the user as owner
     const team = await db.team.create({
@@ -69,7 +64,7 @@ export async function createTeam(params: CreateTeamParams) {
     // Revalidate paths after team creation
     revalidatePath('/dashboard');
     revalidatePath('/teams');
-    revalidatePath(`/teams/${team.slug}`); // Also revalidate the new team page
+    revalidatePath(`/teams/${team.id}`); // Also revalidate the new team page
     
     logger.info("Team created", { teamId: team.id, userId: user.id });
     return { success: true, team };
@@ -131,7 +126,7 @@ export async function updateTeam(params: UpdateTeamParams) {
     });
     
     revalidatePath('/dashboard');
-    revalidatePath(`/teams/${team.slug}`);
+    revalidatePath(`/teams/${team.id}`);
     
     logger.info("Team updated", { teamId: team.id, userId: user.id });
     return { success: true, team };
@@ -175,13 +170,15 @@ export async function deleteTeam(teamId: string) {
   }
 }
 
-export async function getTeam(teamIdOrSlug: string) {
+export async function getTeam(teamId: string) {
   try {
     const user = await requireAuth();
     
-    // Try to find by ID first, then by slug
-    let team = await db.team.findUnique({
-      where: { id: teamIdOrSlug },
+    logger.info("Getting team", { teamId, userId: user.id });
+    
+    // Find team by ID
+    const team = await db.team.findUnique({
+      where: { id: teamId },
       include: {
         members: {
           include: {
@@ -199,26 +196,7 @@ export async function getTeam(teamIdOrSlug: string) {
     });
     
     if (!team) {
-      team = await db.team.findUnique({
-        where: { slug: teamIdOrSlug },
-        include: {
-          members: {
-            include: {
-              user: true,
-            },
-          },
-          _count: {
-            select: {
-              prompts: true,
-              folders: true,
-              tags: true,
-            },
-          },
-        },
-      });
-    }
-    
-    if (!team) {
+      logger.error("Team not found", { teamId });
       throw new Error("Team not found");
     }
     
@@ -307,4 +285,98 @@ export async function canPerformAction(userRole: TeamRole | null, requiredRole: 
   };
   
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
+}
+
+/**
+ * Get team prompts with pagination
+ */
+export async function getTeamPrompts(
+  teamId: string,
+  options: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  } = {}
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const { search = "", page = 1, limit = 20 } = options;
+
+  // Get team and verify membership
+  const team = await db.team.findUnique({
+    where: { id: teamId },
+    include: {
+      members: {
+        where: { userId: session.user.id },
+        select: { role: true }
+      }
+    }
+  });
+
+  if (!team) {
+    throw new Error("Team not found");
+  }
+
+  if (team.members.length === 0) {
+    throw new Error("You are not a member of this team");
+  }
+
+  const skip = (page - 1) * limit;
+
+  // Build where clause
+  const where: any = {
+    teamId: team.id,
+  };
+
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: 'insensitive' } },
+      { description: { contains: search, mode: 'insensitive' } },
+      { content: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  // Get prompts and count
+  const [prompts, total] = await Promise.all([
+    db.prompt.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+          }
+        },
+        tags: true,
+        _count: {
+          select: {
+            likes: true,
+            favorites: true,
+            versions: true,
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    db.prompt.count({ where }),
+  ]);
+
+  return {
+    prompts,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit),
+      hasNext: skip + prompts.length < total,
+      hasPrev: page > 1,
+    },
+  };
 }

@@ -132,7 +132,7 @@ export function TeamMembersView({
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push(`/teams/${team.slug}`)}
+          onClick={() => router.push(`/teams/${team.id}`)}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -141,7 +141,7 @@ export function TeamMembersView({
           <p className="text-muted-foreground">Manage members of {team.name}</p>
         </div>
         {isAdmin && (
-          <Button onClick={() => router.push(`/teams/${team.slug}/members/invite`)}>
+          <Button onClick={() => router.push(`/teams/${team.id}/members/invite`)}>
             <UserPlus className="h-4 w-4 mr-2" />
             Invite Member
           </Button>

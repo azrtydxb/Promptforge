@@ -66,7 +66,7 @@ export function CreateTeamForm() {
         // Small delay to ensure toast is visible and state is updated
         setTimeout(() => {
           // Ensure the router is ready and redirect to the new team's dashboard
-          router.push(`/teams/${result.team.slug}`);
+          router.push(`/teams/${result.team.id}`);
           router.refresh(); // Force a refresh to ensure navigation happens
         }, 100);
       } else {

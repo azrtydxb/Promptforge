@@ -116,7 +116,7 @@ export const MovePromptModal = () => {
                     }
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-full">
+                <DropdownMenuContent className="w-full bg-white">
                   <DropdownMenuItem 
                     onClick={() => handleFolderSelect("none", "No Folder (Root)")}
                   >

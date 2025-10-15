@@ -83,29 +83,20 @@ const getTrendingPromptsData = cache(async ({
 
     switch (metric) {
       case 'views': {
-        // Get prompts with most views in the period
-        const promptViews = await db.promptView.groupBy({
-          by: ['sharedPromptId'],
+        // Get prompts with most views in the period - simplified query
+        const sharedPrompts = await db.sharedPrompt.findMany({
           where: {
-            viewedAt: { gte: sinceDate },
-            sharedPrompt: baseWhere
-          },
-          _count: {
-            id: true
-          },
-          orderBy: {
-            _count: {
-              id: 'desc'
-            }
-          },
-          take: limit
-        });
-
-        const promptIds = promptViews.map(pv => pv.sharedPromptId);
-        
-        trendingPrompts = await db.sharedPrompt.findMany({
-          where: {
-            id: { in: promptIds }
+            isPublished: true,
+            status: 'APPROVED',
+            ...(category && {
+              prompt: {
+                tags: {
+                  some: {
+                    name: category
+                  }
+                }
+              }
+            })
           },
           include: {
             author: {
@@ -121,110 +112,104 @@ const getTrendingPromptsData = cache(async ({
               include: {
                 tags: true
               }
+            },
+            views: {
+              where: {
+                viewedAt: { gte: sinceDate }
+              },
+              select: {
+                id: true
+              }
             }
-          }
+          },
+          orderBy: {
+            viewCount: 'desc'
+          },
+          take: limit
         });
 
-        // Sort by view count from groupBy result
-        const viewCountMap = new Map(promptViews.map(pv => [pv.sharedPromptId, pv._count.id]));
-        trendingPrompts.sort((a, b) => (viewCountMap.get(b.id) || 0) - (viewCountMap.get(a.id) || 0));
-        
-        // Add period view count to each prompt
-        trendingPrompts = trendingPrompts.map(prompt => ({
+        trendingPrompts = sharedPrompts.map(prompt => ({
           ...prompt,
-          periodMetricCount: viewCountMap.get(prompt.id) || 0,
-          metricLabel: 'views'
+          periodMetricCount: prompt.views.length,
+          metricLabel: 'views',
+          views: undefined // Remove the views array from the result
         }));
         break;
       }
 
       case 'likes': {
-        // Get prompts with most likes in the period
-        const promptLikes = await db.promptLike.groupBy({
-          by: ['promptId'],
+        // Get prompts with most likes in the period - simplified
+        const sharedPrompts = await db.sharedPrompt.findMany({
           where: {
-            createdAt: { gte: sinceDate },
-            prompt: {
-              sharedPrompt: baseWhere
-            }
+            isPublished: true,
+            status: 'APPROVED',
+            ...(category && {
+              prompt: {
+                tags: {
+                  some: {
+                    name: category
+                  }
+                }
+              }
+            })
           },
-          _count: {
-            id: true
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                avatarType: true,
+                profilePicture: true
+              }
+            },
+            prompt: {
+              include: {
+                tags: true,
+                promptLikes: {
+                  where: {
+                    createdAt: { gte: sinceDate }
+                  },
+                  select: {
+                    id: true
+                  }
+                }
+              }
+            }
           },
           orderBy: {
-            _count: {
-              id: 'desc'
-            }
+            likeCount: 'desc'
           },
           take: limit
         });
 
-        const promptIds = promptLikes.map(pl => pl.promptId);
-        
-        const prompts = await db.prompt.findMany({
-          where: {
-            id: { in: promptIds }
-          },
-          include: {
-            sharedPrompt: {
-              include: {
-                author: {
-                  select: {
-                    id: true,
-                    username: true,
-                    name: true,
-                    avatarType: true,
-                    profilePicture: true
-                  }
-                }
-              }
-            },
-            tags: true
+        trendingPrompts = sharedPrompts.map(prompt => ({
+          ...prompt,
+          periodMetricCount: prompt.prompt.promptLikes.length,
+          metricLabel: 'likes',
+          prompt: {
+            ...prompt.prompt,
+            promptLikes: undefined // Remove the likes array
           }
-        });
-
-        // Transform to match SharedPrompt structure
-        trendingPrompts = prompts
-          .filter(p => p.sharedPrompt)
-          .map(p => ({
-            ...p.sharedPrompt!,
-            prompt: {
-              id: p.id,
-              tags: p.tags
-            },
-            periodMetricCount: promptLikes.find(pl => pl.promptId === p.id)?._count.id || 0,
-            metricLabel: 'likes'
-          }));
-
-        // Sort by like count
-        trendingPrompts.sort((a, b) => b.periodMetricCount - a.periodMetricCount);
+        }));
         break;
       }
 
       case 'copies': {
-        // Get prompts with most copies in the period
-        const promptCopies = await db.promptCopy.groupBy({
-          by: ['sharedPromptId'],
+        // Get prompts with most copies in the period - simplified
+        const sharedPrompts = await db.sharedPrompt.findMany({
           where: {
-            copiedAt: { gte: sinceDate },
-            sharedPrompt: baseWhere
-          },
-          _count: {
-            id: true
-          },
-          orderBy: {
-            _count: {
-              id: 'desc'
-            }
-          },
-          take: limit
-        });
-
-        const promptIds = promptCopies.map(pc => pc.sharedPromptId);
-        
-        trendingPrompts = await db.sharedPrompt.findMany({
-          where: {
-            id: { in: promptIds }
+            isPublished: true,
+            status: 'APPROVED',
+            ...(category && {
+              prompt: {
+                tags: {
+                  some: {
+                    name: category
+                  }
+                }
+              }
+            })
           },
           include: {
             author: {
@@ -240,46 +225,46 @@ const getTrendingPromptsData = cache(async ({
               include: {
                 tags: true
               }
+            },
+            copies: {
+              where: {
+                copiedAt: { gte: sinceDate }
+              },
+              select: {
+                id: true
+              }
             }
-          }
+          },
+          orderBy: {
+            copyCount: 'desc'
+          },
+          take: limit
         });
 
-        // Sort by copy count
-        const copyCountMap = new Map(promptCopies.map(pc => [pc.sharedPromptId, pc._count.id]));
-        trendingPrompts.sort((a, b) => (copyCountMap.get(b.id) || 0) - (copyCountMap.get(a.id) || 0));
-        
-        trendingPrompts = trendingPrompts.map(prompt => ({
+        trendingPrompts = sharedPrompts.map(prompt => ({
           ...prompt,
-          periodMetricCount: copyCountMap.get(prompt.id) || 0,
-          metricLabel: 'copies'
+          periodMetricCount: prompt.copies.length,
+          metricLabel: 'copies',
+          copies: undefined // Remove the copies array
         }));
         break;
       }
 
       case 'comments': {
-        // Get prompts with most comments in the period
-        const promptComments = await db.promptComment.groupBy({
-          by: ['sharedPromptId'],
+        // Get prompts with most comments in the period - simplified
+        const sharedPrompts = await db.sharedPrompt.findMany({
           where: {
-            createdAt: { gte: sinceDate },
-            sharedPrompt: baseWhere
-          },
-          _count: {
-            id: true
-          },
-          orderBy: {
-            _count: {
-              id: 'desc'
-            }
-          },
-          take: limit
-        });
-
-        const promptIds = promptComments.map(pc => pc.sharedPromptId);
-        
-        trendingPrompts = await db.sharedPrompt.findMany({
-          where: {
-            id: { in: promptIds }
+            isPublished: true,
+            status: 'APPROVED',
+            ...(category && {
+              prompt: {
+                tags: {
+                  some: {
+                    name: category
+                  }
+                }
+              }
+            })
           },
           include: {
             author: {
@@ -295,90 +280,50 @@ const getTrendingPromptsData = cache(async ({
               include: {
                 tags: true
               }
+            },
+            comments: {
+              where: {
+                createdAt: { gte: sinceDate }
+              },
+              select: {
+                id: true
+              }
             }
-          }
+          },
+          orderBy: {
+            commentCount: 'desc'
+          },
+          take: limit
         });
 
-        // Sort by comment count
-        const commentCountMap = new Map(promptComments.map(pc => [pc.sharedPromptId, pc._count.id]));
-        trendingPrompts.sort((a, b) => (commentCountMap.get(b.id) || 0) - (commentCountMap.get(a.id) || 0));
-        
-        trendingPrompts = trendingPrompts.map(prompt => ({
+        trendingPrompts = sharedPrompts.map(prompt => ({
           ...prompt,
-          periodMetricCount: commentCountMap.get(prompt.id) || 0,
-          metricLabel: 'comments'
+          periodMetricCount: prompt.comments.length,
+          metricLabel: 'comments',
+          comments: undefined // Remove the comments array
         }));
         break;
       }
 
       case 'rising': {
-        // Calculate velocity-based trending (engagement rate over time)
-        // This is more complex as it requires comparing recent vs older engagement
-        
-        const midPoint = new Date();
-        midPoint.setTime(sinceDate.getTime() + (Date.now() - sinceDate.getTime()) / 2);
+        // For rising/trending, we'll look at recently published prompts with high engagement
+        const recentDate = new Date();
+        recentDate.setDate(recentDate.getDate() - (period === 'today' ? 1 : period === 'week' ? 3 : 7));
 
-        // Get engagement in first half of period
-        const [oldViews, oldLikes] = await Promise.all([
-          db.promptView.groupBy({
-            by: ['sharedPromptId'],
-            where: {
-              viewedAt: { gte: sinceDate, lt: midPoint },
-              sharedPrompt: baseWhere
-            },
-            _count: { id: true }
-          }),
-          db.promptLike.groupBy({
-            by: ['promptId'],
-            where: {
-              createdAt: { gte: sinceDate, lt: midPoint },
-              prompt: { sharedPrompt: baseWhere }
-            },
-            _count: { id: true }
-          })
-        ]);
-
-        // Get engagement in second half of period
-        const [newViews, newLikes] = await Promise.all([
-          db.promptView.groupBy({
-            by: ['sharedPromptId'],
-            where: {
-              viewedAt: { gte: midPoint },
-              sharedPrompt: baseWhere
-            },
-            _count: { id: true }
-          }),
-          db.promptLike.groupBy({
-            by: ['promptId'],
-            where: {
-              createdAt: { gte: midPoint },
-              prompt: { sharedPrompt: baseWhere }
-            },
-            _count: { id: true }
-          })
-        ]);
-
-        // Calculate velocity scores
-        const velocityScores = new Map<string, number>();
-        
-        // Process views
-        const oldViewsMap = new Map(oldViews.map(v => [v.sharedPromptId, v._count.id]));
-        newViews.forEach(v => {
-          const oldCount = oldViewsMap.get(v.sharedPromptId) || 0;
-          const newCount = v._count.id;
-          const velocity = oldCount > 0 ? (newCount - oldCount) / oldCount : newCount;
-          velocityScores.set(v.sharedPromptId, velocity);
-        });
-
-        // Get top rising prompts
-        const risingPromptIds = Array.from(velocityScores.entries())
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, limit)
-          .map(([id]) => id);
-
-        trendingPrompts = await db.sharedPrompt.findMany({
+        const sharedPrompts = await db.sharedPrompt.findMany({
           where: {
-            id: { in: risingPromptIds }
+            isPublished: true,
+            status: 'APPROVED',
+            publishedAt: { gte: recentDate }, // Recently published
+            ...(category && {
+              prompt: {
+                tags: {
+                  some: {
+                    name: category
+                  }
+                }
+              }
+            })
           },
           include: {
             author: {
@@ -395,19 +340,29 @@ const getTrendingPromptsData = cache(async ({
                 tags: true
               }
             }
-          }
+          },
+          orderBy: [
+            { viewCount: 'desc' },
+            { likeCount: 'desc' }
+          ],
+          take: limit
         });
 
-        // Sort by velocity score
-        trendingPrompts.sort((a, b) => 
-          (velocityScores.get(b.id) || 0) - (velocityScores.get(a.id) || 0)
-        );
-        
-        trendingPrompts = trendingPrompts.map(prompt => ({
-          ...prompt,
-          periodMetricCount: Math.round((velocityScores.get(prompt.id) || 0) * 100),
-          metricLabel: '% growth'
-        }));
+        // Calculate engagement rate (likes + comments per view)
+        trendingPrompts = sharedPrompts.map(prompt => {
+          const engagementRate = prompt.viewCount > 0 
+            ? ((prompt.likeCount + prompt.commentCount) / prompt.viewCount) * 100
+            : 0;
+          
+          return {
+            ...prompt,
+            periodMetricCount: Math.round(engagementRate),
+            metricLabel: '% engagement'
+          };
+        });
+
+        // Sort by engagement rate
+        trendingPrompts.sort((a, b) => b.periodMetricCount - a.periodMetricCount);
         break;
       }
 

@@ -318,7 +318,7 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
                         data={prompt}
                         onLikeToggle={handlePromptLike}
                         onCopy={handlePromptCopy}
-                        compact
+                        className="shadow-sm"
                       />
                       <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="font-medium" style={{ color: METRIC_CONFIG[selectedMetric].color }}>
