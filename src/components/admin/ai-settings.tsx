@@ -986,20 +986,24 @@ export function AISettings() {
                       <div className="flex justify-between text-sm">
                         <span>Overall Progress</span>
                         <span>
-                          {Math.round(
-                            ((embeddingStats.prompts.withEmbeddings + embeddingStats.templates.withEmbeddings) /
-                              (embeddingStats.prompts.total + embeddingStats.templates.total)) * 100
-                          )}%
+                          {(() => {
+                            const total = embeddingStats.prompts.total + embeddingStats.templates.total;
+                            if (total === 0) return 0;
+                            const withEmbeddings = embeddingStats.prompts.withEmbeddings + embeddingStats.templates.withEmbeddings;
+                            return Math.round((withEmbeddings / total) * 100);
+                          })()}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-[hsl(var(--success))] h-2 rounded-full transition-all duration-300"
                           style={{
-                            width: `${
-                              ((embeddingStats.prompts.withEmbeddings + embeddingStats.templates.withEmbeddings) /
-                                (embeddingStats.prompts.total + embeddingStats.templates.total)) * 100
-                            }%`
+                            width: `${(() => {
+                              const total = embeddingStats.prompts.total + embeddingStats.templates.total;
+                              if (total === 0) return 0;
+                              const withEmbeddings = embeddingStats.prompts.withEmbeddings + embeddingStats.templates.withEmbeddings;
+                              return (withEmbeddings / total) * 100;
+                            })()}%`
                           }}
                         />
                       </div>
