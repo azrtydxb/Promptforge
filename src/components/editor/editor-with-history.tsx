@@ -93,20 +93,21 @@ export function EditorWithHistory({
   }, [canUndo, canRedo, handleUndo, handleRedo]);
 
   return (
-    <div className={cn("relative h-full", className)}>
+    <div className={cn("flex flex-col h-full", className)}>
       {showHistoryControls && (
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-card rounded-md p-1 border border-border">
+        <div className="flex items-center justify-end gap-2 p-2 border-b border-border bg-gray-50">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 px-3 flex items-center gap-1"
                   onClick={handleUndo}
                   disabled={!canUndo}
                 >
                   <Undo2 className="h-4 w-4" />
+                  <span className="text-xs">Undo</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -122,13 +123,14 @@ export function EditorWithHistory({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 px-3 flex items-center gap-1"
                   onClick={handleRedo}
                   disabled={!canRedo}
                 >
                   <Redo2 className="h-4 w-4" />
+                  <span className="text-xs">Redo</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -141,18 +143,18 @@ export function EditorWithHistory({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          
-          <div className="ml-1 border-l pl-1">
-            <KeyboardShortcuts />
-          </div>
+
+          <KeyboardShortcuts />
         </div>
       )}
-      
-      <Editor
-        value={currentValue}
-        onChange={handleChange}
-        language={language}
-      />
+
+      <div className="flex-1 overflow-hidden">
+        <Editor
+          value={currentValue}
+          onChange={handleChange}
+          language={language}
+        />
+      </div>
     </div>
   );
 }
