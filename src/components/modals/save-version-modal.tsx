@@ -81,28 +81,26 @@ export function SaveVersionModal() {
           </p>
         </div>
         <DialogFooter>
-          <div className="flex items-start gap-3 w-full sm:w-auto">
+          <div className="flex items-start justify-between w-full">
             <Button
               variant="outline"
               onClick={handleClose}
               disabled={!!savingType}
-              className="flex-1 sm:flex-initial"
             >
               Cancel
             </Button>
-            <div className="flex flex-col gap-2 flex-1 sm:flex-initial">
+            <div className="flex flex-col gap-2">
               <Button
                 onClick={() => handleSave("major")}
                 disabled={!!savingType}
-                className="w-full"
+                className="bg-[#546ee5] hover:bg-[#4560d6] text-white"
               >
                 {savingType === 'major' ? "Saving..." : "Save as Major Change"}
               </Button>
               <Button
                 onClick={() => handleSave("minor")}
                 disabled={!!savingType}
-                variant="secondary"
-                className="w-full"
+                className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white"
               >
                 {savingType === 'minor' ? "Saving..." : "Save as Minor Change"}
               </Button>
