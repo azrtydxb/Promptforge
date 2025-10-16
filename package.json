@@ -23,7 +23,9 @@
     "worker": "tsx scripts/start-worker-ts.ts",
     "redis:up": "docker-compose up -d redis",
     "redis:down": "docker-compose down redis",
-    "redis:logs": "docker-compose logs -f redis"
+    "redis:logs": "docker-compose logs -f redis",
+    "extract-cursor-rules": "node extract-cursor-rules.js",
+    "upload-cursor-rules": "node upload-cursor-rules.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
