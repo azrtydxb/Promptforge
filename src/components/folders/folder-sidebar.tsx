@@ -152,7 +152,7 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
               <Icons.MoreVertical className="h-3 w-3" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent className="border border-border shadow-lg bg-[hsl(var(--popover))] text-popover-foreground">
             <DropdownMenuItem
               onClick={(e) => {
                 e.preventDefault();
