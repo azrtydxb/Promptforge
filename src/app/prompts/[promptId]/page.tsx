@@ -397,7 +397,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
         </div>
 
         {/* Description field above language dropdown */}
-        <div className="h-32 p-4 border-b">
+        <div className="h-36 p-4 border-b">
           <textarea
             placeholder="Enter prompt description (optional)..."
             value={description}
@@ -406,7 +406,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
             className="w-full min-h-[80px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             rows={3}
           />
-          <div className="text-xs text-gray-500 mt-1 text-right">
+          <div className="text-xs text-gray-500 mt-2 text-right">
             {description.length}/256 characters
           </div>
         </div>
