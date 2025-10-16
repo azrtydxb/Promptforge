@@ -55,18 +55,8 @@ export function PromptGrid({
         key={prompt.id}
         className={cn(
           "relative",
-          "cursor-pointer",
           isSelected ? "ring-2 ring-[#546ee5]" : ""
         )}
-        role="checkbox"
-        aria-checked={isSelected}
-        tabIndex={0}
-        onClick={handleToggle}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            handleToggle(event);
-          }
-        }}
       >
         <button
           type="button"
@@ -84,9 +74,7 @@ export function PromptGrid({
         <UnifiedPromptCard
           variant="personal"
           data={prompt}
-          onPromptClick={undefined}
-          className={cn(cardClassName, "pointer-events-none")}
-          disableLink={true}
+          className={cardClassName}
         />
       </div>
     );
