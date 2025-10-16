@@ -152,12 +152,12 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
               <Icons.MoreVertical className="h-3 w-3" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white">
+          <DropdownMenuContent>
             <DropdownMenuItem
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onOpen("renameFolder", { 
+                onOpen("renameFolder", {
                   folder: {
                     id: node.data.id,
                     name: node.data.name,
@@ -177,7 +177,7 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onOpen("deleteFolder", { 
+                onOpen("deleteFolder", {
                   folder: {
                     id: node.data.id,
                     name: node.data.name,
@@ -190,7 +190,7 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
                   onSuccess: onRefresh
                 });
               }}
-              className="text-red-600"
+              className="text-destructive focus:text-destructive"
             >
               Delete
             </DropdownMenuItem>

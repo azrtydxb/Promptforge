@@ -126,7 +126,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
           ref={contentRef}
           className={cn(
             "relative rounded-lg shadow-2xl border-2 border-[hsl(var(--accent))] w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
-            "bg-white",
+            "bg-popover text-popover-foreground",
             className
           )}
           onClick={(e) => e.stopPropagation()}
@@ -134,7 +134,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
         >
         <button
           onClick={() => context.onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-sm text-gray-400 transition-all hover:text-black focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))] focus:ring-offset-2 disabled:pointer-events-none"
+          className="absolute right-4 top-4 rounded-sm text-muted-foreground transition-all hover:text-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent))] focus:ring-offset-2 disabled:pointer-events-none"
           aria-label="Close dialog"
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -154,7 +154,7 @@ export interface DialogHeaderProps {
 
 export function DialogHeader({ className, children }: DialogHeaderProps) {
   return (
-    <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left p-6 pb-4 bg-white", className)}>
+    <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left p-6 pb-4", className)}>
       {children}
     </div>
   );
@@ -167,7 +167,7 @@ export interface DialogFooterProps {
 
 export function DialogFooter({ className, children }: DialogFooterProps) {
   return (
-    <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 pt-4 bg-white", className)}>
+    <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 p-6 pt-4", className)}>
       {children}
     </div>
   );
@@ -189,7 +189,7 @@ export function DialogTitle({ className, children }: DialogTitleProps) {
   }, [dialogTitleId]);
   
   return (
-    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-black", className)}>
+    <h2 id={dialogTitleId} className={cn("text-lg font-semibold leading-none tracking-tight text-foreground", className)}>
       {children}
     </h2>
   );
@@ -214,7 +214,7 @@ export function DialogDescription({ className, children }: DialogDescriptionProp
   }, [dialogDescId]);
   
   return (
-    <p id={dialogDescId} className={cn("text-sm text-gray-500", className)}>
+    <p id={dialogDescId} className={cn("text-sm text-muted-foreground", className)}>
       {children}
     </p>
   );
