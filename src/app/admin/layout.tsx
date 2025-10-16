@@ -5,6 +5,8 @@ import { SidebarProvider } from '@/components/providers/sidebar-provider';
 import { DashboardContent } from '@/components/layout/dashboard-content';
 import { PageErrorBoundary } from '@/components/error-boundary';
 
+export const dynamic = 'force-dynamic';
+
 const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   await requireAdmin(); // This will redirect if not admin
   

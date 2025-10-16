@@ -296,14 +296,14 @@ interface GetTeamPromptsParams {
 
 export async function getTeamPrompts(params: GetTeamPromptsParams) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     const userRole = await getUserTeamRole(params.teamId);
-    
+
     if (!userRole) {
       throw new Error("You are not a member of this team");
     }
-    
-    const where: any = {
+
+    const where: Prisma.TeamPromptWhereInput = {
       teamId: params.teamId,
     };
     
@@ -358,7 +358,7 @@ export async function getTeamPrompts(params: GetTeamPromptsParams) {
 
 export async function getTeamPrompt(promptId: string) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     
     const prompt = await db.teamPrompt.findUnique({
       where: { id: promptId },
@@ -409,7 +409,7 @@ export async function getTeamPrompt(promptId: string) {
 
 export async function pinTeamPrompt(promptId: string) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     
     const prompt = await db.teamPrompt.findUnique({
       where: { id: promptId },

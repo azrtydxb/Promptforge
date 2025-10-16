@@ -3,6 +3,8 @@ import { getFavoritePrompts } from "@/app/actions/prompt-favorites.actions";
 import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
 import { EmptyState } from "@/components/ui/empty-state";
 
+export const dynamic = 'force-dynamic';
+
 async function FavoritesList() {
   const favorites = await getFavoritePrompts();
 

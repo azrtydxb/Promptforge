@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { TagsManagement } from "@/components/tags/tags-management";
 import { Card, CardContent } from "@/components/ui/card";
 
+export const dynamic = 'force-dynamic';
+
 // Internal function for getting tags data (not cached)
 async function getTagsDataInternal() {
   const tags = await db.tag.findMany({

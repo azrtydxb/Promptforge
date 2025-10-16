@@ -1,20 +1,18 @@
 import { useState, useCallback, useEffect } from "react";
 import { searchPrompts, searchPromptsHybrid } from "@/app/actions/search.actions";
 import { searchPromptsKeyword, searchSharedPromptsKeyword, searchTemplatesKeyword } from "@/app/actions/keyword-search.actions";
-import { getSharedPrompts } from "@/app/actions/shared-prompts.actions";
-import { getPromptTemplates } from "@/app/actions/template.actions";
 import { canUseSemanticSearch } from "@/app/actions/semantic-search.actions";
 import { updateSearchClick } from "@/app/actions/search-history.actions";
 import type { SearchDataSource, SearchMode, SearchFilters } from "@/components/search/unified-search";
 
 interface UseUnifiedSearchOptions {
   dataSource: SearchDataSource;
-  onResultsChange?: (results: any[], count: number) => void;
+  onResultsChange?: (results: unknown[], count: number) => void;
   pageSize?: number;
 }
 
 interface SearchState {
-  results: any[];
+  results: unknown[];
   isLoading: boolean;
   error: string | null;
   totalCount: number;
@@ -58,7 +56,7 @@ export function useUnifiedSearch({
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      let results: any[] = [];
+      let results: unknown[] = [];
       let totalCount = 0;
 
       // Force keyword mode if semantic search is disabled
@@ -180,13 +178,13 @@ export function useUnifiedSearch({
       onResultsChange?.(results, totalCount);
     } catch (error) {
       console.error("Search error:", error);
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         error: error instanceof Error ? error.message : "Search failed",
-        isLoading: false 
+        isLoading: false
       }));
     }
-  }, [dataSource, pageSize, state.semanticSearchEnabled, state.currentPage, onResultsChange]);
+  }, [dataSource, pageSize, state.semanticSearchEnabled, onResultsChange]);
 
   const trackResultClick = useCallback(async (resultId: string, searchId?: string) => {
     if (searchId) {

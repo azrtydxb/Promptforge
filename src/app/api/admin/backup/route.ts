@@ -3,12 +3,12 @@
  * Allows admins to create database backups
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRole } from '@/generated/prisma';
 import { backupService } from '@/lib/services/backup.service';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication and admin role
     const user = await getCurrentUser();
@@ -23,9 +23,6 @@ export async function GET(request: NextRequest) {
     // Create backup
     console.log('Creating backup...');
     const backup = await backupService.createFullBackup();
-
-    // Get backup statistics
-    const stats = backupService.getBackupStats(backup);
 
     // Return backup as JSON download
     const filename = `promptforge-backup-${new Date().toISOString().split('T')[0]}.json`;
@@ -46,7 +43,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Check authentication and admin role
     const user = await getCurrentUser();

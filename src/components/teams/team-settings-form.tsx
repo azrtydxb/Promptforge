@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,7 +52,7 @@ interface TeamSettingsFormProps {
   currentUserId: string;
 }
 
-export function TeamSettingsForm({ team, isOwner, currentUserId }: TeamSettingsFormProps) {
+export function TeamSettingsForm({ team, isOwner }: TeamSettingsFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,18 +106,18 @@ export function TeamSettingsForm({ team, isOwner, currentUserId }: TeamSettingsF
     }
     
     setIsSubmitting(true);
-    
+
     try {
-      const updates: any = {};
-      
+      const updates: Record<string, string | null> = {};
+
       if (formData.name.trim() !== team.name) {
         updates.name = formData.name.trim();
       }
-      
+
       if (formData.description.trim() !== (team.description || "")) {
         updates.description = formData.description.trim() || null;
       }
-      
+
       const result = await updateTeam({
         teamId: team.id,
         ...updates,
@@ -182,7 +181,7 @@ export function TeamSettingsForm({ team, isOwner, currentUserId }: TeamSettingsF
         <CardHeader>
           <CardTitle>General Settings</CardTitle>
           <CardDescription>
-            Update your team's basic information
+            Update your team&apos;s basic information
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -226,7 +225,7 @@ export function TeamSettingsForm({ team, isOwner, currentUserId }: TeamSettingsF
                 rows={3}
               />
               <p className="text-sm text-muted-foreground">
-                Brief description of your team's purpose (optional)
+                Brief description of your team&apos;s purpose (optional)
               </p>
               {errors.description && (
                 <p className="text-sm text-destructive">{errors.description}</p>

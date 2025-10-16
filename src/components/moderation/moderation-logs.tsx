@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -81,7 +81,7 @@ export function ModerationLogs({ initialLogs }: ModerationLogsProps) {
   const [filter, setFilter] = useState<string>('all');
   const [limit, setLimit] = useState(100);
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
       const contentType = filter === 'all' ? undefined : filter;
@@ -92,18 +92,18 @@ export function ModerationLogs({ initialLogs }: ModerationLogsProps) {
       } else {
         toast.error(result.error || 'Failed to load logs');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred loading logs');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, limit]);
 
   useEffect(() => {
     if (filter !== 'all' || limit !== 100) {
       loadLogs();
     }
-  }, [filter, limit]);
+  }, [filter, limit, loadLogs]);
 
   const handleRefresh = () => {
     loadLogs();

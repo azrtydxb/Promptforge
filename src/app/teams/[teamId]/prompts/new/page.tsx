@@ -3,6 +3,8 @@ import { requireAuth } from "@/lib/auth";
 import { getTeam, getUserTeamRole, canPerformAction } from "@/app/actions/team.actions";
 import { TeamRole } from "@/generated/prisma";
 
+export const dynamic = 'force-dynamic';
+
 interface NewTeamPromptPageProps {
   params: Promise<{
     teamId: string;
@@ -10,7 +12,7 @@ interface NewTeamPromptPageProps {
 }
 
 export default async function NewTeamPromptPage({ params }: NewTeamPromptPageProps) {
-  const user = await requireAuth();
+  await requireAuth();
   const { teamId } = await params;
   
   try {
@@ -29,7 +31,7 @@ export default async function NewTeamPromptPage({ params }: NewTeamPromptPagePro
     // with team context passed via query params
     redirect(`/prompts/new?teamId=${team.id}`);
     
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

@@ -11,8 +11,27 @@ import { MarketplaceFilters } from "@/components/marketplace/marketplace-filters
 import { Share, FileText } from "lucide-react";
 import type { SearchMode, SearchFilters } from "@/components/search/unified-search";
 
+interface Prompt {
+  id: string;
+  title: string;
+  description?: string | null;
+  content: string;
+  isLiked?: boolean;
+  likeCount: number;
+  prompt?: {
+    tags: Array<{ id: string; name: string }>;
+  };
+  author?: {
+    id: string;
+    username: string | null;
+    name: string | null;
+    avatarType: 'INITIALS' | 'GRAVATAR' | 'UPLOAD';
+    profilePicture: string | null;
+  };
+}
+
 interface SharedPromptsSearchProps {
-  initialPrompts?: any[];
+  initialPrompts?: Prompt[];
   semanticSearchEnabled?: boolean;
 }
 
@@ -22,7 +41,6 @@ export function SharedPromptsSearch({
 }: SharedPromptsSearchProps) {
   const [prompts, setPrompts] = useState(initialPrompts);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [sortBy, setSortBy] = useState<"recent" | "popular" | "liked" | "copied">("recent");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -31,26 +49,28 @@ export function SharedPromptsSearch({
   const [availableTags] = useState<Array<{ id: string; name: string; count: number }>>([]);
 
   const handleSearch = useCallback(async (
-    query: string, 
-    mode: SearchMode, 
+    query: string,
+    _mode: SearchMode,
     filters: SearchFilters
   ) => {
     setIsLoading(true);
     try {
       const response = await getSharedPrompts({
         search: query,
-        tags: filters.tags,
+        tags: filters.tags || [],
         sortBy,
         page: currentPage,
         limit: 20,
       });
 
-      setPrompts(response.prompts || []);
+      // Type assertion with proper handling of response structure
+      const sharedPrompts = (response as { prompts?: Prompt[] }).prompts || [];
+      setPrompts(sharedPrompts);
       if (response.pagination) {
         setTotalPages(Math.ceil(response.pagination.total / response.pagination.limit));
       }
-    } catch (error) {
-      console.error("Error searching shared prompts:", error);
+    } catch (err) {
+      console.error("Error searching shared prompts:", err);
       setPrompts([]);
     } finally {
       setIsLoading(false);
@@ -113,7 +133,27 @@ export function SharedPromptsSearch({
             <UnifiedPromptCard
               key={prompt.id}
               variant="shared"
-              data={prompt}
+              data={{
+                id: prompt.id,
+                title: prompt.title,
+                description: prompt.description || null,
+                content: prompt.content,
+                promptId: prompt.id,
+                publishedAt: null,
+                viewCount: 0,
+                likeCount: prompt.likeCount || 0,
+                commentCount: 0,
+                copyCount: 0,
+                isLiked: prompt.isLiked,
+                author: prompt.author || {
+                  id: 'unknown',
+                  username: null,
+                  name: null,
+                  avatarType: 'INITIALS' as const,
+                  profilePicture: null,
+                },
+                prompt: prompt.prompt,
+              }}
               onLikeToggle={handlePromptLike}
               onCopy={handlePromptCopy}
             />
@@ -151,17 +191,7 @@ export function SharedPromptsSearch({
     </div>
   );
 
-  const rightPanel = selectedPrompt ? (
-    <div className="p-6 bg-background rounded-lg border">
-      <h2 className="text-2xl font-bold mb-4">{selectedPrompt.title}</h2>
-      {selectedPrompt.description && (
-        <p className="text-muted-foreground mb-4">{selectedPrompt.description}</p>
-      )}
-      <pre className="whitespace-pre-wrap bg-muted p-4 rounded-lg">
-        {selectedPrompt.content}
-      </pre>
-    </div>
-  ) : (
+  const rightPanel = (
     <EmptyState
       icon={FileText}
       title="Select a prompt"

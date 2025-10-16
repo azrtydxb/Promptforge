@@ -1,0 +1,10 @@
+---
+# Namespace for the Promptforge application
+# Isolates all Promptforge resources in a dedicated namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: promptforge
+  labels:
+    app: promptforge
+    environment: production

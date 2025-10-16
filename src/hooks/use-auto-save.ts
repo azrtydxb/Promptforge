@@ -15,7 +15,7 @@ interface UseAutoSaveOptions {
   data: DraftData;
   enabled?: boolean;
   debounceMs?: number;
-  onSaveSuccess?: (draft: any) => void;
+  onSaveSuccess?: (draft: unknown) => void;
   onSaveError?: (error: string) => void;
 }
 
@@ -60,7 +60,7 @@ export function useAutoSave({
         onSaveError?.(result.error || 'Failed to save draft');
         toast.error('Failed to save draft');
       }
-    } catch (error) {
+    } catch {
       setSaveStatus('error');
       onSaveError?.('An error occurred while saving');
       toast.error('Failed to save draft');

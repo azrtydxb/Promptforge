@@ -3,7 +3,6 @@
  * Handles database restore operations with version detection and migration
  */
 
-import { PrismaClient } from '@prisma/client';
 import type {
   BackupData,
   RestoreOptions,
@@ -12,8 +11,7 @@ import type {
 } from '@/types/backup';
 import { migrationService } from './migration.service';
 import { backupService } from './backup.service';
-
-const prisma = new PrismaClient();
+import { db as prisma } from '@/lib/db';
 
 export class RestoreService {
   /**
@@ -356,38 +354,38 @@ export class RestoreService {
 
     // Restore in dependency order
     if (shouldRestoreTable('users') && data.users) {
-      await prisma.user.createMany({ data: data.users as any[], skipDuplicates: true });
-      processed += (data.users as any[]).length;
+      await prisma.user.createMany({ data: data.users as never[], skipDuplicates: true });
+      processed += (data.users as unknown[]).length;
       onProgress?.(processed);
     }
 
     if (shouldRestoreTable('accounts') && data.accounts) {
-      await prisma.account.createMany({ data: data.accounts as any[], skipDuplicates: true });
-      processed += (data.accounts as any[]).length;
+      await prisma.account.createMany({ data: data.accounts as never[], skipDuplicates: true });
+      processed += (data.accounts as unknown[]).length;
       onProgress?.(processed);
     }
 
     if (shouldRestoreTable('sessions') && data.sessions) {
-      await prisma.session.createMany({ data: data.sessions as any[], skipDuplicates: true });
-      processed += (data.sessions as any[]).length;
+      await prisma.session.createMany({ data: data.sessions as never[], skipDuplicates: true });
+      processed += (data.sessions as unknown[]).length;
       onProgress?.(processed);
     }
 
     if (shouldRestoreTable('folders') && data.folders) {
-      await prisma.folder.createMany({ data: data.folders as any[], skipDuplicates: true });
-      processed += (data.folders as any[]).length;
+      await prisma.folder.createMany({ data: data.folders as never[], skipDuplicates: true });
+      processed += (data.folders as unknown[]).length;
       onProgress?.(processed);
     }
 
     if (shouldRestoreTable('prompts') && data.prompts) {
-      await prisma.prompt.createMany({ data: data.prompts as any[], skipDuplicates: true });
-      processed += (data.prompts as any[]).length;
+      await prisma.prompt.createMany({ data: data.prompts as never[], skipDuplicates: true });
+      processed += (data.prompts as unknown[]).length;
       onProgress?.(processed);
     }
 
     if (shouldRestoreTable('tags') && data.tags) {
-      await prisma.tag.createMany({ data: data.tags as any[], skipDuplicates: true });
-      processed += (data.tags as any[]).length;
+      await prisma.tag.createMany({ data: data.tags as never[], skipDuplicates: true });
+      processed += (data.tags as unknown[]).length;
       onProgress?.(processed);
     }
 
@@ -395,8 +393,8 @@ export class RestoreService {
     // For brevity, showing pattern - full implementation would include all tables
 
     if (shouldRestoreTable('teams') && data.teams) {
-      await prisma.team.createMany({ data: data.teams as any[], skipDuplicates: true });
-      processed += (data.teams as any[]).length;
+      await prisma.team.createMany({ data: data.teams as never[], skipDuplicates: true });
+      processed += (data.teams as unknown[]).length;
       onProgress?.(processed);
     }
 

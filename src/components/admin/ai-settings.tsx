@@ -327,19 +327,19 @@ export function AISettings() {
 
   const fetchModels = async (apiKey: string) => {
     if (!apiKey || apiKey.length < 10) return;
-    
+
     console.log("Fetching models with API key length:", apiKey.length);
     setLoadingModels(true);
     try {
       const result = await fetchOpenAIModels(apiKey);
       console.log("Fetch models result:", result);
-      
-      if (result.success) {
+
+      if (result.success && 'chatModels' in result && 'embeddingModels' in result) {
         setAvailableModels({
           chatModels: result.chatModels || [],
           embeddingModels: result.embeddingModels || []
         });
-        
+
         // Show success message
         toast({
           title: "Models loaded",
@@ -348,7 +348,7 @@ export function AISettings() {
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to fetch models",
+          description: 'error' in result ? result.error : "Failed to fetch models",
           variant: "destructive"
         });
       }
@@ -370,13 +370,13 @@ export function AISettings() {
     try {
       const result = await fetchOpenAIModelsFromSettings(configType);
       console.log("Fetch models from settings result:", result);
-      
-      if (result.success) {
+
+      if (result.success && 'chatModels' in result && 'embeddingModels' in result) {
         setAvailableModels({
           chatModels: result.chatModels || [],
           embeddingModels: result.embeddingModels || []
         });
-        
+
         // Show success message
         toast({
           title: "Models loaded",
@@ -385,7 +385,7 @@ export function AISettings() {
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to fetch models",
+          description: 'error' in result ? result.error : "Failed to fetch models",
           variant: "destructive"
         });
       }

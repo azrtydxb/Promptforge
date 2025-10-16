@@ -4,6 +4,8 @@ import { getTeam, getUserTeamRole, canPerformAction } from "@/app/actions/team.a
 import { TeamRole } from "@/generated/prisma";
 import { TeamSettingsForm } from "@/components/teams/team-settings-form";
 
+export const dynamic = 'force-dynamic';
+
 interface TeamSettingsPageProps {
   params: Promise<{
     teamId: string;
@@ -33,7 +35,7 @@ export default async function TeamSettingsPage({ params }: TeamSettingsPageProps
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Team Settings</h1>
           <p className="text-muted-foreground mt-2">
-            Manage your team's settings and preferences
+            Manage your team&apos;s settings and preferences
           </p>
         </div>
         
@@ -44,7 +46,7 @@ export default async function TeamSettingsPage({ params }: TeamSettingsPageProps
         />
       </div>
     );
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

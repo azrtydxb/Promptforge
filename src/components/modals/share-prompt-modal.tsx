@@ -98,7 +98,7 @@ export function SharePromptModal() {
     }>;
     dailyViews: Array<{
       viewedAt: Date;
-      _count: number;
+      _count?: number;
     }>;
     shareLink: ShareLink;
   } | null>(null);
@@ -137,7 +137,9 @@ export function SharePromptModal() {
   const loadAnalytics = async (linkId: string) => {
     try {
       const data = await getShareLinkAnalytics(linkId);
-      setAnalytics(data as any);
+      if (data && data.shareLink) {
+        setAnalytics(data as unknown as typeof analytics);
+      }
     } catch (error) {
       console.error("Error loading analytics:", error);
     }

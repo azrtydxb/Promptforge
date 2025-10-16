@@ -32,7 +32,6 @@ import {
 import { cn } from '@/lib/utils';
 import { validateUsername } from '@/lib/username-generator';
 import { Separator } from '@/components/ui/separator';
-import { AvatarType } from '@/generated/prisma';
 import { LoadingStates } from '@/components/ui/loading-state';
 
 interface ProfileData {
@@ -40,7 +39,7 @@ interface ProfileData {
   name: string | null;
   email: string | null;
   username: string | null;
-  avatarType: AvatarType;
+  avatarType: string;
   profilePicture: string | null;
   gravatarEmail: string | null;
   createdAt: Date;
@@ -59,7 +58,7 @@ export default function ProfilePage() {
   // Form state
   const [formData, setFormData] = useState({
     username: '',
-    avatarType: 'INITIALS' as AvatarType,
+    avatarType: 'INITIALS',
     gravatarEmail: '',
   });
   
@@ -221,8 +220,7 @@ export default function ProfilePage() {
     try {
       const result = await updateUserProfile({
         username: formData.username || undefined,
-        
-        avatarType: formData.avatarType,
+        avatarType: formData.avatarType as 'INITIALS' | 'GRAVATAR' | 'UPLOAD',
         gravatarEmail: formData.gravatarEmail || undefined,
       });
       
@@ -241,9 +239,9 @@ export default function ProfilePage() {
   };
 
   // Handle avatar type change
-  const handleAvatarTypeChange = async (avatarType: AvatarType) => {
+  const handleAvatarTypeChange = async (avatarType: string) => {
     setFormData(prev => ({ ...prev, avatarType }));
-    
+
     if (avatarType !== 'GRAVATAR') {
       setFormData(prev => ({ ...prev, gravatarEmail: '' }));
     }

@@ -2,6 +2,8 @@ import { CreateTeamForm } from "@/components/teams/create-team-form";
 import { requireAuth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function NewTeamPage() {
   const user = await requireAuth();
   

@@ -4,6 +4,8 @@ import { InvitationStatus } from "@/generated/prisma";
 import { AcceptInvitationView } from "@/components/teams/accept-invitation-view";
 import { notFound } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 interface AcceptInvitationPageProps {
   params: Promise<{
     token: string;
@@ -36,10 +38,24 @@ export default async function AcceptInvitationPage({ params }: AcceptInvitationP
   const isUsed = invitation.status !== InvitationStatus.PENDING;
   const isForDifferentUser = invitation.email !== user.email;
   
+  // Transform invitation to match component expectations
+  const transformedInvitation = {
+    ...invitation,
+    team: {
+      ...invitation.team,
+      description: invitation.team.description ?? undefined,
+      logo: invitation.team.logo ?? undefined,
+    },
+    invitedBy: {
+      ...invitation.invitedBy,
+      email: invitation.invitedBy.email || '',
+    },
+  };
+
   return (
     <div className="container max-w-2xl py-16">
       <AcceptInvitationView
-        invitation={invitation}
+        invitation={transformedInvitation}
         isExpired={isExpired}
         isUsed={isUsed}
         isForDifferentUser={isForDifferentUser}

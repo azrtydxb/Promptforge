@@ -93,8 +93,9 @@ export function SimilarPrompts({ promptId, className }: SimilarPromptsProps) {
               variant="personal"
               data={{
                 ...prompt,
-                likeCount: 0
-              } as any}
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              }}
             />
             <div className="absolute top-2 right-2 bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] text-xs px-2 py-1 rounded">
               {(prompt.similarity * 100).toFixed(0)}% match

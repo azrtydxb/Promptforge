@@ -4,6 +4,8 @@ import { getTeam, getUserTeamRole } from "@/app/actions/team.actions";
 import { getTeamMembers, getTeamInvitations } from "@/app/actions/team-members.actions";
 import { TeamMembersView } from "@/components/teams/team-members-view";
 
+export const dynamic = 'force-dynamic';
+
 interface TeamMembersPageProps {
   params: Promise<{
     teamId: string;
@@ -27,18 +29,27 @@ export default async function TeamMembersPage({ params }: TeamMembersPageProps) 
       getTeamInvitations(team.id).catch(() => []), // Only admins can see invitations
     ]);
     
+    // Map invitations to ensure invitedBy.email is not null
+    const validInvitations = invitations.map(inv => ({
+      ...inv,
+      invitedBy: {
+        ...inv.invitedBy,
+        email: inv.invitedBy.email || '',
+      },
+    }));
+
     return (
       <div className="container py-8">
         <TeamMembersView
           team={team}
           members={members}
-          invitations={invitations}
+          invitations={validInvitations}
           currentUserId={user.id}
           currentUserRole={userRole}
         />
       </div>
     );
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

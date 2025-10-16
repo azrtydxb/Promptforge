@@ -4,8 +4,7 @@ import { MarketplaceFilters } from '@/components/marketplace/marketplace-filters
 import { UnifiedPromptCardClean as UnifiedPromptCard } from '@/components/ui/unified-prompt-card-clean';
 import { ResizablePanels } from '@/components/ui/resizable-panels';
 import { useState, useEffect, useCallback } from 'react';
-import { getSharedPrompts } from '@/app/actions/shared-prompts.actions';
-import { initializeMarketplace } from '@/app/actions/shared-prompts.actions';
+import { getSharedPrompts, getAvailableSharedPromptTags, initializeMarketplace } from '@/app/actions/shared-prompts.actions';
 import { Button } from '@/components/ui/button';
 import { 
   Loader2, 
@@ -16,7 +15,6 @@ import { SectionErrorBoundary } from '@/components/error-boundary';
 import { NetworkErrorFallback } from '@/components/error-boundary/error-fallbacks';
 import { LoadingStates } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { canUseSemanticSearch } from '@/app/actions/semantic-search.actions';
 
 interface SharedPrompt {
   id: string;
@@ -34,7 +32,7 @@ interface SharedPrompt {
     id: string;
     username: string | null;
     name: string | null;
-    avatarType: 'INITIALS' | 'GRAVATAR' | 'UPLOAD';
+    avatarType: string;
     profilePicture: string | null;
   };
   prompt: {
@@ -60,7 +58,6 @@ export default function SharedPromptsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
-  const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,14 +65,11 @@ export default function SharedPromptsPage() {
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'liked' | 'copied'>('recent');
   const [availableTags, setAvailableTags] = useState<Array<{ id: string; name: string; count: number }>>([]);
 
-  // Initialize marketplace and check semantic search on component mount
+  // Initialize marketplace on component mount
   useEffect(() => {
     const initialize = async () => {
       try {
         await initializeMarketplace();
-        // Check if semantic search is enabled
-        const semanticStatus = await canUseSemanticSearch();
-        setSemanticSearchEnabled(semanticStatus.enabled);
       } catch (error) {
         console.error('Error initializing marketplace:', error);
       }
@@ -152,17 +146,17 @@ export default function SharedPromptsPage() {
 
   // Initial load
   useEffect(() => {
-    loadPrompts();
-    
-    // Mock available tags for now - in real app this would come from API
-    setAvailableTags([
-      { id: '1', name: 'AI Writing', count: 45 },
-      { id: '2', name: 'Code Generation', count: 32 },
-      { id: '3', name: 'Creative', count: 28 },
-      { id: '4', name: 'Business', count: 23 },
-      { id: '5', name: 'Marketing', count: 19 },
-      { id: '6', name: 'Education', count: 15 },
-    ]);
+    const initializeData = async () => {
+      loadPrompts();
+
+      // Fetch available tags from database
+      const tagsResult = await getAvailableSharedPromptTags();
+      if (tagsResult.success) {
+        setAvailableTags(tagsResult.tags);
+      }
+    };
+
+    initializeData();
   }, [loadPrompts]);
 
   const handleLikeToggle = (promptId: string, isLiked: boolean) => {

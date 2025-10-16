@@ -3,6 +3,8 @@ import { redirect, notFound } from "next/navigation";
 import { getCollection } from "@/app/actions/collections.actions";
 import { CollectionDetailView } from "@/components/collections/collection-detail-view";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Collection | PromptForge",
 };
@@ -34,7 +36,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
         />
       </div>
     );
-  } catch (error) {
+  } catch {
     // User not authenticated
     redirect("/login");
   }

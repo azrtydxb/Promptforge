@@ -428,7 +428,7 @@ describe('Team Activity Actions', () => {
     it('should use "Someone" when no user info available', () => {
       const activity = {
         action: TeamAction.MEMBER_LEFT,
-        user: null,
+        user: undefined,
       }
 
       expect(formatActivityMessage(activity)).toBe('Someone left the team')

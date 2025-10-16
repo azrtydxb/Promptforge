@@ -3,8 +3,6 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-config';
 import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
 import { PageErrorBoundary } from '@/components/error-boundary';
 import { SidebarProvider } from '@/components/providers/sidebar-provider';
 import { DashboardContent } from '@/components/layout/dashboard-content';

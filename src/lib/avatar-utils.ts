@@ -39,7 +39,7 @@ export function generateInitials(name?: string | null): string {
  * Gets the appropriate avatar URL based on the user's avatar type and data
  */
 export function getAvatarUrl(user: {
-  avatarType: AvatarType;
+  avatarType: string;
   profilePicture?: string | null;
   gravatarEmail?: string | null;
   email?: string | null;

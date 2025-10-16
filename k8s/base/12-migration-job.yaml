@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+  namespace: promptforge
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      containers:
+      - name: migrate
+        image: postgres:15-alpine
+        env:
+        - name: PGPASSWORD
+          value: "password"
+        volumeMounts:
+        - name: migration-sql
+          mountPath: /migrations
+        command:
+          - /bin/sh
+          - -c
+          - |
+            set -e
+
+            # Wait for PostgreSQL to be ready
+            echo "Waiting for PostgreSQL..."
+            until pg_isready -h postgres-service.promptforge.svc.cluster.local -U user -d prompt-manager; do
+              sleep 2
+              echo "Still waiting for PostgreSQL..."
+            done
+            echo "PostgreSQL is ready!"
+
+            # Create pgvector extension
+            echo "Creating pgvector extension..."
+            psql -h postgres-service.promptforge.svc.cluster.local -U user -d prompt-manager -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+            # Run baseline migration
+            echo "Running baseline schema migration..."
+            psql -h postgres-service.promptforge.svc.cluster.local -U user -d prompt-manager -f /migrations/migration.sql
+
+            # Mark migration as applied in _prisma_migrations table
+            echo "Marking migration as applied..."
+            psql -h postgres-service.promptforge.svc.cluster.local -U user -d prompt-manager -c "
+            CREATE TABLE IF NOT EXISTS _prisma_migrations (
+              id SERIAL PRIMARY KEY,
+              checksum VARCHAR(64) NOT NULL,
+              finished_at TIMESTAMP,
+              migration_name VARCHAR(255) NOT NULL UNIQUE,
+              logs TEXT,
+              rolled_back_at TIMESTAMP,
+              started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              applied_steps_count INTEGER NOT NULL DEFAULT 0
+            );
+
+            INSERT INTO _prisma_migrations (checksum, migration_name, finished_at, applied_steps_count)
+            VALUES ('dummy', '20251016000000_prod_baseline', NOW(), 1)
+            ON CONFLICT (migration_name) DO NOTHING;
+            "
+
+            echo "Database schema migration completed successfully!"
+      volumes:
+      - name: migration-sql
+        configMap:
+          name: db-migration-sql
+      restartPolicy: Never
+  backoffLimit: 3

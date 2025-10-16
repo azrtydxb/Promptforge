@@ -53,7 +53,7 @@ export function DraftList({
       } else {
         toast.error(result.error || 'Failed to delete draft');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred while deleting draft');
     } finally {
       setDeletingId(null);

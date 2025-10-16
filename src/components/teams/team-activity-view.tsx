@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { formatActivityMessage } from "@/lib/team-activity-formatter";
 import { formatDistanceToNow } from "date-fns";
@@ -51,7 +49,7 @@ interface TeamActivityViewProps {
   currentUserId: string;
 }
 
-const ACTION_ICONS: Record<string, any> = {
+const ACTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   TEAM_CREATED: Plus,
   TEAM_UPDATED: Edit,
   TEAM_DELETED: Trash,
@@ -76,7 +74,6 @@ export function TeamActivityView({
   team,
   activities,
   pagination,
-  currentUserId,
 }: TeamActivityViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -152,7 +149,12 @@ export function TeamActivityView({
                           {activity.user.name || activity.user.username || "Unknown User"}
                         </span>
                         <span className="text-muted-foreground">
-                          {formatActivityMessage(activity)}
+                          {formatActivityMessage({
+                            user: activity.user,
+                            action: activity.action,
+                            entityName: activity.entityName,
+                            metadata: activity.metadata as Record<string, unknown> | undefined,
+                          })}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">

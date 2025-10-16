@@ -32,7 +32,7 @@ const MarkdownPreviewComponent = ({ content, className = "" }: MarkdownPreviewPr
               {children}
             </blockquote>
           ),
-          code: ({ node, className, children, ...props }) => {
+          code: ({ className, children, ...props }) => {
             const match = /language-(\w+)/.exec(className || '');
             const isInline = !match && !className;
 

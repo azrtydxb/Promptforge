@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
   },
   // Disable static export for API routes
   output: 'standalone',
+  // Disable TypeScript type checking during builds
+  typescript: {
+    ignoreBuildErrors: false, // Keep type checking enabled for safety
+  },
 };
 
 export default nextConfig;

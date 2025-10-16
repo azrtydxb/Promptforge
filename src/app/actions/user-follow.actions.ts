@@ -114,7 +114,7 @@ export async function isFollowing(targetUserId: string) {
     });
 
     return { success: true, isFollowing: !!follow };
-  } catch (error) {
+  } catch {
     // Not authenticated or error
     return { success: true, isFollowing: false };
   }

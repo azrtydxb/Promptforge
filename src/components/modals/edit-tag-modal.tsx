@@ -70,16 +70,16 @@ export function EditTagModal() {
             Cancel
           </Button>
           <Button
-            type="button"
+            type="submit"
+            form="edit-tag-form"
             disabled={isLoading || !formData.name.trim()}
-            onClick={(e) => handleSubmit(e as any)}
           >
             {isLoading ? "Updating..." : "Update Tag"}
           </Button>
         </>
       }
     >
-      <form onSubmit={handleSubmit} className="grid gap-4">
+      <form id="edit-tag-form" onSubmit={handleSubmit} className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="name">Tag Name *</Label>
           <Input

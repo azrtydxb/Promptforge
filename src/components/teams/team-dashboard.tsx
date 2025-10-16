@@ -20,10 +20,58 @@ import { formatDistanceToNow } from "date-fns";
 import { formatActivityMessage } from "@/lib/team-activity-formatter";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { TeamAction } from "@/generated/prisma";
+
+interface TeamUser {
+  id: string;
+  name: string | null;
+  username: string | null;
+  email: string | null;
+  image: string | null;
+}
+
+interface TeamMember {
+  id: string;
+  userId: string;
+  role: string;
+  user: TeamUser;
+}
+
+interface ActivityItem {
+  id: string;
+  action: TeamAction;
+  createdAt: Date;
+  user?: TeamUser;
+  entityName?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+interface ActiveUser {
+  activityCount: number;
+  user?: TeamUser;
+}
+
+interface ActivitySummary {
+  activityCounts: Record<string, number>;
+  activeUsers: ActiveUser[];
+  recentActivity: ActivityItem[];
+}
+
+interface Team {
+  id: string;
+  name: string;
+  description?: string;
+  logo?: string;
+  _count: {
+    members: number;
+    prompts: number;
+  };
+  members: TeamMember[];
+}
 
 interface TeamDashboardProps {
-  team: any;
-  activitySummary: any;
+  team: Team;
+  activitySummary: ActivitySummary;
   currentUserId: string;
 }
 
@@ -31,7 +79,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   
-  const currentMember = team.members.find((m: any) => m.userId === currentUserId);
+  const currentMember = team.members.find((m) => m.userId === currentUserId);
   const userRole = currentMember?.role;
   const isAdmin = userRole === "OWNER" || userRole === "ADMIN";
 
@@ -125,7 +173,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {Number(Object.values(activitySummary.activityCounts).reduce((a: any, b: any) => a + b, 0))}
+                  {Number(Object.values(activitySummary.activityCounts).reduce((a, b) => a + b, 0))}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Last 30 days
@@ -166,7 +214,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
             <CardContent>
               <div className="space-y-4">
                 {activitySummary.recentActivity.length > 0 ? (
-                  activitySummary.recentActivity.slice(0, 5).map((activity: any) => (
+                  activitySummary.recentActivity.slice(0, 5).map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3">
                       <Avatar 
                         user={{
@@ -242,7 +290,7 @@ export function TeamDashboard({ team, activitySummary, currentUserId }: TeamDash
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {team.members.map((member: any) => (
+                {team.members.map((member) => (
                   <div key={member.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar 

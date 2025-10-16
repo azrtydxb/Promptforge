@@ -61,7 +61,7 @@ interface SharedPromptData extends BasePromptData {
     id: string;
     username: string | null;
     name: string | null;
-    avatarType: 'INITIALS' | 'GRAVATAR' | 'UPLOAD';
+    avatarType: string;
     profilePicture: string | null;
   };
   prompt?: {

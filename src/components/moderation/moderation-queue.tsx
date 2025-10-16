@@ -68,7 +68,7 @@ export function ModerationQueue({ prompts, onModerated, type }: ModerationQueueP
       } else {
         toast.error(result.error || 'Failed to approve content');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setModerating(false);
@@ -99,7 +99,7 @@ export function ModerationQueue({ prompts, onModerated, type }: ModerationQueueP
       } else {
         toast.error(result.error || 'Failed to reject content');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setModerating(false);
@@ -122,7 +122,7 @@ export function ModerationQueue({ prompts, onModerated, type }: ModerationQueueP
       } else {
         toast.error(result.error || 'Failed to flag content');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setModerating(false);

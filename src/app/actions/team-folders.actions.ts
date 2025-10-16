@@ -206,7 +206,7 @@ export async function deleteTeamFolder(folderId: string) {
 
 export async function getTeamFolders(teamId: string) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     const userRole = await getUserTeamRole(teamId);
     
     if (!userRole) {
@@ -398,7 +398,7 @@ export async function deleteTeamTag(tagId: string) {
 
 export async function getTeamTags(teamId: string) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     const userRole = await getUserTeamRole(teamId);
     
     if (!userRole) {

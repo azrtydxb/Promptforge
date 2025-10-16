@@ -11,6 +11,8 @@ import { UserList, SuggestedUsers } from "@/components/follow/user-list";
 import { FollowStats } from "@/components/follow/follow-stats";
 import { Users, UserPlus } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Following | PromptForge",
   description: "Manage your following and discover new creators",
@@ -94,7 +96,7 @@ export default async function FollowingPage() {
         </Tabs>
       </div>
     );
-  } catch (error) {
+  } catch {
     redirect("/login");
   }
 }

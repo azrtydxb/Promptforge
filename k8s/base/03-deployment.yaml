@@ -1,0 +1,153 @@
+---
+# Deployment for Promptforge Next.js application
+# Manages the application pods with HA configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: promptforge
+  namespace: promptforge
+  labels:
+    app: promptforge
+    version: latest
+spec:
+  # High availability: 3 replicas for production
+  # Adjust based on your traffic and resource availability
+  replicas: 3
+
+  # Rolling update strategy for zero-downtime deployments
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1          # Allow 1 extra pod during updates
+      maxUnavailable: 0    # Ensure all replicas stay available
+
+  selector:
+    matchLabels:
+      app: promptforge
+
+  template:
+    metadata:
+      labels:
+        app: promptforge
+        version: latest
+    spec:
+      # Container configuration
+      containers:
+      - name: promptforge
+        image: registry.digitalocean.com/azrty/promptforge:latest
+
+        # Always pull to ensure latest version
+        imagePullPolicy: Always
+
+        # Container port
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+
+        # Environment variables from secrets
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: DATABASE_URL
+
+        - name: NEXT_PUBLIC_SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: NEXT_PUBLIC_SUPABASE_URL
+
+        - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: SUPABASE_SERVICE_ROLE_KEY
+
+        - name: NEXTAUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: NEXTAUTH_SECRET
+
+        - name: NEXTAUTH_URL
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: NEXTAUTH_URL
+
+        # Additional environment variables
+        - name: NODE_ENV
+          value: "production"
+
+        # Resource limits for production workload
+        # Adjust based on your actual usage metrics
+        resources:
+          requests:
+            memory: "512Mi"    # Minimum memory guaranteed
+            cpu: "250m"        # Minimum CPU (0.25 cores)
+          limits:
+            memory: "1Gi"      # Maximum memory allowed
+            cpu: "1000m"       # Maximum CPU (1 core)
+
+        # Liveness probe: checks if container is alive
+        # Next.js app should respond on root path
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 30    # Wait 30s after start
+          periodSeconds: 10          # Check every 10s
+          timeoutSeconds: 5          # Timeout after 5s
+          successThreshold: 1        # 1 success = healthy
+          failureThreshold: 3        # 3 failures = restart pod
+
+        # Readiness probe: checks if container can accept traffic
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 10    # Start checking after 10s
+          periodSeconds: 5           # Check every 5s
+          timeoutSeconds: 3          # Timeout after 3s
+          successThreshold: 1        # 1 success = ready
+          failureThreshold: 3        # 3 failures = remove from service
+
+        # Startup probe: gives app time to start before other probes
+        # Useful for slow-starting Next.js applications
+        startupProbe:
+          httpGet:
+            path: /
+            port: 3000
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 30       # Allow up to 150s (30*5) to start
+
+      # Pod-level settings
+      restartPolicy: Always
+
+      # Distribute pods across nodes for HA
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - promptforge
+              topologyKey: kubernetes.io/hostname

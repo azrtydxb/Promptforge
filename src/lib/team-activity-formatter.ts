@@ -1,6 +1,18 @@
 import { TeamAction } from "@/generated/prisma";
 
-export function formatActivityMessage(activity: any): string {
+interface ActivityUser {
+  name?: string | null;
+  username?: string | null;
+}
+
+interface Activity {
+  user?: ActivityUser;
+  action: TeamAction;
+  entityName?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+export function formatActivityMessage(activity: Activity): string {
   const userName = activity.user?.name || activity.user?.username || "Someone";
   
   switch (activity.action) {

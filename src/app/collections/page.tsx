@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getUserCollections, getPublicCollections } from "@/app/actions/collections.actions";
 import { CollectionsView } from "@/components/collections/collections-view";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Collections | PromptForge",
   description: "Manage your prompt collections",
@@ -30,7 +32,7 @@ export default async function CollectionsPage() {
         />
       </div>
     );
-  } catch (error) {
+  } catch {
     // User not authenticated
     redirect("/login");
   }

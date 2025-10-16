@@ -1,0 +1,1096 @@
+apiVersion: v1
+data:
+  migration.sql: |+
+    -- CreateEnum
+    CREATE TYPE "AvatarType" AS ENUM ('INITIALS', 'GRAVATAR', 'UPLOAD');
+
+    -- CreateEnum
+    CREATE TYPE "BadgeType" AS ENUM ('CREATOR', 'POPULAR', 'HELPFUL', 'VERIFIED', 'MODERATOR', 'EARLY_ADOPTER');
+
+    -- CreateEnum
+    CREATE TYPE "InvitationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED', 'EXPIRED');
+
+    -- CreateEnum
+    CREATE TYPE "ModerationAction" AS ENUM ('FLAG', 'BLOCK', 'REJECT', 'REQUIRE_REVIEW');
+
+    -- CreateEnum
+    CREATE TYPE "ModerationSeverity" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+
+    -- CreateEnum
+    CREATE TYPE "ModerationStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'FLAGGED');
+
+    -- CreateEnum
+    CREATE TYPE "PromptVisibility" AS ENUM ('PUBLIC', 'UNLISTED', 'PRIVATE');
+
+    -- CreateEnum
+    CREATE TYPE "TeamAction" AS ENUM ('TEAM_CREATED', 'TEAM_UPDATED', 'TEAM_DELETED', 'MEMBER_INVITED', 'MEMBER_JOINED', 'MEMBER_LEFT', 'MEMBER_REMOVED', 'MEMBER_ROLE_CHANGED', 'PROMPT_CREATED', 'PROMPT_UPDATED', 'PROMPT_DELETED', 'PROMPT_ARCHIVED', 'PROMPT_RESTORED', 'FOLDER_CREATED', 'FOLDER_UPDATED', 'FOLDER_DELETED', 'TAG_CREATED', 'TAG_UPDATED', 'TAG_DELETED');
+
+    -- CreateEnum
+    CREATE TYPE "TeamRole" AS ENUM ('OWNER', 'ADMIN', 'MEMBER', 'VIEWER');
+
+    -- CreateEnum
+    CREATE TYPE "UserRole" AS ENUM ('USER', 'MODERATOR', 'ADMIN');
+
+    -- CreateTable
+    CREATE TABLE "AISettings" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "provider" TEXT NOT NULL,
+        "model" TEXT NOT NULL,
+        "apiKey" TEXT NOT NULL,
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "isDefault" BOOLEAN NOT NULL DEFAULT false,
+        "maxTokens" INTEGER DEFAULT 4096,
+        "temperature" DOUBLE PRECISION DEFAULT 0.7,
+        "topP" DOUBLE PRECISION DEFAULT 1.0,
+        "rateLimit" INTEGER,
+        "monthlyQuota" INTEGER,
+        "usageCount" INTEGER NOT NULL DEFAULT 0,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        "lastUsedAt" TIMESTAMP(3),
+
+        CONSTRAINT "AISettings_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "AIUsageLog" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "promptId" TEXT,
+        "operation" TEXT NOT NULL,
+        "provider" TEXT NOT NULL,
+        "model" TEXT NOT NULL,
+        "tokensUsed" INTEGER NOT NULL,
+        "cost" DOUBLE PRECISION,
+        "duration" INTEGER NOT NULL,
+        "success" BOOLEAN NOT NULL,
+        "error" TEXT,
+        "metadata" JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "AIUsageLog_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "Account" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "type" TEXT NOT NULL,
+        "provider" TEXT NOT NULL,
+        "providerAccountId" TEXT NOT NULL,
+        "refresh_token" TEXT,
+        "access_token" TEXT,
+        "expires_at" INTEGER,
+        "token_type" TEXT,
+        "scope" TEXT,
+        "id_token" TEXT,
+        "session_state" TEXT,
+
+        CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "Collection" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "description" TEXT,
+        "userId" TEXT NOT NULL,
+        "isPublic" BOOLEAN NOT NULL DEFAULT false,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "Collection_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "CollectionPrompt" (
+        "id" TEXT NOT NULL,
+        "collectionId" TEXT NOT NULL,
+        "sharedPromptId" TEXT NOT NULL,
+        "addedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "CollectionPrompt_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "CommentLike" (
+        "id" TEXT NOT NULL,
+        "commentId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "CommentLike_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "Folder" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "parentId" TEXT,
+        "order" INTEGER,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "Folder_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "ModerationLog" (
+        "id" TEXT NOT NULL,
+        "contentType" TEXT NOT NULL,
+        "contentId" TEXT NOT NULL,
+        "ruleId" TEXT,
+        "action" "ModerationAction" NOT NULL,
+        "reason" TEXT,
+        "automated" BOOLEAN NOT NULL DEFAULT true,
+        "reviewedBy" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "ModerationLog_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "ModerationRule" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "description" TEXT,
+        "pattern" TEXT NOT NULL,
+        "severity" "ModerationSeverity" NOT NULL,
+        "action" "ModerationAction" NOT NULL,
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "ModerationRule_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "Prompt" (
+        "id" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "content" TEXT,
+        "userId" TEXT NOT NULL,
+        "folderId" TEXT,
+        "order" INTEGER,
+        "lastUsedAt" TIMESTAMP(3),
+        "pinnedAt" TIMESTAMP(3),
+        "enhancedContent" TEXT,
+        "enhancementSuggestions" JSONB,
+        "autoTags" TEXT[],
+        "embedding" TEXT,
+        "embeddingVersion" INTEGER DEFAULT 1,
+        "embeddingOutdated" BOOLEAN NOT NULL DEFAULT true,
+        "templateId" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "Prompt_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptComment" (
+        "id" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "sharedPromptId" TEXT NOT NULL,
+        "parentId" TEXT,
+        "likeCount" INTEGER NOT NULL DEFAULT 0,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "PromptComment_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptCopy" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "sharedPromptId" TEXT NOT NULL,
+        "copiedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "PromptCopy_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptDraft" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "promptId" TEXT,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "content" TEXT,
+        "folderId" TEXT,
+        "tags" TEXT[],
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "PromptDraft_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptFavorite" (
+        "id" TEXT NOT NULL,
+        "promptId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "PromptFavorite_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptLike" (
+        "id" TEXT NOT NULL,
+        "promptId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "PromptLike_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptRating" (
+        "id" TEXT NOT NULL,
+        "sharedPromptId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "rating" INTEGER NOT NULL,
+        "review" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "PromptRating_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptShareLink" (
+        "id" TEXT NOT NULL,
+        "promptId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "shareId" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "content" TEXT NOT NULL,
+        "tags" TEXT[],
+        "settings" JSONB NOT NULL,
+        "expiresAt" TIMESTAMP(3),
+        "password" TEXT,
+        "maxViews" INTEGER,
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "PromptShareLink_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptShareView" (
+        "id" TEXT NOT NULL,
+        "shareLinkId" TEXT NOT NULL,
+        "ipAddress" TEXT,
+        "userAgent" TEXT,
+        "referer" TEXT,
+        "viewedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "PromptShareView_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptTemplate" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "description" TEXT,
+        "category" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "variables" JSONB NOT NULL,
+        "example" TEXT,
+        "icon" TEXT,
+        "isPublic" BOOLEAN NOT NULL DEFAULT true,
+        "authorId" TEXT,
+        "usageCount" INTEGER NOT NULL DEFAULT 0,
+        "rating" DOUBLE PRECISION DEFAULT 0,
+        "embedding" TEXT,
+        "embeddingVersion" INTEGER DEFAULT 1,
+        "embeddingOutdated" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "PromptTemplate_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptVersion" (
+        "id" TEXT NOT NULL,
+        "promptId" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "version" TEXT,
+        "changeMessage" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "PromptVersion_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "PromptView" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT,
+        "sharedPromptId" TEXT NOT NULL,
+        "ipAddress" TEXT,
+        "userAgent" TEXT,
+        "viewedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "PromptView_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "SearchHistory" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "query" TEXT NOT NULL,
+        "searchType" TEXT NOT NULL DEFAULT 'hybrid',
+        "filters" JSONB,
+        "resultCount" INTEGER NOT NULL DEFAULT 0,
+        "clickedPromptId" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "SearchHistory_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "Session" (
+        "id" TEXT NOT NULL,
+        "sessionToken" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "expires" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "SharedPrompt" (
+        "id" TEXT NOT NULL,
+        "promptId" TEXT NOT NULL,
+        "authorId" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "content" TEXT NOT NULL,
+        "isPublished" BOOLEAN NOT NULL DEFAULT false,
+        "visibility" "PromptVisibility" NOT NULL DEFAULT 'PUBLIC',
+        "status" "ModerationStatus" NOT NULL DEFAULT 'PENDING',
+        "moderatedBy" TEXT,
+        "moderatedAt" TIMESTAMP(3),
+        "rejectionReason" TEXT,
+        "viewCount" INTEGER NOT NULL DEFAULT 0,
+        "likeCount" INTEGER NOT NULL DEFAULT 0,
+        "commentCount" INTEGER NOT NULL DEFAULT 0,
+        "copyCount" INTEGER NOT NULL DEFAULT 0,
+        "averageRating" DOUBLE PRECISION DEFAULT 0,
+        "ratingCount" INTEGER NOT NULL DEFAULT 0,
+        "publishedAt" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "SharedPrompt_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "SystemSettings" (
+        "id" TEXT NOT NULL,
+        "key" TEXT NOT NULL,
+        "value" TEXT NOT NULL,
+        "description" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "SystemSettings_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "Tag" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "description" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "Tag_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "Team" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "slug" TEXT NOT NULL,
+        "description" TEXT,
+        "logo" TEXT,
+        "createdById" TEXT NOT NULL,
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "settings" JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "Team_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "TeamActivity" (
+        "id" TEXT NOT NULL,
+        "teamId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "action" "TeamAction" NOT NULL,
+        "entityType" TEXT,
+        "entityId" TEXT,
+        "entityName" TEXT,
+        "metadata" JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "TeamActivity_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "TeamFolder" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "teamId" TEXT NOT NULL,
+        "parentId" TEXT,
+        "order" INTEGER,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "TeamFolder_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "TeamInvitation" (
+        "id" TEXT NOT NULL,
+        "teamId" TEXT NOT NULL,
+        "email" TEXT NOT NULL,
+        "role" "TeamRole" NOT NULL DEFAULT 'MEMBER',
+        "invitedById" TEXT NOT NULL,
+        "token" TEXT NOT NULL,
+        "status" "InvitationStatus" NOT NULL DEFAULT 'PENDING',
+        "expiresAt" TIMESTAMP(3) NOT NULL,
+        "acceptedAt" TIMESTAMP(3),
+        "declinedAt" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "TeamInvitation_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "TeamMember" (
+        "id" TEXT NOT NULL,
+        "teamId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "role" "TeamRole" NOT NULL,
+        "joinedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "TeamMember_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "TeamPrompt" (
+        "id" TEXT NOT NULL,
+        "teamId" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "content" TEXT,
+        "createdById" TEXT NOT NULL,
+        "folderId" TEXT,
+        "isArchived" BOOLEAN NOT NULL DEFAULT false,
+        "enhancedContent" TEXT,
+        "enhancementSuggestions" JSONB,
+        "autoTags" TEXT[],
+        "embedding" TEXT,
+        "embeddingVersion" INTEGER DEFAULT 1,
+        "embeddingOutdated" BOOLEAN NOT NULL DEFAULT true,
+        "viewCount" INTEGER NOT NULL DEFAULT 0,
+        "copyCount" INTEGER NOT NULL DEFAULT 0,
+        "lastUsedAt" TIMESTAMP(3),
+        "pinnedAt" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "TeamPrompt_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "TeamPromptVersion" (
+        "id" TEXT NOT NULL,
+        "teamPromptId" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "version" TEXT,
+        "changeMessage" TEXT,
+        "createdById" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "TeamPromptVersion_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "TeamTag" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "teamId" TEXT NOT NULL,
+        "description" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "TeamTag_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "User" (
+        "id" TEXT NOT NULL,
+        "name" TEXT,
+        "email" TEXT,
+        "emailVerified" TIMESTAMP(3),
+        "image" TEXT,
+        "password" TEXT,
+        "username" TEXT NOT NULL,
+        "avatarType" "AvatarType" NOT NULL DEFAULT 'INITIALS',
+        "profilePicture" TEXT,
+        "gravatarEmail" TEXT,
+        "role" "UserRole" NOT NULL DEFAULT 'USER',
+        "isActive" BOOLEAN NOT NULL DEFAULT true,
+        "reputationScore" INTEGER NOT NULL DEFAULT 0,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+
+        CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "UserBadge" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "type" "BadgeType" NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT,
+        "earnedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "UserBadge_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "UserFollow" (
+        "id" TEXT NOT NULL,
+        "followerId" TEXT NOT NULL,
+        "followingId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        CONSTRAINT "UserFollow_pkey" PRIMARY KEY ("id")
+    );
+
+    -- CreateTable
+    CREATE TABLE "VerificationToken" (
+        "identifier" TEXT NOT NULL,
+        "token" TEXT NOT NULL,
+        "expires" TIMESTAMP(3) NOT NULL
+    );
+
+    -- CreateTable
+    CREATE TABLE "_PromptToTag" (
+        "A" TEXT NOT NULL,
+        "B" TEXT NOT NULL,
+
+        CONSTRAINT "_PromptToTag_AB_pkey" PRIMARY KEY ("A","B")
+    );
+
+    -- CreateTable
+    CREATE TABLE "_TeamPromptToTeamTag" (
+        "A" TEXT NOT NULL,
+        "B" TEXT NOT NULL,
+
+        CONSTRAINT "_TeamPromptToTeamTag_AB_pkey" PRIMARY KEY ("A","B")
+    );
+
+    -- CreateIndex
+    CREATE INDEX "AISettings_isActive_isDefault_idx" ON "AISettings"("isActive" ASC, "isDefault" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "AISettings_name_key" ON "AISettings"("name" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "AISettings_provider_idx" ON "AISettings"("provider" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "AIUsageLog_createdAt_idx" ON "AIUsageLog"("createdAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "AIUsageLog_operation_idx" ON "AIUsageLog"("operation" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "AIUsageLog_userId_idx" ON "AIUsageLog"("userId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider" ASC, "providerAccountId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Collection_isPublic_idx" ON "Collection"("isPublic" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Collection_userId_idx" ON "Collection"("userId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "CollectionPrompt_collectionId_sharedPromptId_key" ON "CollectionPrompt"("collectionId" ASC, "sharedPromptId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "CommentLike_commentId_idx" ON "CommentLike"("commentId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "CommentLike_commentId_userId_key" ON "CommentLike"("commentId" ASC, "userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "CommentLike_userId_idx" ON "CommentLike"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Folder_parentId_idx" ON "Folder"("parentId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Folder_userId_idx" ON "Folder"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "ModerationLog_contentType_contentId_idx" ON "ModerationLog"("contentType" ASC, "contentId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "ModerationLog_createdAt_idx" ON "ModerationLog"("createdAt" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "ModerationRule_name_key" ON "ModerationRule"("name" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Prompt_folderId_idx" ON "Prompt"("folderId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Prompt_lastUsedAt_idx" ON "Prompt"("lastUsedAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Prompt_pinnedAt_idx" ON "Prompt"("pinnedAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Prompt_userId_idx" ON "Prompt"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptComment_parentId_idx" ON "PromptComment"("parentId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptComment_sharedPromptId_idx" ON "PromptComment"("sharedPromptId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptComment_userId_idx" ON "PromptComment"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptCopy_sharedPromptId_idx" ON "PromptCopy"("sharedPromptId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptCopy_userId_idx" ON "PromptCopy"("userId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "PromptCopy_userId_sharedPromptId_key" ON "PromptCopy"("userId" ASC, "sharedPromptId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "PromptDraft_promptId_key" ON "PromptDraft"("promptId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptDraft_updatedAt_idx" ON "PromptDraft"("updatedAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptDraft_userId_idx" ON "PromptDraft"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptFavorite_promptId_idx" ON "PromptFavorite"("promptId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "PromptFavorite_promptId_userId_key" ON "PromptFavorite"("promptId" ASC, "userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptFavorite_userId_idx" ON "PromptFavorite"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptLike_promptId_idx" ON "PromptLike"("promptId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "PromptLike_promptId_userId_key" ON "PromptLike"("promptId" ASC, "userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptLike_userId_idx" ON "PromptLike"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptRating_rating_idx" ON "PromptRating"("rating" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptRating_sharedPromptId_idx" ON "PromptRating"("sharedPromptId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "PromptRating_sharedPromptId_userId_key" ON "PromptRating"("sharedPromptId" ASC, "userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptRating_userId_idx" ON "PromptRating"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptShareLink_expiresAt_idx" ON "PromptShareLink"("expiresAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptShareLink_promptId_idx" ON "PromptShareLink"("promptId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptShareLink_shareId_idx" ON "PromptShareLink"("shareId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "PromptShareLink_shareId_key" ON "PromptShareLink"("shareId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptShareLink_userId_idx" ON "PromptShareLink"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptShareView_shareLinkId_idx" ON "PromptShareView"("shareLinkId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptTemplate_authorId_idx" ON "PromptTemplate"("authorId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptTemplate_category_idx" ON "PromptTemplate"("category" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptTemplate_isPublic_idx" ON "PromptTemplate"("isPublic" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptVersion_promptId_idx" ON "PromptVersion"("promptId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptView_sharedPromptId_idx" ON "PromptView"("sharedPromptId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "PromptView_userId_idx" ON "PromptView"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SearchHistory_createdAt_idx" ON "SearchHistory"("createdAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SearchHistory_query_idx" ON "SearchHistory"("query" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SearchHistory_userId_idx" ON "SearchHistory"("userId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_authorId_idx" ON "SharedPrompt"("authorId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_commentCount_idx" ON "SharedPrompt"("commentCount" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_copyCount_idx" ON "SharedPrompt"("copyCount" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_isPublished_idx" ON "SharedPrompt"("isPublished" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_likeCount_idx" ON "SharedPrompt"("likeCount" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "SharedPrompt_promptId_key" ON "SharedPrompt"("promptId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_publishedAt_idx" ON "SharedPrompt"("publishedAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_publishedAt_likeCount_idx" ON "SharedPrompt"("publishedAt" ASC, "likeCount" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_status_idx" ON "SharedPrompt"("status" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "SharedPrompt_viewCount_idx" ON "SharedPrompt"("viewCount" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "SystemSettings_key_key" ON "SystemSettings"("key" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "Tag_name_key" ON "Tag"("name" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Team_createdById_idx" ON "Team"("createdById" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "Team_slug_idx" ON "Team"("slug" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "Team_slug_key" ON "Team"("slug" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamActivity_createdAt_idx" ON "TeamActivity"("createdAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamActivity_teamId_idx" ON "TeamActivity"("teamId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamActivity_userId_idx" ON "TeamActivity"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamFolder_parentId_idx" ON "TeamFolder"("parentId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamFolder_teamId_idx" ON "TeamFolder"("teamId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamInvitation_email_idx" ON "TeamInvitation"("email" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamInvitation_status_idx" ON "TeamInvitation"("status" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamInvitation_teamId_idx" ON "TeamInvitation"("teamId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamInvitation_token_idx" ON "TeamInvitation"("token" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "TeamInvitation_token_key" ON "TeamInvitation"("token" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamMember_teamId_idx" ON "TeamMember"("teamId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "TeamMember_teamId_userId_key" ON "TeamMember"("teamId" ASC, "userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamMember_userId_idx" ON "TeamMember"("userId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamPrompt_createdById_idx" ON "TeamPrompt"("createdById" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamPrompt_folderId_idx" ON "TeamPrompt"("folderId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamPrompt_lastUsedAt_idx" ON "TeamPrompt"("lastUsedAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamPrompt_pinnedAt_idx" ON "TeamPrompt"("pinnedAt" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamPrompt_teamId_idx" ON "TeamPrompt"("teamId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamPromptVersion_teamPromptId_idx" ON "TeamPromptVersion"("teamPromptId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "TeamTag_name_teamId_key" ON "TeamTag"("name" ASC, "teamId" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "TeamTag_teamId_idx" ON "TeamTag"("teamId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "User_username_key" ON "User"("username" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "UserBadge_userId_type_key" ON "UserBadge"("userId" ASC, "type" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "UserFollow_followerId_followingId_key" ON "UserFollow"("followerId" ASC, "followingId" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier" ASC, "token" ASC);
+
+    -- CreateIndex
+    CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "_PromptToTag_B_index" ON "_PromptToTag"("B" ASC);
+
+    -- CreateIndex
+    CREATE INDEX "_TeamPromptToTeamTag_B_index" ON "_TeamPromptToTeamTag"("B" ASC);
+
+    -- AddForeignKey
+    ALTER TABLE "AIUsageLog" ADD CONSTRAINT "AIUsageLog_promptId_fkey" FOREIGN KEY ("promptId") REFERENCES "Prompt"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "AIUsageLog" ADD CONSTRAINT "AIUsageLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "Collection" ADD CONSTRAINT "Collection_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "CollectionPrompt" ADD CONSTRAINT "CollectionPrompt_collectionId_fkey" FOREIGN KEY ("collectionId") REFERENCES "Collection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "CollectionPrompt" ADD CONSTRAINT "CollectionPrompt_sharedPromptId_fkey" FOREIGN KEY ("sharedPromptId") REFERENCES "SharedPrompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "CommentLike" ADD CONSTRAINT "CommentLike_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "PromptComment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "CommentLike" ADD CONSTRAINT "CommentLike_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "Folder" ADD CONSTRAINT "Folder_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Folder"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+    -- AddForeignKey
+    ALTER TABLE "Folder" ADD CONSTRAINT "Folder_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "ModerationLog" ADD CONSTRAINT "ModerationLog_ruleId_fkey" FOREIGN KEY ("ruleId") REFERENCES "ModerationRule"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "Prompt" ADD CONSTRAINT "Prompt_folderId_fkey" FOREIGN KEY ("folderId") REFERENCES "Folder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "Prompt" ADD CONSTRAINT "Prompt_templateId_fkey" FOREIGN KEY ("templateId") REFERENCES "PromptTemplate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "Prompt" ADD CONSTRAINT "Prompt_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptComment" ADD CONSTRAINT "PromptComment_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "PromptComment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptComment" ADD CONSTRAINT "PromptComment_sharedPromptId_fkey" FOREIGN KEY ("sharedPromptId") REFERENCES "SharedPrompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptComment" ADD CONSTRAINT "PromptComment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptCopy" ADD CONSTRAINT "PromptCopy_sharedPromptId_fkey" FOREIGN KEY ("sharedPromptId") REFERENCES "SharedPrompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptCopy" ADD CONSTRAINT "PromptCopy_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptDraft" ADD CONSTRAINT "PromptDraft_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptFavorite" ADD CONSTRAINT "PromptFavorite_promptId_fkey" FOREIGN KEY ("promptId") REFERENCES "Prompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptFavorite" ADD CONSTRAINT "PromptFavorite_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptLike" ADD CONSTRAINT "PromptLike_promptId_fkey" FOREIGN KEY ("promptId") REFERENCES "Prompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptLike" ADD CONSTRAINT "PromptLike_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptRating" ADD CONSTRAINT "PromptRating_sharedPromptId_fkey" FOREIGN KEY ("sharedPromptId") REFERENCES "SharedPrompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptRating" ADD CONSTRAINT "PromptRating_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptShareLink" ADD CONSTRAINT "PromptShareLink_promptId_fkey" FOREIGN KEY ("promptId") REFERENCES "Prompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptShareLink" ADD CONSTRAINT "PromptShareLink_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptShareView" ADD CONSTRAINT "PromptShareView_shareLinkId_fkey" FOREIGN KEY ("shareLinkId") REFERENCES "PromptShareLink"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptTemplate" ADD CONSTRAINT "PromptTemplate_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptVersion" ADD CONSTRAINT "PromptVersion_promptId_fkey" FOREIGN KEY ("promptId") REFERENCES "Prompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptView" ADD CONSTRAINT "PromptView_sharedPromptId_fkey" FOREIGN KEY ("sharedPromptId") REFERENCES "SharedPrompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "PromptView" ADD CONSTRAINT "PromptView_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "SearchHistory" ADD CONSTRAINT "SearchHistory_clickedPromptId_fkey" FOREIGN KEY ("clickedPromptId") REFERENCES "Prompt"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "SearchHistory" ADD CONSTRAINT "SearchHistory_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "SharedPrompt" ADD CONSTRAINT "SharedPrompt_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "SharedPrompt" ADD CONSTRAINT "SharedPrompt_moderatedBy_fkey" FOREIGN KEY ("moderatedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "SharedPrompt" ADD CONSTRAINT "SharedPrompt_promptId_fkey" FOREIGN KEY ("promptId") REFERENCES "Prompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "Team" ADD CONSTRAINT "Team_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamActivity" ADD CONSTRAINT "TeamActivity_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamActivity" ADD CONSTRAINT "TeamActivity_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamFolder" ADD CONSTRAINT "TeamFolder_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "TeamFolder"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamFolder" ADD CONSTRAINT "TeamFolder_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamInvitation" ADD CONSTRAINT "TeamInvitation_invitedById_fkey" FOREIGN KEY ("invitedById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamInvitation" ADD CONSTRAINT "TeamInvitation_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamMember" ADD CONSTRAINT "TeamMember_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamMember" ADD CONSTRAINT "TeamMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamPrompt" ADD CONSTRAINT "TeamPrompt_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamPrompt" ADD CONSTRAINT "TeamPrompt_folderId_fkey" FOREIGN KEY ("folderId") REFERENCES "TeamFolder"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamPrompt" ADD CONSTRAINT "TeamPrompt_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamPromptVersion" ADD CONSTRAINT "TeamPromptVersion_teamPromptId_fkey" FOREIGN KEY ("teamPromptId") REFERENCES "TeamPrompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "TeamTag" ADD CONSTRAINT "TeamTag_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "UserBadge" ADD CONSTRAINT "UserBadge_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "UserFollow" ADD CONSTRAINT "UserFollow_followerId_fkey" FOREIGN KEY ("followerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "UserFollow" ADD CONSTRAINT "UserFollow_followingId_fkey" FOREIGN KEY ("followingId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "_PromptToTag" ADD CONSTRAINT "_PromptToTag_A_fkey" FOREIGN KEY ("A") REFERENCES "Prompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "_PromptToTag" ADD CONSTRAINT "_PromptToTag_B_fkey" FOREIGN KEY ("B") REFERENCES "Tag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "_TeamPromptToTeamTag" ADD CONSTRAINT "_TeamPromptToTeamTag_A_fkey" FOREIGN KEY ("A") REFERENCES "TeamPrompt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+    -- AddForeignKey
+    ALTER TABLE "_TeamPromptToTeamTag" ADD CONSTRAINT "_TeamPromptToTeamTag_B_fkey" FOREIGN KEY ("B") REFERENCES "TeamTag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+kind: ConfigMap
+metadata:
+  name: db-migration-sql
+  namespace: promptforge

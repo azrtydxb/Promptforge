@@ -158,7 +158,7 @@ export async function getUserRating(sharedPromptId: string) {
     });
 
     return { success: true, rating };
-  } catch (error) {
+  } catch {
     // Not authenticated
     return { success: true, rating: null };
   }

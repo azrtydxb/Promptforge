@@ -1,21 +1,42 @@
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Build outputs
 .next
+dist
+build
+out
+
+# Git
 .git
 .gitignore
+.gitattributes
+
+# Documentation
 *.md
+README*
+CHANGELOG*
+LICENSE*
+docs/
+
+# Environment files (except production)
 .env*
 !.env.production
-.DS_Store
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Testing
 coverage
 .nyc_output
-
-# K8s
-k8s
+tests/
+test/
+__tests__/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+jest.config.*
+cypress/
 
 # Development
 .vscode
@@ -23,8 +44,35 @@ k8s
 *.swp
 *.swo
 *~
+.DS_Store
 
-# Build artifacts
-dist
-build
-out
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Kubernetes
+k8s/
+kubernetes/
+helm/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Scripts (if not needed at runtime)
+scripts/
+
+# Prisma migrations (only keep schema in final image)
+prisma/migrations/
+prisma/seed.ts

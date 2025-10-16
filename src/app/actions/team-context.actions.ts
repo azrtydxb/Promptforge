@@ -51,13 +51,13 @@ export async function getTeamContext(): Promise<TeamContext> {
   try {
     const cookieStore = await cookies();
     const teamId = cookieStore.get(TEAM_CONTEXT_COOKIE)?.value || null;
-    
+
     if (!teamId) {
       return { teamId: null, teamSlug: null };
     }
-    
+
     // Verify the team still exists and user is still a member
-    const user = await requireAuth();
+    await requireAuth();
     const userRole = await getUserTeamRole(teamId);
     
     if (!userRole) {

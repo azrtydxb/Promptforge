@@ -57,7 +57,7 @@ export function RatingForm({
       } else {
         toast.error(result.error || 'Failed to submit rating');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred while submitting rating');
     } finally {
       setIsSubmitting(false);
@@ -83,7 +83,7 @@ export function RatingForm({
       } else {
         toast.error(result.error || 'Failed to delete rating');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred while deleting rating');
     } finally {
       setIsDeleting(false);

@@ -243,6 +243,59 @@ export async function getSharedPrompts({
 }
 
 /**
+ * Get available tags from published shared prompts with counts
+ */
+export async function getAvailableSharedPromptTags() {
+  try {
+    // Get all published shared prompts with their tags
+    const sharedPrompts = await db.sharedPrompt.findMany({
+      where: {
+        isPublished: true,
+        status: 'APPROVED'
+      },
+      include: {
+        prompt: {
+          include: {
+            tags: true
+          }
+        }
+      }
+    });
+
+    // Aggregate tags and count occurrences
+    const tagMap = new Map<string, { id: string; name: string; count: number }>();
+
+    for (const sharedPrompt of sharedPrompts) {
+      for (const tag of sharedPrompt.prompt.tags) {
+        if (tagMap.has(tag.id)) {
+          const existing = tagMap.get(tag.id)!;
+          existing.count++;
+        } else {
+          tagMap.set(tag.id, {
+            id: tag.id,
+            name: tag.name,
+            count: 1
+          });
+        }
+      }
+    }
+
+    // Convert to array and sort by count descending
+    const tags = Array.from(tagMap.values())
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      success: true,
+      tags
+    };
+
+  } catch (error) {
+    console.error('Error getting available tags:', error);
+    return { success: false, error: 'Failed to load tags', tags: [] };
+  }
+}
+
+/**
  * Get a single shared prompt with details
  */
 export async function getSharedPrompt(id: string) {
@@ -250,7 +303,7 @@ export async function getSharedPrompt(id: string) {
     const session = await getServerSession(authOptions);
 
     const sharedPrompt = await db.sharedPrompt.findUnique({
-      where: { 
+      where: {
         id,
         isPublished: true,
         status: 'APPROVED'
@@ -360,7 +413,7 @@ export async function copySharedPrompt(sharedPromptId: string, folderId?: string
 
     // Get the shared prompt
     const sharedPrompt = await db.sharedPrompt.findUnique({
-      where: { 
+      where: {
         id: sharedPromptId,
         isPublished: true,
         status: 'APPROVED'

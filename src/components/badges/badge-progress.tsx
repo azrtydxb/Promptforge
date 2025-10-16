@@ -11,8 +11,8 @@ interface BadgeProgress {
   description: string;
   icon: string;
   earned: boolean;
-  progress?: number | { [key: string]: any };
-  requirement?: number | { [key: string]: any };
+  progress?: number | Record<string, number>;
+  requirement?: number | Record<string, number>;
   manual?: boolean;
 }
 
@@ -26,17 +26,15 @@ export function BadgeProgressTracker({ progress }: BadgeProgressProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {badges.map(([type, badge]) => (
-        <BadgeProgressCard key={type} type={type} badge={badge} />
+        <BadgeProgressCard key={type} badge={badge} />
       ))}
     </div>
   );
 }
 
 function BadgeProgressCard({
-  type,
   badge,
 }: {
-  type: string;
   badge: BadgeProgress;
 }) {
   const getProgressPercentage = () => {
@@ -58,8 +56,8 @@ function BadgeProgressCard({
     }
 
     if (typeof badge.progress === 'object' && typeof badge.requirement === 'object') {
-      const progressObj = badge.progress as Record<string, any>;
-      const requirementObj = badge.requirement as Record<string, any>;
+      const progressObj = badge.progress as Record<string, number>;
+      const requirementObj = badge.requirement as Record<string, number>;
 
       return Object.keys(requirementObj)
         .map((key) => {

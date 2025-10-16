@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getPendingModeration, getModerationStats } from "@/app/actions/moderation.actions";
 import { ModerationDashboard } from "@/components/moderation/moderation-dashboard";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Content Moderation | PromptForge",
   description: "Moderate and review content",
@@ -41,7 +43,7 @@ export default async function ModerationPage() {
         />
       </div>
     );
-  } catch (error) {
+  } catch {
     redirect("/login");
   }
 }

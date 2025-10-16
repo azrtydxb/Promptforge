@@ -1,50 +1,58 @@
-# Stage 1: Dependencies
-FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+# syntax=docker/dockerfile:1.7
+
+# ----- Stage 1: Builder -----
+FROM node:20-slim AS builder
 WORKDIR /app
+
+# Install OpenSSL for Prisma, curl for pnpm, ca-certificates, and clean up
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openssl curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install pnpm
+ENV PNPM_HOME="/root/.local/share/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN curl -fsSL https://get.pnpm.io/install.sh | ENV="/.bashrc" SHELL="$(which bash)" bash -
 
 # Copy package files
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
 
-# Stage 2: Builder
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Install all dependencies with pnpm (with cache mount for deduped symlinks)
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+# Copy application code
 COPY . .
 
 # Generate Prisma Client
-RUN npx prisma generate
+RUN pnpm prisma generate
 
-# Build the application
-ENV NEXT_TELEMETRY_DISABLED 1
-RUN npm run build
+# Build Next.js (standalone mode already configured)
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm build
 
-# Stage 3: Runner
-FROM node:20-alpine AS runner
+# Clean build artifacts
+RUN rm -rf .next/cache
+
+# ----- Stage 2: Runtime (distroless) -----
+FROM gcr.io/distroless/nodejs20-debian12
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Copy Next.js standalone output (includes only prod deps)
+COPY --from=builder --chown=1000:1000 /app/.next/standalone ./
+COPY --from=builder --chown=1000:1000 /app/.next/static ./.next/static
+COPY --from=builder --chown=1000:1000 /app/public ./public
 
-# Copy necessary files
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/prisma ./prisma
+# Copy only Prisma client and schema (not migrations/seeds)
+COPY --from=builder --chown=1000:1000 /app/src/generated/prisma ./src/generated/prisma
+COPY --from=builder --chown=1000:1000 /app/prisma/schema.prisma ./prisma/schema.prisma
 
-# Set permissions
-RUN chown -R nextjs:nodejs /app
-
-USER nextjs
-
+USER 1000
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
-CMD ["node", "server.js"]
+CMD ["server.js"]

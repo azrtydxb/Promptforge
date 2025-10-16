@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
+import { Prisma } from "@/generated/prisma";
 
 // Validation schemas
 const keywordSearchSchema = z.object({
@@ -34,7 +35,7 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
     });
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.PromptWhereInput = {
       userId: user.id,
     };
 
@@ -65,7 +66,7 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
     }
 
     if (validated.filters?.dateRange) {
-      const dateConditions: any = {};
+      const dateConditions: Prisma.DateTimeFilter = {};
       if (validated.filters.dateRange.start) {
         dateConditions.gte = validated.filters.dateRange.start;
       }
@@ -140,7 +141,7 @@ export async function searchSharedPromptsKeyword(input: z.infer<typeof keywordSe
     });
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.SharedPromptWhereInput = {
       isPublished: true,
     };
 
@@ -155,14 +156,18 @@ export async function searchSharedPromptsKeyword(input: z.infer<typeof keywordSe
 
     // Add filter conditions
     if (validated.filters?.tags?.length) {
+      const existingPromptFilter = where.prompt && typeof where.prompt === 'object' && !Array.isArray(where.prompt)
+        ? where.prompt
+        : {};
+
       where.prompt = {
-        ...where.prompt,
+        ...existingPromptFilter,
         tags: {
           some: {
             id: { in: validated.filters.tags }
           }
         }
-      };
+      } as Prisma.PromptWhereInput;
     }
 
     // Perform the search
@@ -235,7 +240,7 @@ export async function searchTemplatesKeyword(input: z.infer<typeof keywordSearch
     });
 
     // Build where clause
-    const where: any = {
+    const where: Prisma.PromptTemplateWhereInput = {
       isPublic: true,
     };
 

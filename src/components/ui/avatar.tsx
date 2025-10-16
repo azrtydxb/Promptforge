@@ -10,7 +10,7 @@ export interface AvatarUser {
   name?: string | null;
   email?: string | null;
   username?: string | null;
-  avatarType: 'INITIALS' | 'GRAVATAR' | 'UPLOAD';
+  avatarType: string;
   profilePicture?: string | null;
   gravatarEmail?: string | null;
 }

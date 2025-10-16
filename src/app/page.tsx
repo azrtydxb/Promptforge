@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -123,10 +124,13 @@ export default function Home() {
             </div>
             
             <div className="text-center md:text-end mt-4 md:mt-0">
-              <img 
-                src="/images/svg/startup.svg" 
-                alt="Team collaboration on laptops" 
+              <Image
+                src="/images/svg/startup.svg"
+                alt="Team collaboration on laptops"
+                width={384}
+                height={384}
                 className="w-full max-w-xs mx-auto md:max-w-sm h-auto"
+                priority
               />
             </div>
           </div>

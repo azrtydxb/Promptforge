@@ -3,11 +3,9 @@
  * Handles database backup operations with version tracking and integrity checks
  */
 
-import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import type { BackupData, BackupMetadata } from '@/types/backup';
-
-const prisma = new PrismaClient();
+import { db as prisma } from '@/lib/db';
 
 export class BackupService {
   /**

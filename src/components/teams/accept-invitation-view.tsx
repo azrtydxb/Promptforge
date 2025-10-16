@@ -12,8 +12,26 @@ import { useToast } from "@/hooks/use-toast";
 import { Building2, Clock, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
+interface InvitationType {
+  token: string;
+  email: string;
+  role: string;
+  status: string;
+  expiresAt: Date;
+  team: {
+    id: string;
+    name: string;
+    description?: string;
+    logo?: string;
+  };
+  invitedBy: {
+    name: string | null;
+    email: string;
+  };
+}
+
 interface AcceptInvitationViewProps {
-  invitation: any;
+  invitation: InvitationType;
   isExpired: boolean;
   isUsed: boolean;
   isForDifferentUser: boolean;
@@ -96,7 +114,7 @@ export function AcceptInvitationView({
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              This invitation was sent to {invitation.email}, but you're signed in as {userEmail}.
+              This invitation was sent to {invitation.email}, but you&apos;re signed in as {userEmail}.
               Please sign in with the correct account to accept this invitation.
             </AlertDescription>
           </Alert>
@@ -167,7 +185,7 @@ export function AcceptInvitationView({
       <CardHeader>
         <CardTitle className="text-2xl">Team Invitation</CardTitle>
         <CardDescription>
-          You've been invited to join a team on PromptForge
+          You&apos;ve been invited to join a team on PromptForge
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -211,7 +229,7 @@ export function AcceptInvitationView({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            By accepting this invitation, you'll be able to access and collaborate on prompts shared within this team.
+            By accepting this invitation, you&apos;ll be able to access and collaborate on prompts shared within this team.
           </AlertDescription>
         </Alert>
       </CardContent>

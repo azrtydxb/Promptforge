@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: promptforge
+  namespace: promptforge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: promptforge
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: promptforge
+    spec:
+      containers:
+      - name: promptforge
+        image: registry.digitalocean.com/azrty/promptforge:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: DATABASE_URL
+        - name: NEXTAUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: NEXTAUTH_SECRET
+        - name: NEXTAUTH_URL
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: NEXTAUTH_URL
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: REDIS_PORT
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: REDIS_PASSWORD
+        - name: AI_KEY_ENCRYPTION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: AI_KEY_ENCRYPTION_SECRET
+        - name: LOG_LEVEL
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: LOG_LEVEL
+        - name: NODE_ENV
+          valueFrom:
+            secretKeyRef:
+              name: promptforge-secrets
+              key: NODE_ENV
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /
+            port: 3000
+          failureThreshold: 30
+          periodSeconds: 10

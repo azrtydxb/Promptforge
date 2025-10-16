@@ -3,8 +3,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Users, FileText, UserPlus } from 'lucide-react';
+import { Users, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { FollowButton } from './follow-button';
 

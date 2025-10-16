@@ -37,7 +37,29 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
   const [query, setQuery] = useState(initialQuery);
   const [searchMode, setSearchMode] = useState<"semantic" | "hybrid" | "keyword">("hybrid");
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<{ prompts: unknown[]; templates?: unknown[] }>({ prompts: [], templates: [] });
+  const [results, setResults] = useState<{
+    prompts: Array<{
+      id: string;
+      title: string;
+      description: string | null;
+      content: string | null;
+      similarity: number;
+      tags: Array<{ id: string; name: string }>;
+      _count: {
+        likes: number;
+        favorites: number;
+      };
+    }>;
+    templates?: Array<{
+      id: string;
+      name: string;
+      description: string | null;
+      category: string;
+      similarity: number;
+      usageCount: number;
+      rating: number | null;
+    }>
+  }>({ prompts: [], templates: [] });
   const [showFilters, setShowFilters] = useState(false);
   const [embeddingStatus, setEmbeddingStatus] = useState<{ message: string; type: "info" | "success" | "error" } | null>(null);
   const [semanticSearchAvailable, setSemanticSearchAvailable] = useState<{
@@ -475,7 +497,28 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
                   Prompts ({results.prompts.length})
                 </h3>
                 <PromptGrid
-                  prompts={results.prompts as any}
+                  prompts={results.prompts.map(p => ({
+                    id: p.id,
+                    title: p.title,
+                    description: p.description,
+                    content: p.content,
+                    userId: '',
+                    folderId: null,
+                    order: null,
+                    lastUsedAt: null,
+                    pinnedAt: null,
+                    enhancedContent: null,
+                    enhancementSuggestions: null,
+                    autoTags: [],
+                    embedding: null,
+                    embeddingVersion: 1,
+                    embeddingOutdated: false,
+                    templateId: null,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    tags: p.tags,
+                    _count: p._count,
+                  } as unknown as Parameters<typeof PromptGrid>[0]['prompts'][number]))}
                   showFavoriteButton={true}
                   onPromptClick={handlePromptClick}
                 />
@@ -489,7 +532,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
                   Templates ({results.templates.length})
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {(results.templates as any)?.map((template: { id: string; name: string; description?: string; category: string; similarity: number }) => (
+                  {results.templates?.map((template) => (
                     <div
                       key={template.id}
                       className="rounded-lg border p-4 hover:shadow-md transition-shadow"

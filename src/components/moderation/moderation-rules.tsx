@@ -109,7 +109,7 @@ export function ModerationRules() {
       } else {
         toast.error(result.error || 'Failed to load moderation rules');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred loading rules');
     } finally {
       setLoading(false);
@@ -172,7 +172,7 @@ export function ModerationRules() {
       } else {
         toast.error(result.error || 'Failed to save rule');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setSubmitting(false);
@@ -192,7 +192,7 @@ export function ModerationRules() {
       } else {
         toast.error(result.error || 'Failed to update rule');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     }
   };
@@ -211,7 +211,7 @@ export function ModerationRules() {
       } else {
         toast.error(result.error || 'Failed to delete rule');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     }
   };
@@ -303,7 +303,7 @@ export function ModerationRules() {
                       <Label htmlFor="severity">Severity</Label>
                       <Select
                         value={formData.severity}
-                        onValueChange={(value: any) =>
+                        onValueChange={(value: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL') =>
                           setFormData({ ...formData, severity: value })
                         }
                       >
@@ -323,7 +323,7 @@ export function ModerationRules() {
                       <Label htmlFor="action">Action</Label>
                       <Select
                         value={formData.action}
-                        onValueChange={(value: any) => setFormData({ ...formData, action: value })}
+                        onValueChange={(value: 'FLAG' | 'BLOCK' | 'REJECT' | 'REQUIRE_REVIEW') => setFormData({ ...formData, action: value })}
                       >
                         <SelectTrigger id="action">
                           <SelectValue />

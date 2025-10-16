@@ -103,7 +103,7 @@ export function CreateTeamForm() {
           required
         />
         <p className="text-sm text-muted-foreground">
-          This is your team's display name.
+          This is your team&apos;s display name.
         </p>
         {errors.name && (
           <p className="text-sm text-destructive">{errors.name}</p>
@@ -128,7 +128,7 @@ export function CreateTeamForm() {
           rows={3}
         />
         <p className="text-sm text-muted-foreground">
-          Brief description of your team's purpose.
+          Brief description of your team&apos;s purpose.
         </p>
         {errors.description && (
           <p className="text-sm text-destructive">{errors.description}</p>

@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
 import { getTrendingPrompts, getTrendingCategories, getTrendingStats, type TimePeriod, type TrendingMetric } from "@/app/actions/trending.actions";
-import { 
-  TrendingUp, 
-  Eye, 
-  Heart, 
-  Copy, 
+import {
+  TrendingUp,
+  Eye,
+  Heart,
+  Copy,
   MessageSquare,
   Zap,
   Loader2,
@@ -23,8 +22,6 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -90,10 +87,10 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
   const [selectedMetric, setSelectedMetric] = useState<TrendingMetric>("views");
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("week");
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
-  const [trendingPrompts, setTrendingPrompts] = useState<any[]>([]);
+  const [trendingPrompts, setTrendingPrompts] = useState<unknown[]>([]);
   const [categories, setCategories] = useState<Array<{ id: string; name: string; count: number }>>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [chartData, setChartData] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<Array<{ date: string; value: number }>>([]);
 
   // Load categories on mount
   useEffect(() => {
@@ -107,8 +104,7 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
   }, []);
 
   // Load trending prompts when filters change
-  useEffect(() => {
-    const loadTrendingData = async () => {
+  const loadTrendingData = useCallback(async () => {
       setIsLoading(true);
 
       try {
@@ -123,7 +119,7 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
         ]);
 
         if (promptsResult.success && promptsResult.prompts) {
-          setTrendingPrompts(promptsResult.prompts);
+          setTrendingPrompts(promptsResult.prompts as unknown[]);
         } else {
           toast.error("Failed to load trending data");
         }
@@ -159,25 +155,28 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
       } finally {
         setIsLoading(false);
       }
-    };
+    }, [selectedMetric, selectedPeriod, selectedCategory, userId]);
 
+  useEffect(() => {
     loadTrendingData();
-  }, [selectedMetric, selectedPeriod, selectedCategory, userId]);
+  }, [loadTrendingData]);
 
   const handlePromptLike = (promptId: string, isLiked: boolean) => {
-    setTrendingPrompts(prev => prev.map(prompt => 
-      prompt.id === promptId 
-        ? { ...prompt, isLiked, likeCount: prompt.likeCount + (isLiked ? 1 : -1) }
-        : prompt
-    ));
+    setTrendingPrompts(prev => prev.map((prompt: unknown) => {
+      const p = prompt as { id: string; isLiked?: boolean; likeCount: number };
+      return p.id === promptId
+        ? { ...p, isLiked, likeCount: p.likeCount + (isLiked ? 1 : -1) }
+        : p;
+    }));
   };
 
   const handlePromptCopy = (promptId: string) => {
-    setTrendingPrompts(prev => prev.map(prompt => 
-      prompt.id === promptId 
-        ? { ...prompt, copyCount: prompt.copyCount + 1 }
-        : prompt
-    ));
+    setTrendingPrompts(prev => prev.map((prompt: unknown) => {
+      const p = prompt as { id: string; copyCount: number };
+      return p.id === promptId
+        ? { ...p, copyCount: p.copyCount + 1 }
+        : p;
+    }));
   };
 
   const chartColors = {
@@ -324,29 +323,37 @@ export function TrendingSection({ userId, className }: TrendingSectionProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {trendingPrompts.map((prompt, index) => (
-                  <div key={prompt.id} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-semibold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <UnifiedPromptCard
-                        variant="shared"
-                        data={prompt}
-                        onLikeToggle={handlePromptLike}
-                        onCopy={handlePromptCopy}
-                        className="shadow-sm"
-                      />
-                      <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="font-medium" style={{ color: METRIC_CONFIG[selectedMetric].color }}>
-                          {prompt.periodMetricCount} {prompt.metricLabel} {selectedPeriod !== 'all' && `in ${TIME_PERIOD_CONFIG[selectedPeriod].label.toLowerCase()}`}
-                        </span>
-                        <span>•</span>
-                        <span>{prompt.viewCount} total views</span>
+                {trendingPrompts.map((promptData: unknown, index) => {
+                  const prompt = promptData as {
+                    id: string;
+                    periodMetricCount: number;
+                    metricLabel: string;
+                    viewCount: number;
+                  };
+                  return (
+                    <div key={prompt.id} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-semibold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <UnifiedPromptCard
+                          variant="shared"
+                          data={promptData as never}
+                          onLikeToggle={handlePromptLike}
+                          onCopy={handlePromptCopy}
+                          className="shadow-sm"
+                        />
+                        <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="font-medium" style={{ color: METRIC_CONFIG[selectedMetric].color }}>
+                            {prompt.periodMetricCount} {prompt.metricLabel} {selectedPeriod !== 'all' && `in ${TIME_PERIOD_CONFIG[selectedPeriod].label.toLowerCase()}`}
+                          </span>
+                          <span>&bull;</span>
+                          <span>{prompt.viewCount} total views</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {/* View All Button */}
                 <div className="pt-4">

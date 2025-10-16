@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth";
 import { logger } from "@/lib/logger";
-import { TeamRole, TeamAction } from "@/generated/prisma";
+import { TeamRole, TeamAction, Prisma } from "@/generated/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 
@@ -99,12 +99,14 @@ export async function updateTeam(params: UpdateTeamParams) {
     if (!member || (member.role !== TeamRole.OWNER && member.role !== TeamRole.ADMIN)) {
       throw new Error("Insufficient permissions to update team");
     }
-    
-    const updateData: any = {};
+
+    const updateData: Prisma.TeamUpdateInput = {};
     if (params.name !== undefined) updateData.name = params.name;
     if (params.description !== undefined) updateData.description = params.description;
     if (params.logo !== undefined) updateData.logo = params.logo;
-    if (params.settings !== undefined) updateData.settings = params.settings;
+    if (params.settings !== undefined) {
+      updateData.settings = params.settings as Prisma.InputJsonValue;
+    }
     
     const team = await db.team.update({
       where: { id: params.teamId },
@@ -326,8 +328,8 @@ export async function getTeamPrompts(
 
   const skip = (page - 1) * limit;
 
-  // Build where clause
-  const where: any = {
+  // Build where clause for TeamPrompt
+  const where: Prisma.TeamPromptWhereInput = {
     teamId: team.id,
   };
 
@@ -339,12 +341,12 @@ export async function getTeamPrompts(
     ];
   }
 
-  // Get prompts and count
+  // Get team prompts and count
   const [prompts, total] = await Promise.all([
-    db.prompt.findMany({
+    db.teamPrompt.findMany({
       where,
       include: {
-        user: {
+        createdBy: {
           select: {
             id: true,
             name: true,
@@ -355,8 +357,6 @@ export async function getTeamPrompts(
         tags: true,
         _count: {
           select: {
-            likes: true,
-            favorites: true,
             versions: true,
           }
         }
@@ -365,7 +365,7 @@ export async function getTeamPrompts(
       skip,
       take: limit,
     }),
-    db.prompt.count({ where }),
+    db.teamPrompt.count({ where }),
   ]);
 
   return {

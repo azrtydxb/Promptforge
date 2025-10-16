@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { fullModerationCheck } from '@/lib/moderation';
 import { z } from 'zod';
+import { Prisma } from "@/generated/prisma";
 
 // Input validation schemas
 const createCommentSchema = z.object({
@@ -376,7 +377,7 @@ export async function getComments({
     const skip = (page - 1) * limit;
 
     // Build order by clause
-    let orderBy: any = { createdAt: 'desc' }; // default: newest
+    let orderBy: Prisma.PromptCommentOrderByWithRelationInput = { createdAt: 'desc' }; // default: newest
     
     switch (sortBy) {
       case 'oldest':
@@ -465,13 +466,13 @@ export async function getComments({
       ...comment,
       isLiked: Array.isArray(comment.likes) ? comment.likes.length > 0 : false,
       canEdit: session?.user?.id === comment.userId,
-      canDelete: session?.user?.id === comment.userId || 
+      canDelete: session?.user?.id === comment.userId ||
                  session?.user?.id === sharedPrompt?.authorId,
-      replies: comment.replies.map((reply: any) => ({
+      replies: comment.replies.map((reply) => ({
         ...reply,
         isLiked: Array.isArray(reply.likes) ? reply.likes.length > 0 : false,
         canEdit: session?.user?.id === reply.userId,
-        canDelete: session?.user?.id === reply.userId || 
+        canDelete: session?.user?.id === reply.userId ||
                    session?.user?.id === sharedPrompt?.authorId
       }))
     }));

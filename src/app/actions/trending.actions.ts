@@ -4,6 +4,31 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-config";
 import { db } from '@/lib/db';
 import { unstable_cache } from 'next/cache';
+import { Prisma } from '@/generated/prisma';
+
+// Type for trending prompt with metrics
+type TrendingPrompt = Prisma.SharedPromptGetPayload<{
+  include: {
+    author: {
+      select: {
+        id: true;
+        username: true;
+        name: true;
+        avatarType: true;
+        profilePicture: true;
+      };
+    };
+    prompt: {
+      include: {
+        tags: true;
+      };
+    };
+  };
+}> & {
+  periodMetricCount: number;
+  metricLabel: string;
+  isLiked?: boolean;
+};
 
 // Time period configurations
 const TIME_PERIODS = {
@@ -64,22 +89,7 @@ const getTrendingPromptsData = async ({
     const periodConfig = TIME_PERIODS[period];
     const sinceDate = periodConfig.dateFilter();
 
-    // Base where clause for published prompts
-    const baseWhere = {
-      isPublished: true,
-      status: 'APPROVED' as const,
-      ...(category && {
-        prompt: {
-          tags: {
-            some: {
-              name: category
-            }
-          }
-        }
-      })
-    };
-
-    let trendingPrompts: any[] = [];
+    let trendingPrompts: TrendingPrompt[] = [];
 
     switch (metric) {
       case 'views': {
@@ -362,7 +372,11 @@ const getTrendingPromptsData = async ({
         });
 
         // Sort by engagement rate
-        trendingPrompts.sort((a, b) => b.periodMetricCount - a.periodMetricCount);
+        trendingPrompts.sort((a, b) => {
+          const aCount = typeof a.periodMetricCount === 'number' ? a.periodMetricCount : 0;
+          const bCount = typeof b.periodMetricCount === 'number' ? b.periodMetricCount : 0;
+          return bCount - aCount;
+        });
         break;
       }
 
@@ -382,7 +396,7 @@ const getTrendingPromptsData = async ({
 
       const likedSet = new Set(likedPrompts.map(like => like.promptId));
 
-      trendingPrompts = trendingPrompts.map(prompt => ({
+      trendingPrompts = trendingPrompts.map((prompt): TrendingPrompt => ({
         ...prompt,
         isLiked: likedSet.has(prompt.promptId)
       }));
@@ -446,9 +460,6 @@ export async function getTrendingStats({
   try {
     const periodConfig = TIME_PERIODS[period];
     const sinceDate = periodConfig.dateFilter();
-
-    // Build base query
-    const baseQuery = userId ? { userId } : {};
 
     // Get engagement stats over time
     const [viewsByDay, likesByDay, copiesByDay] = await Promise.all([

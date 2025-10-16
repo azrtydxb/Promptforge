@@ -39,10 +39,43 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
+interface TeamUser {
+  id: string;
+  name: string | null;
+  email: string | null;
+  username: string | null;
+  image: string | null;
+}
+
+interface TeamMember {
+  id: string;
+  userId: string;
+  role: string;
+  user: TeamUser;
+}
+
+interface InvitedBy {
+  name: string | null;
+  email: string;
+}
+
+interface Invitation {
+  id: string;
+  email: string;
+  role: string;
+  expiresAt: Date;
+  invitedBy: InvitedBy;
+}
+
+interface Team {
+  id: string;
+  name: string;
+}
+
 interface TeamMembersViewProps {
-  team: any;
-  members: any[];
-  invitations: any[];
+  team: Team;
+  members: TeamMember[];
+  invitations: Invitation[];
   currentUserId: string;
   currentUserRole: TeamRole;
 }
@@ -264,7 +297,7 @@ export function TeamMembersView({
               <CardHeader>
                 <CardTitle>Pending Invitations</CardTitle>
                 <CardDescription>
-                  People who have been invited but haven't joined yet
+                  People who have been invited but haven&apos;t joined yet
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -309,7 +342,7 @@ export function TeamMembersView({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {members.find(m => m.id === removingMemberId)?.userId === currentUserId
-                ? "Are you sure you want to leave this team? You'll lose access to all team prompts."
+                ? "Are you sure you want to leave this team? You&apos;ll lose access to all team prompts."
                 : "Are you sure you want to remove this member from the team? They will lose access to all team prompts."}
             </AlertDialogDescription>
           </AlertDialogHeader>

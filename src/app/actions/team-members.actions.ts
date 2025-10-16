@@ -408,7 +408,7 @@ export async function removeTeamMember(params: RemoveMemberParams) {
 
 export async function getTeamMembers(teamId: string) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     const userRole = await getUserTeamRole(teamId);
     
     if (!userRole) {
@@ -447,7 +447,7 @@ export async function getTeamMembers(teamId: string) {
 
 export async function getTeamInvitations(teamId: string) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     const userRole = await getUserTeamRole(teamId);
     
     // Only admins and owners can view invitations

@@ -3,6 +3,8 @@ import { requireAuth } from "@/lib/auth";
 import { getTeam, getTeamPrompts } from "@/app/actions/team.actions";
 import { TeamPromptsView } from "@/components/teams/team-prompts-view";
 
+export const dynamic = 'force-dynamic';
+
 interface TeamPromptsPageProps {
   params: Promise<{
     teamId: string;

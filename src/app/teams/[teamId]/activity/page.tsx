@@ -4,6 +4,8 @@ import { getTeam, getUserTeamRole } from "@/app/actions/team.actions";
 import { getTeamActivityLog } from "@/app/actions/team-activity.actions";
 import { TeamActivityView } from "@/components/teams/team-activity-view";
 
+export const dynamic = 'force-dynamic';
+
 interface TeamActivityPageProps {
   params: Promise<{
     teamId: string;
@@ -48,7 +50,7 @@ export default async function TeamActivityPage({
         />
       </div>
     );
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

@@ -41,17 +41,16 @@ interface CollectionsViewProps {
 export function CollectionsView({
   userCollections: initialUserCollections,
   publicCollections,
-  userId,
 }: CollectionsViewProps) {
   const router = useRouter();
   const [userCollections, setUserCollections] = useState(initialUserCollections);
 
-  const handleCreateCollection = async (data: {
+  const handleCreateCollection = async (collectionData: {
     name: string;
     description?: string;
     isPublic: boolean;
   }) => {
-    const result = await createCollection(data);
+    const result = await createCollection(collectionData);
 
     if (result.success && result.collection) {
       setUserCollections((prev) => [result.collection!, ...prev]);
@@ -64,13 +63,13 @@ export function CollectionsView({
 
   const handleUpdateCollection = async (
     id: string,
-    data: {
+    collectionData: {
       name: string;
       description?: string;
       isPublic: boolean;
     }
   ) => {
-    const result = await updateCollection(id, data);
+    const result = await updateCollection(id, collectionData);
 
     if (result.success && result.collection) {
       setUserCollections((prev) =>

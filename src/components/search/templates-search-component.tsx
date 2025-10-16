@@ -15,9 +15,23 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
+interface Template {
+  id: string;
+  name: string;
+  title?: string;
+  description: string | null;
+  content: string;
+  category: string;
+  author?: {
+    id: string;
+    image: string | null;
+    username: string;
+  } | null;
+}
+
 export function TemplatesSearchComponent() {
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -29,32 +43,41 @@ export function TemplatesSearchComponent() {
   const loadTemplates = async () => {
     try {
       const data = await getPromptTemplates();
-      setTemplates(data);
-      setFilteredTemplates(data);
-      
+      const mappedTemplates: Template[] = data.map(t => ({
+        id: t.id,
+        name: t.name,
+        title: t.name,
+        description: t.description,
+        content: t.content,
+        category: t.category,
+        author: t.author,
+      }));
+      setTemplates(mappedTemplates);
+      setFilteredTemplates(mappedTemplates);
+
       // Extract unique categories
       const uniqueCategories = Array.from(
-        new Set(data.map((t) => t.category))
+        new Set(mappedTemplates.map((t) => t.category))
       );
       setCategories(uniqueCategories);
-    } catch (error) {
-      console.error("Failed to load templates:", error);
+    } catch (err) {
+      console.error("Failed to load templates:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSearch = async (query: string, mode: string, filters: any) => {
+  const handleSearch = async (query: string, _mode: string, filters: { category?: string }) => {
     const filtered = templates.filter(template => {
-      const matchesQuery = !query || 
+      const matchesQuery = !query ||
         template.name.toLowerCase().includes(query.toLowerCase()) ||
-        template.description?.toLowerCase().includes(query.toLowerCase()) ||
+        (template.description || '').toLowerCase().includes(query.toLowerCase()) ||
         template.content.toLowerCase().includes(query.toLowerCase());
-      
-      const matchesCategory = !filters.category || 
-        filters.category === "all" || 
+
+      const matchesCategory = !filters.category ||
+        filters.category === "all" ||
         template.category === filters.category;
-      
+
       return matchesQuery && matchesCategory;
     });
 
@@ -115,8 +138,17 @@ export function TemplatesSearchComponent() {
                 key={template.id}
                 variant="template"
                 data={{
-                  ...template,
-                  name: template.name || template.title,
+                  id: template.id,
+                  title: template.title || template.name,
+                  name: template.name || template.title || 'Untitled',
+                  description: template.description,
+                  content: template.content,
+                  category: template.category,
+                  author: template.author ? {
+                    id: template.author.id,
+                    username: template.author.username,
+                    image: template.author.image,
+                  } : undefined,
                 }}
               />
             ))}

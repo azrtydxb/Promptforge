@@ -167,17 +167,16 @@ export function PromptsSearchPage() {
         <UnifiedSearch
           dataSource="prompts"
           onSearch={performSearch}
-          onResultSelect={(prompt) => trackResultClick(prompt.id)}
+          onResultSelect={(prompt) => {
+            if (prompt && typeof prompt === 'object' && 'id' in prompt) {
+              trackResultClick(prompt.id as string);
+            }
+          }}
           placeholder="Search your prompts..."
           filters={filtersComponent}
           showModeSelector={true}
           showHistory={true}
           semanticSearchEnabled={semanticSearchEnabled}
-          onFiltersChange={(filters) => setFilters({
-            tags: filters.tags || [],
-            folderId: filters.folderId || null,
-            hasEnhancement: filters.hasEnhancement || false
-          })}
         />
 
         {error && (
@@ -199,7 +198,36 @@ export function PromptsSearchPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Found {results.length} prompts
             </p>
-            <PromptGrid prompts={results} />
+            <PromptGrid prompts={results.map((r: unknown) => {
+              const result = r as {
+                id: string;
+                title: string;
+                description: string | null;
+                content: string | null;
+                tags: Array<{ id: string; name: string }>;
+              };
+              return {
+                id: result.id,
+                title: result.title,
+                description: result.description,
+                content: result.content,
+                userId: '',
+                folderId: null,
+                order: null,
+                lastUsedAt: null,
+                pinnedAt: null,
+                enhancedContent: null,
+                enhancementSuggestions: null,
+                autoTags: [],
+                embedding: null,
+                embeddingVersion: 1,
+                embeddingOutdated: false,
+                templateId: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                tags: result.tags,
+              } as unknown as Parameters<typeof PromptGrid>[0]['prompts'][number];
+            })} />
           </div>
         ) : (
           <EmptyState

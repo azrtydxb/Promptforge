@@ -23,11 +23,11 @@ model User {
   password         String?
   // Profile management fields
   username         String            @unique
-  avatarType       AvatarType        @default(INITIALS)
+  avatarType       String            @default("INITIALS")
   profilePicture   String?
   gravatarEmail    String?
   // Admin and role management
-  role             UserRole          @default(USER)
+  role             String            @default("USER")
   isActive         Boolean           @default(true)
   // Reputation system
   reputationScore  Int               @default(0)
@@ -204,8 +204,8 @@ model SharedPrompt {
   description     String?
   content         String
   isPublished     Boolean            @default(false)
-  visibility      PromptVisibility   @default(PUBLIC)
-  status          ModerationStatus   @default(PENDING)
+  visibility      String             @default("PUBLIC")
+  status          String             @default("PENDING")
   moderatedBy     String?
   moderator       User?              @relation("ModeratedBy", fields: [moderatedBy], references: [id])
   moderatedAt     DateTime?

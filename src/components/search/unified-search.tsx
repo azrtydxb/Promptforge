@@ -4,13 +4,10 @@ import { useState, useCallback, useEffect } from "react";
 import { Search, Filter, X, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { SearchHistoryPanel } from "@/components/search/search-history-panel";
 import { saveSearchToHistory } from "@/app/actions/search-history.actions";
 
@@ -32,8 +29,8 @@ export interface SearchFilters {
 
 interface UnifiedSearchProps {
   dataSource: SearchDataSource;
-  onSearch: (query: string, mode: SearchMode, filters: SearchFilters) => Promise<any>;
-  onResultSelect?: (result: any) => void;
+  onSearch: (query: string, mode: SearchMode, filters: SearchFilters) => Promise<void>;
+  onResultSelect?: (result: unknown) => void;
   placeholder?: string;
   filters?: React.ReactNode;
   showModeSelector?: boolean;
@@ -44,13 +41,11 @@ interface UnifiedSearchProps {
   initialQuery?: string;
   initialFilters?: SearchFilters;
   onQueryChange?: (query: string) => void;
-  onFiltersChange?: (filters: SearchFilters) => void;
 }
 
 export function UnifiedSearch({
   dataSource,
   onSearch,
-  onResultSelect,
   placeholder = "Search...",
   filters,
   showModeSelector = true,
@@ -61,7 +56,6 @@ export function UnifiedSearch({
   initialQuery = "",
   initialFilters = {},
   onQueryChange,
-  onFiltersChange,
 }: UnifiedSearchProps) {
   const [query, setQuery] = useState(initialQuery);
   const [searchMode, setSearchMode] = useState<SearchMode>(
@@ -87,6 +81,7 @@ export function UnifiedSearch({
     if (debouncedQuery || Object.keys(currentFilters).length > 0) {
       performSearch();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery, currentFilters, searchMode]);
 
   const performSearch = useCallback(async () => {
@@ -104,13 +99,13 @@ export function UnifiedSearch({
       if (debouncedQuery.trim()) {
         await saveSearchToHistory({
           query: debouncedQuery,
-          filters: currentFilters as any,
+          filters: currentFilters as Record<string, unknown>,
           searchType: dataSource,
           resultCount: 0, // This should be updated by the parent component
         });
       }
-    } catch (error) {
-      console.error("Search error:", error);
+    } catch (err) {
+      console.error("Search error:", err);
       setSearchError("An error occurred while searching. Please try again.");
     } finally {
       setIsSearching(false);
@@ -122,12 +117,8 @@ export function UnifiedSearch({
     onQueryChange?.(value);
   };
 
-  const handleFiltersChange = (newFilters: SearchFilters) => {
-    setCurrentFilters(newFilters);
-    onFiltersChange?.(newFilters);
-  };
 
-  const handleSearchFromHistory = (historyQuery: string, historyFilters?: any) => {
+  const handleSearchFromHistory = (historyQuery: string, historyFilters?: Record<string, unknown>) => {
     setQuery(historyQuery);
     if (historyFilters) {
       setCurrentFilters(historyFilters);

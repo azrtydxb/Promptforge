@@ -13,14 +13,13 @@ import { SimilarPrompts } from "@/components/prompts/similar-prompts";
 import { UserReputation } from "@/components/ui/user-reputation";
 import { copySharedPrompt } from "@/app/actions/shared-prompts.actions";
 import { togglePromptLike } from "@/app/actions/likes-comments.actions";
-import { 
-  Copy, 
-  Heart, 
-  Eye, 
-  MessageSquare, 
-  Share2, 
+import {
+  Copy,
+  Heart,
+  Eye,
+  MessageSquare,
+  Share2,
   ArrowLeft,
-  Code2,
   Calendar,
   Shield,
   ChevronRight
@@ -32,6 +31,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import type { Comment } from "@/components/comments/types";
 
 interface SharedPromptDetailProps {
   sharedPrompt: {
@@ -60,7 +60,7 @@ interface SharedPromptDetailProps {
         name: string;
       }>;
     };
-    comments?: any[];
+    comments?: Comment[];
   };
 }
 
@@ -106,7 +106,7 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
         setLikeCount(sharedPrompt.likeCount);
         toast.error("Failed to update like");
       }
-    } catch (error) {
+    } catch {
       // Revert on error
       setIsLiked(sharedPrompt.isLiked || false);
       setLikeCount(sharedPrompt.likeCount);
@@ -142,7 +142,7 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
       } else {
         toast.error(result.error || "Failed to copy prompt");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy prompt");
     } finally {
       setIsCopying(false);
@@ -154,7 +154,7 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
       const url = window.location.href;
       await navigator.clipboard.writeText(url);
       toast.success("Link copied to clipboard!");
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy link");
     }
   };
@@ -299,13 +299,13 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
-                        code({ node, className, children, ...props }) {
+                        code({ className, children, ...props }) {
                           const match = /language-(\w+)/.exec(className || "");
                           const isInline = !match && !className;
 
                           return !isInline && match ? (
                             <SyntaxHighlighter
-                              style={vscDarkPlus as any}
+                              style={vscDarkPlus}
                               language={match[1]}
                               PreTag="div"
                             >

@@ -4,6 +4,8 @@ import { getTeam, getUserTeamRole, canPerformAction } from "@/app/actions/team.a
 import { TeamRole } from "@/generated/prisma";
 import { InviteMemberForm } from "@/components/teams/invite-member-form";
 
+export const dynamic = 'force-dynamic';
+
 interface InviteMemberPageProps {
   params: Promise<{
     teamId: string;
@@ -11,7 +13,7 @@ interface InviteMemberPageProps {
 }
 
 export default async function InviteMemberPage({ params }: InviteMemberPageProps) {
-  const user = await requireAuth();
+  await requireAuth();
   const { teamId } = await params;
   
   try {
@@ -34,7 +36,7 @@ export default async function InviteMemberPage({ params }: InviteMemberPageProps
         <InviteMemberForm teamId={team.id} />
       </div>
     );
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

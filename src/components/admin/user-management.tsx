@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { 
-  getUsers, 
-  updateUser, 
+import {
+  getUsers,
+  updateUser,
   deleteUser,
-  resetUserPassword 
+  resetUserPassword
 } from "@/app/actions/admin-users.actions";
-import { UserRole } from "@/generated/prisma";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,7 +64,7 @@ interface User {
   name: string | null;
   email: string | null;
   username: string | null;
-  role: UserRole;
+  role: string;
   isActive: boolean;
   createdAt: Date;
   emailVerified: Date | null;
@@ -139,13 +138,13 @@ export function UserManagement() {
     }
   };
 
-  const getRoleBadge = (role: UserRole) => {
+  const getRoleBadge = (role: string) => {
     switch (role) {
-      case UserRole.ADMIN:
+      case 'ADMIN':
         return <Badge variant="destructive" className="flex items-center gap-1">
           <Shield className="h-3 w-3" /> Admin
         </Badge>;
-      case UserRole.MODERATOR:
+      case 'MODERATOR':
         return <Badge variant="secondary" className="flex items-center gap-1">
           <UserCog className="h-3 w-3" /> Moderator
         </Badge>;
@@ -349,17 +348,17 @@ export function UserManagement() {
                 <Label>Role</Label>
                 <Select
                   value={selectedUser.role}
-                  onValueChange={(value) => 
-                    setSelectedUser({ ...selectedUser, role: value as UserRole })
+                  onValueChange={(value) =>
+                    setSelectedUser({ ...selectedUser, role: value })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={UserRole.USER}>User</SelectItem>
-                    <SelectItem value={UserRole.MODERATOR}>Moderator</SelectItem>
-                    <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
+                    <SelectItem value="USER">User</SelectItem>
+                    <SelectItem value="MODERATOR">Moderator</SelectItem>
+                    <SelectItem value="ADMIN">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

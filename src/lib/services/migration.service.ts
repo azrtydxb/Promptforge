@@ -8,7 +8,6 @@ import type {
   Migration,
   MigrationResult,
   VersionCompatibility,
-  MigrationFunction,
 } from '@/types/backup';
 
 export class MigrationService {

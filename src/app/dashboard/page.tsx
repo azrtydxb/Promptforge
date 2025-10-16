@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 
-// Keep force-dynamic to prevent Turbopack font loading issues
 export const dynamic = 'force-dynamic';
 
 // Cache the dashboard data function with React cache for request-level memoization

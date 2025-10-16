@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, Tag as TagIcon } from "lucide-react";
 import { useModal, type TagData } from "@/hooks/use-modal-store";
-import { cardHover, sectionSpacing } from "@/lib/styles";
+import { sectionSpacing } from "@/lib/styles";
 
 interface Tag {
   id: string;
@@ -62,7 +62,7 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
         <div>
           <h2 className="text-xl font-semibold">Your Tags</h2>
           <p className="text-sm text-muted-foreground">
-            {tags.length} tag{tags.length !== 1 ? 's' : ''} total
+            {tags.length} tag{tags.length !== 1 ? "s" : ""} total
           </p>
         </div>
         <Button onClick={handleCreateTag} className="flex items-center gap-2">

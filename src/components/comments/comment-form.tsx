@@ -7,6 +7,7 @@ import { createComment, updateComment } from "@/app/actions/comments.actions";
 import { Send, X, Edit3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import type { CommentFormSubmitResult } from "./types";
 
 interface CommentFormProps {
   sharedPromptId: string;
@@ -15,7 +16,7 @@ interface CommentFormProps {
     id: string;
     content: string;
   };
-  onSuccess?: (comment: any) => void;
+  onSuccess?: (comment: CommentFormSubmitResult) => void;
   onCancel?: () => void;
   placeholder?: string;
   autoFocus?: boolean;
@@ -63,7 +64,7 @@ export function CommentForm({
         });
       }
 
-      if (result.success) {
+      if (result.success && result.comment) {
         setContent("");
         toast.success(editingComment ? "Comment updated" : "Comment posted");
         if (onSuccess) {
@@ -105,7 +106,7 @@ export function CommentForm({
       
       <div className="flex items-center justify-between">
         <div className="text-xs text-muted-foreground">
-          Press Ctrl+Enter to submit • Markdown supported
+          Press Ctrl+Enter to submit &bull; Markdown supported
         </div>
         
         <div className="flex items-center gap-2">

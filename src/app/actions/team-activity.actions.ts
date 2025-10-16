@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { getUserTeamRole } from "./team.actions";
-import { TeamAction } from "@/generated/prisma";
+import { TeamAction, Prisma } from "@/generated/prisma";
 
 interface GetTeamActivityParams {
   teamId: string;
@@ -17,14 +17,14 @@ interface GetTeamActivityParams {
 
 export async function getTeamActivity(params: GetTeamActivityParams) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     const userRole = await getUserTeamRole(params.teamId);
-    
+
     if (!userRole) {
       throw new Error("You are not a member of this team");
     }
-    
-    const where: any = {
+
+    const where: Prisma.TeamActivityWhereInput = {
       teamId: params.teamId,
     };
     
@@ -134,6 +134,7 @@ export async function getTeamActivitySummary(teamId: string) {
         id: true,
         name: true,
         username: true,
+        email: true,
         image: true,
       },
     });
@@ -153,6 +154,7 @@ export async function getTeamActivitySummary(teamId: string) {
             id: true,
             name: true,
             username: true,
+            email: true,
             image: true,
           },
         },

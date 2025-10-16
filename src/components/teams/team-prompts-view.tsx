@@ -15,12 +15,19 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import type { Team, Prompt, Tag } from "@/generated/prisma";
+import type { Team, Tag } from "@/generated/prisma";
 
 interface TeamPromptsViewProps {
   team: Team;
-  prompts: Array<Prompt & {
-    user: {
+  prompts: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    content: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    lastUsedAt: Date | null;
+    user?: {
       id: string;
       name: string | null;
       username: string | null;
@@ -28,8 +35,8 @@ interface TeamPromptsViewProps {
     };
     tags: Tag[];
     _count: {
-      likes: number;
-      favorites: number;
+      likes?: number;
+      favorites?: number;
       versions: number;
     };
   }>;
@@ -49,7 +56,6 @@ export function TeamPromptsView({
   team,
   prompts,
   pagination,
-  currentUserId,
   searchQuery = "",
 }: TeamPromptsViewProps) {
   const router = useRouter();

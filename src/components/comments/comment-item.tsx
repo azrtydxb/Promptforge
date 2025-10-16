@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "./comment-form";
 import { deleteComment, toggleCommentLike } from "@/app/actions/comments.actions";
-import { 
-  Heart, 
-  MessageSquare, 
-  MoreHorizontal, 
-  Edit3, 
+import {
+  Heart,
+  MessageSquare,
+  MoreHorizontal,
+  Edit3,
   Trash2,
   Flag,
   ChevronDown,
@@ -28,33 +28,13 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import type { Comment, CommentFormSubmitResult } from "./types";
 
 interface CommentItemProps {
-  comment: {
-    id: string;
-    content: string;
-    createdAt: Date;
-    updatedAt: Date;
-    likeCount?: number;
-    isLiked?: boolean;
-    canEdit?: boolean;
-    canDelete?: boolean;
-    user: {
-      id: string;
-      username: string | null;
-      name: string | null;
-      avatarType: string;
-      profilePicture: string | null;
-      reputationScore?: number;
-    };
-    replies?: CommentItemProps["comment"][];
-    _count?: {
-      replies: number;
-    };
-  };
+  comment: Comment;
   sharedPromptId: string;
-  onReplySuccess?: (reply: any) => void;
-  onEditSuccess?: (comment: any) => void;
+  onReplySuccess?: (reply: CommentFormSubmitResult) => void;
+  onEditSuccess?: (comment: CommentFormSubmitResult) => void;
   onDeleteSuccess?: (commentId: string) => void;
   level?: number;
   isPromptAuthor?: string;
@@ -104,7 +84,7 @@ export function CommentItem({
         });
         toast.error("Failed to like comment");
       }
-    } catch (error) {
+    } catch {
       // Revert on error
       setLocalLikeState({
         isLiked: comment.isLiked || false,
@@ -132,12 +112,12 @@ export function CommentItem({
       } else {
         toast.error(result.error || "Failed to delete comment");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete comment");
     }
   };
 
-  const handleEditSuccess = (updatedComment: any) => {
+  const handleEditSuccess = (updatedComment: CommentFormSubmitResult) => {
     setIsEditing(false);
     if (onEditSuccess) {
       onEditSuccess(updatedComment);

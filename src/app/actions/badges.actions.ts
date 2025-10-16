@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
+import { BadgeType } from "@/generated/prisma";
 
 // Badge thresholds and requirements
 const BADGE_REQUIREMENTS = {
@@ -147,7 +148,7 @@ export async function checkAndAwardBadges(userId: string) {
       await db.userBadge.createMany({
         data: newBadges.map((badge) => ({
           userId,
-          type: badge.type as any,
+          type: badge.type as BadgeType,
           title: badge.title,
           description: badge.description,
         })),
@@ -194,7 +195,7 @@ export async function awardBadge(
       where: {
         userId_type: {
           userId,
-          type: badgeType as any,
+          type: badgeType as BadgeType,
         },
       },
     });
@@ -207,7 +208,7 @@ export async function awardBadge(
     const badge = await db.userBadge.create({
       data: {
         userId,
-        type: badgeType as any,
+        type: badgeType as BadgeType,
         title: customTitle || badgeConfig.title,
         description: customDescription || badgeConfig.description,
       },
@@ -243,7 +244,7 @@ export async function removeBadge(userId: string, badgeType: string) {
       where: {
         userId_type: {
           userId,
-          type: badgeType as any,
+          type: badgeType as BadgeType,
         },
       },
     });

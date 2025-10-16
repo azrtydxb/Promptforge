@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,13 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
-import { 
-  Check, 
-  ChevronDown, 
-  Plus, 
-  Settings, 
+import {
+  Check,
+  ChevronDown,
+  Plus,
+  Settings,
   Users,
-  Building2,
   User
 } from "lucide-react";
 import { getUserTeams } from "@/app/actions/team.actions";
@@ -52,17 +51,13 @@ export function TeamSwitcher({ className }: TeamSwitcherProps) {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    loadTeamsAndContext();
-  }, []);
-
-  const loadTeamsAndContext = async () => {
+  const loadTeamsAndContext = useCallback(async () => {
     try {
       const [userTeams, context] = await Promise.all([
         getUserTeams(),
         getTeamContext(),
       ]);
-      
+
       setTeams(userTeams as Team[]);
       setCurrentTeamId(context.teamId);
     } catch (error) {
@@ -75,7 +70,11 @@ export function TeamSwitcher({ className }: TeamSwitcherProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadTeamsAndContext();
+  }, [loadTeamsAndContext]);
 
   const handleTeamSwitch = async (teamId: string | null) => {
     try {

@@ -3,6 +3,8 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { SidebarProvider } from '@/components/providers/sidebar-provider';
 import { DashboardContent } from '@/components/layout/dashboard-content';
 
+export const dynamic = 'force-dynamic';
+
 const PromptsLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
