@@ -106,21 +106,25 @@ export default function PromptPage({
       
       setIsLoading(false);
       
-      // Check for draft (only show if it's less than 24 hours old and has meaningful content)
+      // Check for draft (only show if it's less than 24 hours old, at least 30 seconds old, and has meaningful content)
       if (hasDraft) {
         const draft = loadDraft();
         if (draft) {
           const draftAge = Date.now() - draft.timestamp;
           const oneDayInMs = 24 * 60 * 60 * 1000;
-          const hasMeaningfulContent = draft.content.trim().length > 0 || draft.title.trim().length > 0;
-          
-          if (draftAge < oneDayInMs && hasMeaningfulContent) {
+          const minDraftAgeMs = 30 * 1000; // 30 seconds - prevents showing recovery while actively typing
+          const totalContentLength = draft.content.trim().length + draft.title.trim().length + draft.description.trim().length;
+          const hasMeaningfulContent = totalContentLength >= 10; // At least 10 characters total
+
+          // Only show recovery if draft is old enough (not actively being typed) and has meaningful content
+          if (draftAge >= minDraftAgeMs && draftAge < oneDayInMs && hasMeaningfulContent) {
             setRecoveredDraft(draft);
             setShowDraftRecovery(true);
-          } else {
-            // Clear old or empty drafts
+          } else if (draftAge >= oneDayInMs) {
+            // Clear old drafts (over 24 hours)
             clearDraft();
           }
+          // Note: Don't clear fresh drafts (< 30 seconds) - let them continue auto-saving
         }
       }
       return;
@@ -150,14 +154,17 @@ export default function PromptPage({
               );
               const draftAge = Date.now() - draft.timestamp;
               const oneDayInMs = 24 * 60 * 60 * 1000;
-              
-              if (hasSignificantChanges && draftAge < oneDayInMs) {
+              const minDraftAgeMs = 30 * 1000; // 30 seconds - prevents showing recovery while actively typing
+
+              // Only show recovery if draft is old enough, has significant changes, and is not too old
+              if (hasSignificantChanges && draftAge >= minDraftAgeMs && draftAge < oneDayInMs) {
                 setRecoveredDraft(draft);
                 setShowDraftRecovery(true);
               } else if (draftAge >= oneDayInMs) {
-                // Clear old drafts
+                // Clear old drafts (over 24 hours)
                 clearDraft();
               }
+              // Note: Don't clear fresh drafts (< 30 seconds) - let them continue auto-saving
             }
           }
         }
