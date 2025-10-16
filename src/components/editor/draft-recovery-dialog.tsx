@@ -59,7 +59,7 @@ export function DraftRecoveryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 px-6 py-4">
           {/* Draft Preview */}
           <div className="rounded-lg border p-4 space-y-3">
             <div className="flex items-start gap-3">
