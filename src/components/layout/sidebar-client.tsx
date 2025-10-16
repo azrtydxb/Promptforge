@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useRef } from "react"
 import * as React from "react"
 import {
   Home,
@@ -78,39 +77,18 @@ export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
   const pathname = usePathname()
   const navigationItems = getNavigationItems(isAdmin)
   const { isCollapsed, setIsCollapsed } = useSidebar()
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Cleanup timeout on unmount
+  // Set sidebar to expanded on mount
   React.useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-    }
-  }, [])
-
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
     setIsCollapsed(false)
-  }
-
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setIsCollapsed(true)
-    }, 400) // 400ms delay before collapsing
-  }
+  }, [setIsCollapsed])
 
   return (
-    <aside 
+    <aside
       className={cn(
         "fixed left-0 top-0 bottom-0 hidden border-r border-border bg-[hsl(var(--menu-bg))] md:block overflow-hidden z-30 transition-all duration-300",
         isCollapsed ? "w-[70px]" : "w-[260px]"
       )}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       aria-label="Main navigation"
       role="navigation"
     >

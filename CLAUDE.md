@@ -44,20 +44,59 @@ npm run typecheck # Type checking
 
 ## Key Principles
 
+### 🚨 MANDATORY: Agent-First Approach
+
+**CRITICAL RULE**: ALWAYS delegate tasks to specialized agents. NEVER execute changes directly in the main conversation.
+
+**Why**: Direct execution pollutes the context window and reduces efficiency. Agents work in isolated contexts and report back concisely.
+
+**When to use agents**:
+- ✅ ALL code changes (use `coder`, `fullstack-nodejs-engineer`, etc.)
+- ✅ ALL UI changes (use `ux-ui-designer`, `coder`)
+- ✅ ALL testing tasks (use `qa-test-automation-engineer`, `tester`)
+- ✅ ALL documentation (use `docs-architect`)
+- ✅ ALL refactoring (use `code-analyzer`, `coder`)
+- ✅ ALL bug fixes (use appropriate specialized agent)
+- ✅ Even "simple" one-file changes (delegate to maintain clean context)
+
+**When NOT to use agents**:
+- ❌ Simple file reads for information gathering
+- ❌ Running linting/type checking commands
+- ❌ Creating GitHub issues
+- ❌ Git operations (commit, push)
+
 ### Agent Orchestration
 When using multiple agents:
-1. Spawn ALL agents in ONE message using Task tool
+1. **ALWAYS spawn ALL agents in ONE message** using Task tool
 2. Include clear instructions in EVERY agent prompt
 3. Batch all related operations together
+4. Launch agents in parallel whenever possible
 
 ### Agent Task Template
 ```javascript
-Task("You are [type] agent. 
+Task("You are [type] agent.
 Your specific task: [detailed task description]
 Requirements:
 - [requirement 1]
 - [requirement 2]
-Output: [expected output]")
+Context: [relevant context about the codebase]
+Files to modify: [list specific files]
+Validation: [how to verify the change works]
+Output: [expected output format]")
+```
+
+### Parallel Agent Launch Example
+```javascript
+// ✅ CORRECT: Launch all agents in ONE message
+[Single Message]:
+  - Task("coder", "Fix authentication in login.tsx...", "coder")
+  - Task("tester", "Create tests for authentication...", "qa-test-automation-engineer")
+  - Task("docs", "Update auth documentation...", "docs-architect")
+
+// ❌ WRONG: Sequential agent launches
+Message 1: Task("coder", "Fix authentication...")
+Message 2: Task("tester", "Create tests...")
+Message 3: Task("docs", "Update docs...")
 ```
 
 ## Available Agents (54 Total)
@@ -113,14 +152,21 @@ Output: [expected output]")
 ## Best Practices
 
 ### ✅ DO:
+- **ALWAYS delegate code changes to agents** - Never execute directly in main conversation
+- **Launch ALL agents in parallel** in ONE message whenever possible
 - Batch ALL related operations
 - Use parallel execution always
-- Clear task descriptions
+- Clear task descriptions with full context for agents
 - Monitor progress with TodoWrite
 - Run tests before committing
 - **FOLLOW USER INSTRUCTIONS EXACTLY** - Read and execute every step as written
+- **ALWAYS validate UI changes with Chrome DevTools MCP** before confirming completion
+- Use DevTools to inspect computed styles, colors, layouts, and verify visual changes
+- Never claim a UI change is "done" or "working" without DevTools validation
 
 ### ❌ DON'T:
+- **NEVER execute code changes directly** - Always use agents to avoid context pollution
+- **NEVER launch agents sequentially** - Always batch in one message
 - Send sequential messages
 - Update todos individually
 - Spawn agents one by one
@@ -128,6 +174,39 @@ Output: [expected output]")
 - Create unnecessary files
 - **NEVER make assumptions or skip steps in user instructions**
 - **NEVER kill processes without explicit permission**
+- **NEVER claim UI changes work without DevTools validation**
+- **NEVER pollute context window** with direct code execution
+
+## UI Validation Requirements
+
+**CRITICAL**: All UI changes MUST be validated using Chrome DevTools MCP before reporting completion.
+
+### Validation Workflow:
+1. Make the code change
+2. Use `mcp__chrome-devtools__navigate_page` to load the page
+3. Use `mcp__chrome-devtools__take_snapshot` or `mcp__chrome-devtools__take_screenshot` to inspect
+4. Use `mcp__chrome-devtools__evaluate_script` to check computed styles if needed
+5. Verify the change visually matches requirements
+6. Only then report the change as complete
+
+### What to Validate:
+- Colors and backgrounds (check actual RGB/HSL values)
+- Element visibility (opacity, display, z-index)
+- Layout and positioning
+- Responsive behavior
+- Hover/focus states
+- Border and shadow styles
+
+### Example:
+```javascript
+// After changing a divider color:
+1. Navigate to page: mcp__chrome-devtools__navigate_page
+2. Take snapshot: mcp__chrome-devtools__take_snapshot
+3. Evaluate style: mcp__chrome-devtools__evaluate_script
+   // Check: getComputedStyle(element).backgroundColor
+4. Verify color matches expectation
+5. Report: "Validated with DevTools - divider now rgb(200, 206, 218)"
+```
 
 ## 🚨 CRITICAL: Follow User Instructions Exactly
 

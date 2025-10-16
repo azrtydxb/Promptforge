@@ -126,7 +126,7 @@ export function DialogContent({ className, children }: DialogContentProps) {
           ref={contentRef}
           className={cn(
             "relative rounded-lg shadow-2xl border-2 border-[hsl(var(--accent))] w-full max-w-[calc(100vw-1rem)] sm:max-w-[425px] md:max-w-lg max-h-[90vh] overflow-y-auto pointer-events-auto",
-            "bg-popover text-popover-foreground",
+            "bg-[hsl(var(--popover))] text-popover-foreground",
             className
           )}
           onClick={(e) => e.stopPropagation()}
