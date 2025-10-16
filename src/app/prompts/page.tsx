@@ -71,7 +71,6 @@ export default function Prompts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [selectionMode, setSelectionMode] = useState(false);
   const [selectedPromptIds, setSelectedPromptIds] = useState<string[]>([]);
   const [moveOptions, setMoveOptions] = useState<MoveFolderOption[]>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(false);
@@ -136,18 +135,8 @@ export default function Prompts() {
 
   // Reset selection when view or folder context changes
   useEffect(() => {
-    setSelectionMode(false);
     setSelectedPromptIds([]);
   }, [viewMode, selectedFolder.id]);
-
-  const handleToggleSelectionMode = () => {
-    setSelectionMode((prev) => {
-      if (prev) {
-        setSelectedPromptIds([]);
-      }
-      return !prev;
-    });
-  };
 
   const handleTogglePromptSelection = useCallback((promptId: string) => {
     setSelectedPromptIds((prev) =>
@@ -199,7 +188,6 @@ export default function Prompts() {
           description: `Moved to ${label}.`,
         });
         setSelectedPromptIds([]);
-        setSelectionMode(false);
         setRefreshKey((prev) => prev + 1);
       } catch (error) {
         console.error("Failed to move prompts:", error);
@@ -232,7 +220,6 @@ export default function Prompts() {
         description: `${selectedPromptIds.length} prompt${selectedPromptIds.length > 1 ? "s" : ""} removed.`,
       });
       setSelectedPromptIds([]);
-      setSelectionMode(false);
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Failed to delete prompts:", error);
@@ -300,66 +287,55 @@ export default function Prompts() {
 
             {viewMode === "folders" && (
               <div className="flex items-center gap-2">
-                {selectionMode && (
+                {hasSelection && (
                   <span className="text-sm text-muted-foreground">
-                    {hasSelection ? `${selectedPromptIds.length} selected` : "Select prompts"}
+                    {selectedPromptIds.length} selected
                   </span>
                 )}
-                <Button
-                  variant={selectionMode ? "secondary" : "outline"}
-                  onClick={handleToggleSelectionMode}
-                  disabled={isProcessing}
+                <DropdownMenu
+                  onOpenChange={(open) => {
+                    if (open) {
+                      void loadMoveFolders();
+                    }
+                  }}
                 >
-                  {selectionMode ? "Cancel" : "Select"}
-                </Button>
-                {selectionMode && (
-                  <>
-                    <DropdownMenu
-                      onOpenChange={(open) => {
-                        if (open) {
-                          void loadMoveFolders();
-                        }
-                      }}
-                    >
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          disabled={!hasSelection || isProcessing}
-                          className="flex items-center gap-2"
-                        >
-                          <FileText className="h-4 w-4" />
-                          Move
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="max-h-64 overflow-y-auto border border-border shadow-lg bg-[hsl(var(--popover))] text-popover-foreground"
-                      >
-                        {isLoadingFolders ? (
-                          <DropdownMenuItem disabled>Loading folders...</DropdownMenuItem>
-                        ) : (
-                          moveOptions.map((option) => (
-                            <DropdownMenuItem
-                              key={option.id ?? "root"}
-                              onClick={() => handleMoveSelected(option.id, option.label)}
-                            >
-                              {option.label}
-                            </DropdownMenuItem>
-                          ))
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button
-                      variant="destructive"
-                      onClick={handleDeleteSelected}
+                      variant="outline"
                       disabled={!hasSelection || isProcessing}
                       className="flex items-center gap-2"
                     >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
+                      <FileText className="h-4 w-4" />
+                      Move
                     </Button>
-                  </>
-                )}
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="max-h-64 overflow-y-auto border border-border shadow-lg bg-[hsl(var(--popover))] text-popover-foreground"
+                  >
+                    {isLoadingFolders ? (
+                      <DropdownMenuItem disabled>Loading folders...</DropdownMenuItem>
+                    ) : (
+                      moveOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.id ?? "root"}
+                          onClick={() => handleMoveSelected(option.id, option.label)}
+                        >
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteSelected}
+                  disabled={!hasSelection || isProcessing}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
               </div>
             )}
           </div>
@@ -387,7 +363,6 @@ export default function Prompts() {
 
           <PromptList
             key={`${viewMode}-${selectedFolder.id ?? "root"}-${refreshKey}`}
-            selectionMode={selectionMode}
             selectedPromptIds={selectedPromptIds}
             onToggleSelect={handleTogglePromptSelection}
             onPromptsLoaded={handlePromptsLoaded}

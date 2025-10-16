@@ -7,7 +7,7 @@ import type { Prompt, Tag } from "@/generated/prisma";
 import { useModal } from "@/hooks/use-modal-store";
 import { LoadingStates } from "../ui/loading-state";
 import { EmptyStates } from "../ui/empty-state";
-import { PromptGrid } from "./prompt-grid";
+import { PromptGrid, PromptGridItem } from "./prompt-grid";
 
 type PromptWithTags = Prompt & {
   tags: Tag[];
@@ -24,6 +24,9 @@ interface PromptListProps {
   prompts?: PromptWithTags[];
   searchQuery?: string;
   selectedTagIds?: string[];
+  selectedPromptIds?: string[];
+  onToggleSelect?: (promptId: string) => void;
+  onPromptsLoaded?: (prompts: PromptGridItem[]) => void;
 }
 
 export const PromptList = ({
@@ -31,7 +34,10 @@ export const PromptList = ({
   tagId,
   prompts: initialPrompts,
   searchQuery = "",
-  selectedTagIds = []
+  selectedTagIds = [],
+  selectedPromptIds = [],
+  onToggleSelect,
+  onPromptsLoaded
 }: PromptListProps) => {
   const [prompts, setPrompts] = useState<PromptWithTags[]>(initialPrompts || []);
   const [isLoading, setIsLoading] = useState(!initialPrompts);
@@ -74,6 +80,7 @@ export const PromptList = ({
           // Show all prompts when "All Prompts" is selected
           const allPrompts = await getAllPrompts();
           setPrompts(allPrompts as PromptWithTags[]);
+          onPromptsLoaded?.(allPrompts as PromptGridItem[]);
         } else {
           // Show prompts for specific tag
           const tagsWithPrompts = await getTagsWithPrompts();
@@ -92,21 +99,25 @@ export const PromptList = ({
             tags: prompt.tags ?? (fallbackTag ? [fallbackTag] : []),
           })) as PromptWithTags[];
           setPrompts(promptsWithTags);
+          onPromptsLoaded?.(promptsWithTags as PromptGridItem[]);
         }
       } else if (folderId !== undefined) {
         const fetchedPrompts = await getPromptsByFolder(folderId);
         setPrompts(fetchedPrompts as PromptWithTags[]);
+        onPromptsLoaded?.(fetchedPrompts as PromptGridItem[]);
       } else if (initialPrompts) {
         setPrompts(initialPrompts);
+        onPromptsLoaded?.(initialPrompts as PromptGridItem[]);
       } else {
         // Get unassigned prompts (folderId is null)
         const fetchedPrompts = await getPromptsByFolder();
         setPrompts(fetchedPrompts as PromptWithTags[]);
+        onPromptsLoaded?.(fetchedPrompts as PromptGridItem[]);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [folderId, tagId, initialPrompts]);
+  }, [folderId, tagId, initialPrompts, onPromptsLoaded]);
 
   useEffect(() => {
     fetchPrompts();
@@ -145,7 +156,11 @@ export const PromptList = ({
 
   return (
     <div>
-      <PromptGrid prompts={filteredPrompts} />
+      <PromptGrid
+        prompts={filteredPrompts}
+        selectedPromptIds={selectedPromptIds}
+        onToggleSelect={onToggleSelect}
+      />
     </div>
   );
 };
