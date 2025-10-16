@@ -192,6 +192,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
+                    width={25}
                     tickFormatter={(value) => `${value}`}
                   />
                   <Tooltip
@@ -305,6 +306,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
+                    width={25}
                     tickFormatter={(value) => `${value}`}
                   />
                   <Tooltip
