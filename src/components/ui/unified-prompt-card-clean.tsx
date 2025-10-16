@@ -77,6 +77,7 @@ interface UnifiedPromptCardProps {
   onUseTemplate?: (template: TemplatePromptData) => void;
   onLikeToggle?: (id: string, isLiked: boolean) => void;
   onCopy?: (id: string) => void;
+  disableLink?: boolean;
 }
 
 export function UnifiedPromptCardClean({
@@ -86,6 +87,7 @@ export function UnifiedPromptCardClean({
   onPromptClick,
   onUseTemplate,
   onLikeToggle,
+  disableLink = false,
 }: UnifiedPromptCardProps) {
   const [isLiking, setIsLiking] = useState(false);
 
@@ -134,6 +136,29 @@ export function UnifiedPromptCardClean({
   // Card wrapper
   const CardWrapper = ({ children }: { children: React.ReactNode }) => {
     if (variant === "personal") {
+      if (disableLink) {
+        return (
+          <div
+            className="h-full"
+            role={onPromptClick ? "button" : undefined}
+            tabIndex={onPromptClick ? 0 : undefined}
+            onClick={(event) => {
+              if (!onPromptClick) return;
+              event.preventDefault();
+              onPromptClick(data.id);
+            }}
+            onKeyDown={(event) => {
+              if (!onPromptClick) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onPromptClick(data.id);
+              }
+            }}
+          >
+            {children}
+          </div>
+        );
+      }
       return (
         <Link
           href={`/prompts/${data.id}`}
