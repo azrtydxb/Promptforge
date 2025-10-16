@@ -76,11 +76,6 @@ export function TeamsView({ data }: TeamsViewProps) {
   if (!data || data.teams.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">My Teams</h1>
-          <p className="text-muted-foreground mt-2">Collaborate with others by creating or joining teams</p>
-        </div>
-        
         <EmptyState
           type="noData"
           icon={Building2}
@@ -101,13 +96,7 @@ export function TeamsView({ data }: TeamsViewProps) {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">My Teams</h1>
-          <p className="text-muted-foreground mt-2">
-            You&apos;re a member of {data.totalTeams} {data.totalTeams === 1 ? 'team' : 'teams'}
-          </p>
-        </div>
+      <div className="mb-8 flex items-center justify-end">
         <Button onClick={handleCreateTeam} disabled={loading} variant="primary">
           <Plus className="w-4 h-4 mr-2" />
           Create New Team
