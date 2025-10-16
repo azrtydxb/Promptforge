@@ -136,7 +136,7 @@ export function ResizablePanels({
       {/* Resizer */}
       <div
         className={cn(
-          "w-1 bg-border hover:bg-[hsl(var(--primary))] cursor-col-resize transition-colors flex-shrink-0 hidden md:block",
+          "w-1 bg-[hsl(var(--border))] hover:bg-[hsl(var(--primary))] cursor-col-resize transition-colors flex-shrink-0 hidden md:block",
           isDragging && "bg-[hsl(var(--primary))]"
         )}
         onMouseDown={handleMouseDown}

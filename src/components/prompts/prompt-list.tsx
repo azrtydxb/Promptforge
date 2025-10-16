@@ -55,8 +55,9 @@ export const PromptList = ({
     // Apply tag filter
     if (selectedTagIds.length > 0) {
       filtered = filtered.filter((prompt) => {
+        const promptTags = prompt.tags ?? [];
         return selectedTagIds.some((tagId) =>
-          prompt.tags.some((tag) => tag.id === tagId)
+          promptTags.some((tag) => tag.id === tagId)
         );
       });
     }
@@ -77,7 +78,20 @@ export const PromptList = ({
           // Show prompts for specific tag
           const tagsWithPrompts = await getTagsWithPrompts();
           const selectedTag = tagsWithPrompts.find(tag => tag.id === tagId);
-          setPrompts((selectedTag?.prompts || []) as PromptWithTags[]);
+          const fallbackTag = selectedTag
+            ? {
+                id: selectedTag.id,
+                name: selectedTag.name,
+                description: selectedTag.description,
+                createdAt: selectedTag.createdAt,
+                updatedAt: selectedTag.updatedAt,
+              }
+            : undefined;
+          const promptsWithTags = (selectedTag?.prompts || []).map((prompt) => ({
+            ...prompt,
+            tags: prompt.tags ?? (fallbackTag ? [fallbackTag] : []),
+          })) as PromptWithTags[];
+          setPrompts(promptsWithTags);
         }
       } else if (folderId !== undefined) {
         const fetchedPrompts = await getPromptsByFolder(folderId);

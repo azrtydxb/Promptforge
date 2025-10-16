@@ -189,6 +189,7 @@ export async function getTagsWithPrompts() {
             description: true,
             createdAt: true,
             updatedAt: true,
+            tags: true,
           },
           orderBy: {
             updatedAt: 'desc'

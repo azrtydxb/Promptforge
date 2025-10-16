@@ -23,11 +23,11 @@ model User {
   password         String?
   // Profile management fields
   username         String            @unique
-  avatarType       String            @default("INITIALS")
+  avatarType       AvatarType        @default(INITIALS)
   profilePicture   String?
   gravatarEmail    String?
   // Admin and role management
-  role             String            @default("USER")
+  role             UserRole          @default(USER)
   isActive         Boolean           @default(true)
   // Reputation system
   reputationScore  Int               @default(0)
