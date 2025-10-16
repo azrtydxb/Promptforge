@@ -68,7 +68,7 @@ export function SaveVersionModal() {
             Describe the changes you made. This will help you track the evolution of your prompt.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <div className="px-6 py-4">
           <Textarea
             placeholder="e.g., Refined the introduction for clarity"
             value={changeMessage}
