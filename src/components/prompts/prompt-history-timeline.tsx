@@ -40,18 +40,19 @@ interface PromptHistoryTimelineProps {
   currentContent: string;
   currentTitle?: string;
   onRestore?: () => void;
+  onLoad?: (content: string) => void;  // NEW: callback to load version content into IDE
 }
 
 export function PromptHistoryTimeline({
   promptId,
   currentContent,
   currentTitle = "Current Version",
-  onRestore
+  onRestore,
+  onLoad  // Add this
 }: PromptHistoryTimelineProps) {
   const [versions, setVersions] = useState<PromptVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVersion, setSelectedVersion] = useState<PromptVersion | null>(null);
-  const [showViewDialog, setShowViewDialog] = useState(false);
   const [showRevertDialog, setShowRevertDialog] = useState(false);
   const [processingRevert, setProcessingRevert] = useState(false);
   const { toast } = useToast();
@@ -77,10 +78,8 @@ export function PromptHistoryTimeline({
   }, [promptId, toast]);
 
   const handleLoadVersion = (version: PromptVersion) => {
-    // Just trigger the parent's onRestore callback to load the content
-    // This does NOT save or create a new version
-    setSelectedVersion(version);
-    onRestore?.();
+    // Load the version content into the IDE for viewing (read-only preview)
+    onLoad?.(version.content);
   };
 
   const handleRevertVersion = async () => {
@@ -182,10 +181,7 @@ export function PromptHistoryTimeline({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedVersion(version);
-                            setShowViewDialog(true);
-                          }}
+                          onClick={() => handleLoadVersion(version)}
                           className="h-9 px-3"
                         >
                           <Eye className="h-4 w-4 mr-1.5" />
@@ -211,36 +207,6 @@ export function PromptHistoryTimeline({
           </ScrollArea>
         </CardContent>
       </Card>
-
-      {/* View Content Dialog */}
-      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedVersion?.version || "Version Content"}
-            </DialogTitle>
-            <DialogDescription>
-              Created {selectedVersion && formatDistanceToNow(new Date(selectedVersion.createdAt), { addSuffix: true })}
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="h-[400px] mt-4 p-4 bg-muted rounded-md">
-            <pre className="text-sm whitespace-pre-wrap break-words">
-              {selectedVersion?.content}
-            </pre>
-          </ScrollArea>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowViewDialog(false);
-                setSelectedVersion(null);
-              }}
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Revert Confirmation Dialog */}
       <Dialog open={showRevertDialog} onOpenChange={setShowRevertDialog}>

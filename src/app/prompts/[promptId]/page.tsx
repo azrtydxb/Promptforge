@@ -564,11 +564,12 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
               />
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              <PromptHistoryTimeline 
-                promptId={promptId!} 
+              <PromptHistoryTimeline
+                promptId={promptId!}
                 currentContent={content}
                 currentTitle={title}
                 onRestore={handleRestore}
+                onLoad={(versionContent) => setContent(versionContent)}
               />
             </div>
           </div>
