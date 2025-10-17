@@ -8,6 +8,9 @@ import { GlobalErrorBoundary } from "@/components/error-boundary/global-error-bo
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
 
+// Initialize performance optimizations
+import '@/lib/init-performance';
+
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",

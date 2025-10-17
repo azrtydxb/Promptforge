@@ -186,6 +186,8 @@ model Prompt {
   @@index([title])
   @@index([description])
   @@index([userId, createdAt])
+  @@index([userId, folderId, createdAt]) // For folder queries
+  @@index([userId, pinnedAt, order]) // For user prompt ordering
 }
 
 model SharedPrompt {
@@ -236,6 +238,11 @@ model SharedPrompt {
   @@index([description])
   @@index([content])
   @@index([title, description, content])
+  // Composite indexes for common query patterns
+  @@index([isPublished, publishedAt, likeCount]) // For marketplace sorting
+  @@index([status, publishedAt]) // For moderation queries
+  @@index([visibility, isPublished, publishedAt]) // For public content filtering
+  @@index([authorId, isPublished, publishedAt]) // For user's published prompts
 }
 
 enum PromptVisibility {
