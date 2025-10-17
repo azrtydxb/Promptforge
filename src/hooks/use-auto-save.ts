@@ -85,7 +85,7 @@ export function useAutoSave({
         onSaveError?.(result.error || 'Failed to save draft');
         toast.error('Failed to save draft');
       }
-    } catch (error) {
+    } catch {
       // Check if component is still mounted before updating state
       if (!isMountedRef.current) {
         return;

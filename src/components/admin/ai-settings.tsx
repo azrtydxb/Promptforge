@@ -162,7 +162,6 @@ export function AISettings() {
   useEffect(() => {
     fetchSettings();
     fetchSemanticSearchSetting();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSettings = async () => {

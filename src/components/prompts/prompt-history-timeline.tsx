@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { formatDistanceToNow } from "date-fns";
 import {
   Clock,
   RotateCcw,
@@ -37,16 +36,12 @@ interface PromptVersion {
 
 interface PromptHistoryTimelineProps {
   promptId: string;
-  currentContent: string;
-  currentTitle?: string;
   onRestore?: () => void;
   onLoad?: (content: string) => void;  // NEW: callback to load version content into IDE
 }
 
 export function PromptHistoryTimeline({
   promptId,
-  currentContent,
-  currentTitle = "Current Version",
   onRestore,
   onLoad  // Add this
 }: PromptHistoryTimelineProps) {
