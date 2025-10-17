@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -85,9 +86,14 @@ export const RenamePromptModal = () => {
             <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !title.trim()}>
-              {loading ? "Renaming..." : "Rename"}
-            </Button>
+            <LoadingButton
+              type="submit"
+              loading={loading}
+              loadingText="Renaming..."
+              disabled={!title.trim()}
+            >
+              Rename
+            </LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>

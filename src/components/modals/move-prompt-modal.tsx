@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
@@ -139,13 +140,15 @@ export const MovePromptModal = () => {
           <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
-          <Button 
-            type="button" 
-            onClick={handleMove} 
-            disabled={loading || loadingFolders || !selectedFolderId}
+          <LoadingButton
+            type="button"
+            onClick={handleMove}
+            loading={loading}
+            loadingText="Moving..."
+            disabled={loadingFolders || !selectedFolderId}
           >
-            {loading ? "Moving..." : "Move"}
-          </Button>
+            Move
+          </LoadingButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

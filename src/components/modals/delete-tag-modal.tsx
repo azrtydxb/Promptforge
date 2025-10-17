@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -67,14 +68,15 @@ export function DeleteTagModal() {
           <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button 
-            type="button" 
-            variant="destructive" 
-            onClick={handleConfirm} 
-            disabled={isLoading}
+          <LoadingButton
+            type="button"
+            variant="destructive"
+            onClick={handleConfirm}
+            loading={isLoading}
+            loadingText="Deleting..."
           >
-            {isLoading ? "Deleting..." : "Delete Tag"}
-          </Button>
+            Delete Tag
+          </LoadingButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
