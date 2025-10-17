@@ -37,6 +37,36 @@ export async function saveDraft(input: z.infer<typeof draftSchema>) {
 
     if (draft) {
       // Update existing draft
+      // First disconnect all existing tags
+      await db.promptDraft.update({
+        where: { id: draft.id },
+        data: {
+          tags: {
+            set: [], // Clear all existing tag connections
+          },
+        },
+      });
+
+      // Then update with new data and connect tags
+      const tagConnections = validated.tags
+        ? await Promise.all(
+            validated.tags.map(async (tagName) => {
+              // Find or create tag
+              let tag = await db.tag.findFirst({
+                where: { name: tagName },
+              });
+
+              if (!tag) {
+                tag = await db.tag.create({
+                  data: { name: tagName },
+                });
+              }
+
+              return { id: tag.id };
+            })
+          )
+        : [];
+
       draft = await db.promptDraft.update({
         where: { id: draft.id },
         data: {
@@ -44,11 +74,32 @@ export async function saveDraft(input: z.infer<typeof draftSchema>) {
           description: validated.description,
           content: validated.content,
           folderId: validated.folderId,
-          tags: validated.tags || [],
+          tags: {
+            connect: tagConnections,
+          },
         },
       });
     } else {
       // Create new draft
+      const tagConnections = validated.tags
+        ? await Promise.all(
+            validated.tags.map(async (tagName) => {
+              // Find or create tag
+              let tag = await db.tag.findFirst({
+                where: { name: tagName },
+              });
+
+              if (!tag) {
+                tag = await db.tag.create({
+                  data: { name: tagName },
+                });
+              }
+
+              return { id: tag.id };
+            })
+          )
+        : [];
+
       draft = await db.promptDraft.create({
         data: {
           userId: user.id,
@@ -57,7 +108,9 @@ export async function saveDraft(input: z.infer<typeof draftSchema>) {
           description: validated.description,
           content: validated.content,
           folderId: validated.folderId,
-          tags: validated.tags || [],
+          tags: {
+            connect: tagConnections,
+          },
         },
       });
     }

@@ -337,16 +337,15 @@ export async function resetEmbeddingIndex() {
   
   try {
     // Reset all embeddings to null
+    // Note: embedding field is Unsupported("vector") type, so we skip it
     await db.prompt.updateMany({
       data: {
-        embedding: null,
         embeddingOutdated: true
       }
     });
-    
+
     await db.promptTemplate.updateMany({
       data: {
-        embedding: null,
         embeddingOutdated: true
       }
     });
@@ -407,10 +406,10 @@ export async function getEmbeddingStats() {
       outdatedTemplateEmbeddings
     ] = await Promise.all([
       db.prompt.count(),
-      db.prompt.count({ where: { embedding: { not: null } } }),
+      db.prompt.count({ where: { embeddingOutdated: false } }),
       db.prompt.count({ where: { embeddingOutdated: true } }),
       db.promptTemplate.count(),
-      db.promptTemplate.count({ where: { embedding: { not: null } } }),
+      db.promptTemplate.count({ where: { embeddingOutdated: false } }),
       db.promptTemplate.count({ where: { embeddingOutdated: true } })
     ]);
     

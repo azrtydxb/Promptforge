@@ -363,31 +363,33 @@ Respond in JSON format:
     limit: number = 5,
     excludeId?: string
   ): Promise<Array<{ id: string; similarity: number }>> {
-    // For now, we'll implement a simple cosine similarity search
-    // In production, you'd want to use pgvector or a dedicated vector database
-    
-    const prompts = await db.prompt.findMany({
-      where: {
-        embedding: { not: null },
-        id: excludeId ? { not: excludeId } : undefined
-      },
-      select: {
-        id: true,
-        embedding: true
-      }
-    });
+    // Use pgvector for efficient similarity search
+    const embeddingString = `[${embedding.join(',')}]`;
 
-    const similarities = prompts.map(prompt => {
-      const promptEmbedding = Array.isArray(prompt.embedding) 
-        ? prompt.embedding as number[]
-        : JSON.parse(prompt.embedding as string) as number[];
-      const similarity = this.cosineSimilarity(embedding, promptEmbedding);
-      return { id: prompt.id, similarity };
-    });
+    const results = excludeId
+      ? await db.$queryRaw<Array<{ id: string; similarity: number }>>`
+          SELECT
+            id,
+            1 - (CAST(embedding AS vector) <=> CAST(${embeddingString} AS vector)) as similarity
+          FROM "Prompt"
+          WHERE
+            embedding IS NOT NULL
+            AND id != ${excludeId}
+          ORDER BY CAST(embedding AS vector) <=> CAST(${embeddingString} AS vector)
+          LIMIT ${limit}
+        `
+      : await db.$queryRaw<Array<{ id: string; similarity: number }>>`
+          SELECT
+            id,
+            1 - (CAST(embedding AS vector) <=> CAST(${embeddingString} AS vector)) as similarity
+          FROM "Prompt"
+          WHERE
+            embedding IS NOT NULL
+          ORDER BY CAST(embedding AS vector) <=> CAST(${embeddingString} AS vector)
+          LIMIT ${limit}
+        `;
 
-    return similarities
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, limit);
+    return results;
   }
 
   private cosineSimilarity(a: number[], b: number[]): number {

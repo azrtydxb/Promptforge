@@ -142,7 +142,6 @@ export async function updatePromptEmbeddings(userId?: string, limit = BATCH_SIZE
       where: {
         ...(userId ? { userId } : {}),
         OR: [
-          { embedding: null },
           { embeddingOutdated: true },
           { embeddingVersion: { not: EMBEDDING_VERSION } }
         ]
@@ -168,16 +167,15 @@ export async function updatePromptEmbeddings(userId?: string, limit = BATCH_SIZE
     // Generate embeddings in batch
     const embeddings = await generateEmbeddings(texts);
 
-    // Update prompts with embeddings
+    // Update prompts with embeddings using raw SQL
     const updatePromises = prompts.map((prompt, index) =>
-      db.prompt.update({
-        where: { id: prompt.id },
-        data: {
-          embedding: JSON.stringify(embeddings[index]),
-          embeddingVersion: EMBEDDING_VERSION,
-          embeddingOutdated: false
-        }
-      })
+      db.$executeRaw`
+        UPDATE "Prompt"
+        SET embedding = ${`[${embeddings[index].join(',')}]`}::vector,
+            "embeddingVersion" = ${EMBEDDING_VERSION},
+            "embeddingOutdated" = false
+        WHERE id = ${prompt.id}
+      `
     );
 
     await Promise.all(updatePromises);
@@ -217,7 +215,6 @@ export async function updateTemplateEmbeddings(limit = BATCH_SIZE) {
     const templates = await db.promptTemplate.findMany({
       where: {
         OR: [
-          { embedding: null },
           { embeddingOutdated: true },
           { embeddingVersion: { not: EMBEDDING_VERSION } }
         ]
@@ -238,16 +235,15 @@ export async function updateTemplateEmbeddings(limit = BATCH_SIZE) {
     // Generate embeddings in batch
     const embeddings = await generateEmbeddings(texts);
     
-    // Update templates with embeddings
-    const updatePromises = templates.map((template, index) => 
-      db.promptTemplate.update({
-        where: { id: template.id },
-        data: {
-          embedding: JSON.stringify(embeddings[index]),
-          embeddingVersion: EMBEDDING_VERSION,
-          embeddingOutdated: false
-        }
-      })
+    // Update templates with embeddings using raw SQL
+    const updatePromises = templates.map((template, index) =>
+      db.$executeRaw`
+        UPDATE "PromptTemplate"
+        SET embedding = ${`[${embeddings[index].join(',')}]`}::vector,
+            "embeddingVersion" = ${EMBEDDING_VERSION},
+            "embeddingOutdated" = false
+        WHERE id = ${template.id}
+      `
     );
 
     await Promise.all(updatePromises);

@@ -162,15 +162,15 @@ export const embeddingWorker = new Worker(
           
           const text = preparePromptText(prompt);
           const embedding = await generateEmbedding(text);
-          
-          await db.prompt.update({
-            where: { id: promptId },
-            data: {
-              embedding: JSON.stringify(embedding),
-              embeddingVersion: 1,
-              embeddingOutdated: false,
-            },
-          });
+
+          // Update using raw SQL since embedding is Unsupported vector type
+          await db.$executeRaw`
+            UPDATE "Prompt"
+            SET embedding = ${`[${embedding.join(',')}]`}::vector,
+                "embeddingVersion" = 1,
+                "embeddingOutdated" = false
+            WHERE id = ${promptId}
+          `;
           
           logger.info('Prompt embedding updated', { promptId });
           return { success: true, promptId };
@@ -190,15 +190,15 @@ export const embeddingWorker = new Worker(
           
           const text = prepareTemplateText(template);
           const embedding = await generateEmbedding(text);
-          
-          await db.promptTemplate.update({
-            where: { id: templateId },
-            data: {
-              embedding: JSON.stringify(embedding),
-              embeddingVersion: 1,
-              embeddingOutdated: false,
-            },
-          });
+
+          // Update using raw SQL since embedding is Unsupported vector type
+          await db.$executeRaw`
+            UPDATE "PromptTemplate"
+            SET embedding = ${`[${embedding.join(',')}]`}::vector,
+                "embeddingVersion" = 1,
+                "embeddingOutdated" = false
+            WHERE id = ${templateId}
+          `;
           
           logger.info('Template embedding updated', { templateId });
           return { success: true, templateId };

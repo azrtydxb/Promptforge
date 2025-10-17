@@ -186,15 +186,29 @@ export async function findSimilarPrompts(promptId: string) {
     }
 
     // Generate embedding if not exists
-    let embedding = prompt.embedding as number[] | null;
-    if (!embedding) {
+    // Note: embedding field is stored as vector type, managed by embedding service
+    // We'll generate it if the prompt is marked as outdated
+    let embedding: number[];
+    if (prompt.embeddingOutdated) {
       embedding = await aiService.generateEmbedding(prompt.content, user.id);
-      
-      // Save embedding
-      await db.prompt.update({
-        where: { id: promptId },
-        data: { embedding: JSON.stringify(embedding) },
-      });
+
+      // Save embedding via raw SQL since it's an Unsupported vector type
+      await db.$executeRaw`
+        UPDATE "Prompt"
+        SET embedding = ${`[${embedding.join(',')}]`}::vector,
+            "embeddingOutdated" = false
+        WHERE id = ${promptId}
+      `;
+    } else {
+      // Get existing embedding via raw SQL
+      const result = await db.$queryRaw<Array<{ embedding: string }>>`
+        SELECT embedding::text as embedding FROM "Prompt" WHERE id = ${promptId}
+      `;
+      if (!result[0]?.embedding) {
+        throw new Error("Prompt embedding not available");
+      }
+      // Parse vector string format [1,2,3] to array
+      embedding = JSON.parse(result[0].embedding) as number[];
     }
 
     // Find similar prompts

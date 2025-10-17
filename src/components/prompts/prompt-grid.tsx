@@ -28,6 +28,7 @@ interface PromptGridProps {
   className?: string;
   selectedPromptIds?: string[];
   onToggleSelect?: (promptId: string) => void;
+  onPromptClick?: (promptId: string) => void;
 }
 
 export function PromptGrid({
@@ -35,6 +36,7 @@ export function PromptGrid({
   className = "",
   selectedPromptIds = [],
   onToggleSelect,
+  onPromptClick,
 }: PromptGridProps) {
   const cardClassName = "select-none";
 
@@ -75,6 +77,7 @@ export function PromptGrid({
           variant="personal"
           data={prompt}
           className={cardClassName}
+          onPromptClick={onPromptClick}
         />
       </div>
     );

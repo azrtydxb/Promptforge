@@ -228,15 +228,16 @@ export async function findSimilarPrompts(
   tags: Array<{ id: string; name: string }>;
 }>> {
   try {
-    // Get the source prompt with embedding
-    const sourcePrompt = await db.prompt.findUnique({
-      where: { id: promptId },
-      select: { embedding: true }
-    });
+    // Get the source prompt with embedding via raw SQL
+    const sourcePromptResult = await db.$queryRaw<Array<{ embedding: string }>>`
+      SELECT embedding::text as embedding FROM "Prompt" WHERE id = ${promptId}
+    `;
 
-    if (!sourcePrompt?.embedding) {
+    if (!sourcePromptResult[0]?.embedding) {
       return [];
     }
+
+    const embeddingString = sourcePromptResult[0].embedding;
 
     // Find similar prompts using pgvector
     const results = await db.$queryRaw<Array<{
@@ -246,11 +247,11 @@ export async function findSimilarPrompts(
       similarity: number;
       tags: Array<{ id: string; name: string }> | null;
     }>>`
-      SELECT 
+      SELECT
         p.id,
         p.title,
         p.description,
-        1 - (CAST(p.embedding AS vector) <=> CAST(${sourcePrompt.embedding} AS vector)) as similarity,
+        1 - (CAST(p.embedding AS vector) <=> CAST(${embeddingString} AS vector)) as similarity,
         (
           SELECT json_agg(json_build_object('id', t.id, 'name', t.name))
           FROM "_PromptToTag" pt
@@ -263,7 +264,7 @@ export async function findSimilarPrompts(
         AND p.embedding != ''
         AND p.id != ${promptId}
         ${userId ? Prisma.sql`AND p."userId" = ${userId}` : Prisma.empty}
-      ORDER BY CAST(p.embedding AS vector) <=> CAST(${sourcePrompt.embedding} AS vector)
+      ORDER BY CAST(p.embedding AS vector) <=> CAST(${embeddingString} AS vector)
       LIMIT ${limit}
     `;
 

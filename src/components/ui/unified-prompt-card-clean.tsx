@@ -22,7 +22,7 @@ interface PersonalPromptData extends BasePromptData {
   createdAt: Date;
   updatedAt: Date;
   lastUsedAt?: Date | null;
-  favoritedAt?: Date;
+  favoritedAt?: Date | null;
   isFavorited?: boolean;
   pinnedAt?: Date | null;
   isPinned?: boolean;

@@ -41,13 +41,11 @@ export async function canUseSemanticSearch(): Promise<{
     const [promptsWithEmbeddings, templatesWithEmbeddings] = await Promise.all([
       db.prompt.count({
         where: {
-          embedding: { not: null },
           embeddingOutdated: false
         }
       }),
       db.promptTemplate.count({
         where: {
-          embedding: { not: null },
           embeddingOutdated: false
         }
       })
