@@ -3,6 +3,7 @@ import { PerformanceReporter } from '@/lib/performance';
 import { checkDatabaseHealth } from '@/lib/db';
 import { cacheService, initRedis, checkRedisHealth } from '@/lib/redis';
 import { logger } from '@/lib/logger';
+import { seedPerformanceMetrics } from '@/lib/performance-seed';
 
 // Check if we're in a test environment
 const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
@@ -56,7 +57,12 @@ export async function initializePerformanceOptimizations() {
         PerformanceReporter.logReport();
       }, 5 * 60 * 1000);
     }
-    
+
+    // Seed sample metrics in development for dashboard testing
+    if (process.env.NODE_ENV === 'development') {
+      seedPerformanceMetrics();
+    }
+
     logger.info('Performance optimizations initialized successfully');
   } catch (error) {
     logger.error('Failed to initialize performance optimizations', error);
