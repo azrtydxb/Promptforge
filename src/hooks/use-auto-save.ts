@@ -33,6 +33,8 @@ export function useAutoSave({
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const previousDataRef = useRef<string>('');
   const isSavingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isMountedRef = useRef(true);
 
   const save = useCallback(async (draftData: DraftData) => {
     // Prevent concurrent saves
@@ -40,11 +42,32 @@ export function useAutoSave({
       return;
     }
 
+    // Cancel any pending save
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller for this save operation
+    abortControllerRef.current = new AbortController();
+    const currentController = abortControllerRef.current;
+
     isSavingRef.current = true;
-    setSaveStatus('saving');
+
+    // Only update state if component is still mounted
+    if (isMountedRef.current) {
+      setSaveStatus('saving');
+    }
 
     try {
+      // Note: saveDraft is a Next.js server action which doesn't support AbortSignal.
+      // We use the AbortController to track cancellation and prevent state updates
+      // after the operation is aborted.
       const result = await saveDraft(draftData);
+
+      // Check if this save was aborted or component unmounted
+      if (currentController.signal.aborted || !isMountedRef.current) {
+        return;
+      }
 
       if (result.success) {
         setSaveStatus('saved');
@@ -53,14 +76,21 @@ export function useAutoSave({
 
         // Reset to idle after 2 seconds
         setTimeout(() => {
-          setSaveStatus('idle');
+          if (isMountedRef.current) {
+            setSaveStatus('idle');
+          }
         }, 2000);
       } else {
         setSaveStatus('error');
         onSaveError?.(result.error || 'Failed to save draft');
         toast.error('Failed to save draft');
       }
-    } catch {
+    } catch (error) {
+      // Check if component is still mounted before updating state
+      if (!isMountedRef.current) {
+        return;
+      }
+
       setSaveStatus('error');
       onSaveError?.('An error occurred while saving');
       toast.error('Failed to save draft');
@@ -108,6 +138,23 @@ export function useAutoSave({
     }
     save(data);
   }, [data, save]);
+
+  // Cleanup on unmount: abort pending saves and prevent state updates
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+
+      // Abort any pending save operation
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Clear any pending timeouts
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     saveStatus,

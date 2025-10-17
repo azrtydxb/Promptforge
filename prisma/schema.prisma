@@ -156,14 +156,14 @@ model Folder {
 }
 
 model Prompt {
-  id                     String            @id @default(cuid())
+  id                     String                 @id @default(cuid())
   title                  String
   description            String?
   content                String?
   userId                 String
-  user                   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                   User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   folderId               String?
-  folder                 Folder?           @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  folder                 Folder?                @relation(fields: [folderId], references: [id], onDelete: SetNull)
   tags                   Tag[]
   versions               PromptVersion[]
   likes                  PromptLike[]
@@ -177,21 +177,24 @@ model Prompt {
   enhancedContent        String? // AI-enhanced version of the prompt
   enhancementSuggestions Json? // Stored suggestions from AI
   autoTags               String[] // AI-suggested tags
-  embedding              String? // Vector embeddings as JSON string
-  embeddingVersion       Int?              @default(1) // Track embedding model version
-  embeddingOutdated      Boolean           @default(true) // Flag for re-generation
+  embedding              Unsupported("vector")? // Requires pgvector extension - Vector embeddings for semantic search
+  embeddingVersion       Int?                   @default(1) // Track embedding model version
+  embeddingOutdated      Boolean                @default(true) // Flag for re-generation
   templateId             String?
-  template               PromptTemplate?   @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  template               PromptTemplate?        @relation(fields: [templateId], references: [id], onDelete: SetNull)
   aiUsageLogs            AIUsageLog[]
   shareLinks             PromptShareLink[]
-  searchHistoryClicks    SearchHistory[]   @relation("ClickedPrompt")
-  createdAt              DateTime          @default(now())
-  updatedAt              DateTime          @updatedAt
+  searchHistoryClicks    SearchHistory[]        @relation("ClickedPrompt")
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
 
   @@index([userId])
   @@index([folderId])
   @@index([lastUsedAt])
   @@index([pinnedAt])
+  @@index([title])
+  @@index([description])
+  @@index([userId, createdAt])
 }
 
 model SharedPrompt {
@@ -340,12 +343,13 @@ model PromptCopy {
 }
 
 model Tag {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String        @id @default(cuid())
+  name        String        @unique
   description String?
   prompts     Prompt[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  drafts      PromptDraft[] // Many-to-many relationship with PromptDraft
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }
 
 model PromptVersion {
@@ -412,7 +416,7 @@ model PromptDraft {
   description String?
   content     String?
   folderId    String?
-  tags        String[] // Tag names as array
+  tags        Tag[] // Many-to-many relationship with Tag model (normalized)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -508,7 +512,7 @@ model AISettings {
 
 // Prompt Templates
 model PromptTemplate {
-  id                String   @id @default(cuid())
+  id                String                 @id @default(cuid())
   name              String
   description       String?
   category          String // e.g., "coding", "writing", "analysis"
@@ -516,17 +520,17 @@ model PromptTemplate {
   variables         Json // Variable definitions with descriptions
   example           String? // Example of filled template
   icon              String? // Icon identifier
-  isPublic          Boolean  @default(true)
+  isPublic          Boolean                @default(true)
   authorId          String?
-  author            User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  author            User?                  @relation(fields: [authorId], references: [id], onDelete: SetNull)
   prompts           Prompt[] // Prompts created from this template
-  usageCount        Int      @default(0)
-  rating            Float?   @default(0)
-  embedding         String? // Vector embeddings as JSON string
-  embeddingVersion  Int?     @default(1) // Track embedding model version
-  embeddingOutdated Boolean  @default(true) // Flag for re-generation
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  usageCount        Int                    @default(0)
+  rating            Float?                 @default(0)
+  embedding         Unsupported("vector")? // Requires pgvector extension - Vector embeddings for semantic search
+  embeddingVersion  Int?                   @default(1) // Track embedding model version
+  embeddingOutdated Boolean                @default(true) // Flag for re-generation
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
 
   @@index([category])
   @@index([isPublic])
@@ -663,34 +667,34 @@ enum TeamRole {
 }
 
 model TeamPrompt {
-  id                     String              @id @default(cuid())
+  id                     String                 @id @default(cuid())
   teamId                 String
-  team                   Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team                   Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
   title                  String
   description            String?
   content                String?
   createdById            String
-  createdBy              User                @relation(fields: [createdById], references: [id])
+  createdBy              User                   @relation(fields: [createdById], references: [id])
   folderId               String?
-  folder                 TeamFolder?         @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  folder                 TeamFolder?            @relation(fields: [folderId], references: [id], onDelete: SetNull)
   tags                   TeamTag[]
-  isArchived             Boolean             @default(false)
+  isArchived             Boolean                @default(false)
   // AI Enhancement fields (similar to Prompt model)
   enhancedContent        String?
   enhancementSuggestions Json?
   autoTags               String[]
-  embedding              String?
-  embeddingVersion       Int?                @default(1)
-  embeddingOutdated      Boolean             @default(true)
+  embedding              Unsupported("vector")? // Requires pgvector extension - Vector embeddings for semantic search
+  embeddingVersion       Int?                   @default(1)
+  embeddingOutdated      Boolean                @default(true)
   // Versioning
   versions               TeamPromptVersion[]
   // Analytics
-  viewCount              Int                 @default(0)
-  copyCount              Int                 @default(0)
+  viewCount              Int                    @default(0)
+  copyCount              Int                    @default(0)
   lastUsedAt             DateTime?
   pinnedAt               DateTime?
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
 
   @@index([teamId])
   @@index([createdById])

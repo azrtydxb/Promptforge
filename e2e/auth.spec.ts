@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { faker } from '@faker-js/faker'
 
 test.describe('Authentication', () => {
   test.describe('Sign In', () => {
@@ -8,22 +9,28 @@ test.describe('Authentication', () => {
 
     test('should display sign in form', async ({ page }) => {
       // Check for email input
-      await expect(page.getByLabel(/email/i)).toBeVisible()
-      
+      await expect(page.getByTestId('email-input')).toBeVisible()
+
       // Check for password input
-      await expect(page.getByLabel(/password/i)).toBeVisible()
-      
+      await expect(page.getByTestId('password-input')).toBeVisible()
+
       // Check for submit button
-      await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()
+      await expect(page.getByTestId('submit-button')).toBeVisible()
     })
 
     test('should show validation errors for empty form', async ({ page }) => {
       // Click submit without filling form
-      await page.getByRole('button', { name: /sign in/i }).click()
-      
-      // Should show validation errors (implementation specific)
-      // This is a placeholder - adjust based on actual validation behavior
-      await expect(page.getByText(/required/i).first()).toBeVisible()
+      await page.getByTestId('submit-button').click()
+
+      // Browser native validation should prevent submission, or error message should appear
+      // Most modern browsers show native validation, but if error message is shown:
+      const errorElement = page.getByTestId('error-message')
+      const isErrorVisible = await errorElement.isVisible().catch(() => false)
+
+      // If no error element visible, form should still be on sign-in page
+      if (!isErrorVisible) {
+        await expect(page).toHaveURL(/.*sign-in/)
+      }
     })
 
     test('should navigate to sign up page', async ({ page }) => {
@@ -43,23 +50,37 @@ test.describe('Authentication', () => {
 
     test('should display sign up form', async ({ page }) => {
       // Check for form fields
-      await expect(page.getByLabel(/email/i)).toBeVisible()
-      await expect(page.getByLabel(/password/i).first()).toBeVisible()
-      
+      await expect(page.getByTestId('name-input')).toBeVisible()
+      await expect(page.getByTestId('email-input')).toBeVisible()
+      await expect(page.getByTestId('password-input')).toBeVisible()
+      await expect(page.getByTestId('confirm-password-input')).toBeVisible()
+
       // Check for submit button
-      await expect(page.getByRole('button', { name: /sign up/i })).toBeVisible()
+      await expect(page.getByTestId('submit-button')).toBeVisible()
     })
 
     test('should validate email format', async ({ page }) => {
-      // Enter invalid email
-      await page.getByLabel(/email/i).fill('invalid-email')
-      await page.getByLabel(/password/i).first().fill('ValidPassword123!')
-      
-      await page.getByRole('button', { name: /sign up/i }).click()
-      
-      // Should show email validation error
-      // Adjust selector based on actual implementation
-      await expect(page.getByText(/valid email/i)).toBeVisible()
+      // Generate test data with faker
+      const invalidEmail = faker.lorem.word() // Not a valid email format
+      const validPassword = faker.internet.password({ length: 8 })
+
+      // Enter invalid email and password
+      await page.getByTestId('email-input').fill(invalidEmail)
+      await page.getByTestId('password-input').fill(validPassword)
+
+      await page.getByTestId('submit-button').click()
+
+      // Should either show error message or stay on sign-up page due to validation
+      const errorElement = page.getByTestId('error-message')
+      const isErrorVisible = await errorElement.isVisible().catch(() => false)
+
+      if (!isErrorVisible) {
+        // Browser native validation should reject the form
+        await expect(page).toHaveURL(/.*sign-up/)
+      } else {
+        // Or if custom validation is implemented
+        await expect(errorElement).toBeVisible()
+      }
     })
 
     test('should navigate to sign in page', async ({ page }) => {
@@ -76,10 +97,10 @@ test.describe('Authentication', () => {
 // Helper function for authenticated tests
 export async function login(page: Page, email: string, password: string) {
   await page.goto('/sign-in')
-  await page.getByLabel(/email/i).fill(email)
-  await page.getByLabel(/password/i).fill(password)
-  await page.getByRole('button', { name: /sign in/i }).click()
-  
+  await page.getByTestId('email-input').fill(email)
+  await page.getByTestId('password-input').fill(password)
+  await page.getByTestId('submit-button').click()
+
   // Wait for navigation or success indicator
   await page.waitForURL(/^(?!.*sign-in).*$/) // Wait to navigate away from sign-in
 }

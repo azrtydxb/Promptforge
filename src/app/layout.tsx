@@ -6,8 +6,7 @@ import { ModalProvider } from "@/components/providers/modal-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { GlobalErrorBoundary } from "@/components/error-boundary/global-error-boundary";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "sonner";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,8 +56,7 @@ export default function RootLayout({
             <AuthProvider>
               <ModalProvider />
               {children}
-              <Toaster />
-              <Sonner 
+              <Toaster
                 theme="system"
                 toastOptions={{
                   style: {

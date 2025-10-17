@@ -122,6 +122,7 @@ export default function SignUpPage() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
+                    data-testid="name-input"
                     className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]/20 shadow-sm"
                   />
                 </div>
@@ -142,6 +143,7 @@ export default function SignUpPage() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
+                    data-testid="email-input"
                     className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]/20 shadow-sm"
                   />
                 </div>
@@ -163,6 +165,7 @@ export default function SignUpPage() {
                     required
                     minLength={6}
                     disabled={isLoading}
+                    data-testid="password-input"
                     className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]/20 shadow-sm"
                   />
                 </div>
@@ -183,19 +186,21 @@ export default function SignUpPage() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
+                    data-testid="confirm-password-input"
                     className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]/20 shadow-sm"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="bg-[hsl(var(--destructive))]/10 border border-[hsl(var(--destructive))]/20 text-[hsl(var(--destructive))] px-4 py-3 rounded-lg text-sm text-center shadow-sm">
+                <div className="bg-[hsl(var(--destructive))]/10 border border-[hsl(var(--destructive))]/20 text-[hsl(var(--destructive))] px-4 py-3 rounded-lg text-sm text-center shadow-sm" data-testid="error-message">
                   {error}
                 </div>
               )}
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
+                data-testid="submit-button"
                 className="w-full bg-[#6379c3] hover:bg-[#546ee5] text-white shadow-lg hover:shadow-xl active:scale-[0.98] transition-all duration-200 font-medium py-3 group"
                 disabled={isLoading}
               >
