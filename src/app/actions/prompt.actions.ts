@@ -213,6 +213,23 @@ export async function getPromptById(id: string) {
     },
   });
 
+  // If prompt content is empty but versions exist, sync with latest version
+  if (prompt && (!prompt.content || prompt.content.trim() === '') && prompt.versions.length > 0) {
+    const latestVersion = prompt.versions[0];
+
+    // Update the prompt content with the latest version
+    await db.prompt.update({
+      where: { id },
+      data: { content: latestVersion.content }
+    });
+
+    // Return the updated prompt with the content
+    return {
+      ...prompt,
+      content: latestVersion.content
+    };
+  }
+
   return prompt;
 }
 
