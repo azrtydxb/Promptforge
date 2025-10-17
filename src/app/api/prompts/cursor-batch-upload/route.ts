@@ -3,7 +3,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { schedulePromptEmbeddingUpdate } from "@/lib/queues/embedding-queue";
 
 interface PromptToCreate {
   title: string;
@@ -78,9 +77,6 @@ export async function POST(request: Request) {
             tags: true,
           },
         });
-
-        // Schedule embedding generation
-        await schedulePromptEmbeddingUpdate(newPrompt.id);
 
         results.push({
           success: true,

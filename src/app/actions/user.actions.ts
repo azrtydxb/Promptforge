@@ -57,6 +57,19 @@ interface UpdateUserParams {
 
 export async function updateUser(userId: string, user: UpdateUserParams) {
     try {
+        // SECURITY: Verify the current user has permission to update this user
+        const currentUser = await requireAuth();
+
+        // Users can only update their own profile
+        // Admin functionality should use admin-users.actions.ts instead
+        if (currentUser.id !== userId) {
+            logger.warn("Unauthorized user update attempt", {
+                attemptingUserId: currentUser.id,
+                targetUserId: userId
+            });
+            throw new Error("You can only update your own profile");
+        }
+
         const updatedUser = await db.user.update({
             where: { id: userId },
             data: user,
@@ -71,11 +84,15 @@ export async function updateUser(userId: string, user: UpdateUserParams) {
 
 export async function deleteUser(userId: string) {
     try {
-        const deletedUser = await db.user.delete({
-            where: { id: userId },
-        });
-        revalidatePath(`/`);
-        return deletedUser;
+        // SECURITY: This function should only be called by admins
+        // Regular users should not be able to delete accounts
+        // For admin usage, use admin-users.actions.ts instead
+
+        // NOTE: User account deletion should be handled through a proper
+        // account deletion flow with confirmation, data export options, etc.
+        // This function is deprecated and should not be used directly.
+
+        throw new Error("Direct user deletion is disabled for security. Use admin panel or account settings for proper deletion flow.");
     } catch (error) {
         logger.error("Error deleting user", error, { userId });
         throw error;

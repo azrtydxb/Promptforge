@@ -3,7 +3,6 @@
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { schedulePromptEmbeddingUpdate } from '@/lib/queues/embedding-queue';
 
 export async function getPromptsByFolder(folderId?: string) {
   const user = await requireAuth();
@@ -183,9 +182,6 @@ export async function createPrompt({
 
     console.log("SERVER ACTION: Prompt created successfully:", newPrompt);
 
-    // Schedule embedding generation
-    await schedulePromptEmbeddingUpdate(newPrompt.id);
-    
     revalidatePath(`/prompts`);
     if (folderId) {
       revalidatePath(`/prompts/folders/${folderId}`);
@@ -271,11 +267,6 @@ export async function updatePrompt(
         : undefined,
     },
   });
-
-  // Schedule embedding update if content or tags changed
-  if (content !== existingPrompt.content || tags) {
-    await schedulePromptEmbeddingUpdate(id);
-  }
 
   revalidatePath(`/prompts/${id}`);
   return updatedPrompt;
@@ -592,9 +583,6 @@ export async function duplicatePrompt(promptId: string) {
       tags: true,
     },
   });
-
-  // Schedule embedding generation for the duplicated prompt
-  await schedulePromptEmbeddingUpdate(duplicatedPrompt.id);
 
   revalidatePath("/prompts");
   return duplicatedPrompt;

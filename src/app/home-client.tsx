@@ -102,12 +102,12 @@ export function HomeClient() {
               </div>
 
               <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 leading-tight text-white">
-                Craft Perfect AI Prompts
+                Craft Perfect Prompts
               </h1>
 
               <p className="text-lg text-white/90 mb-8 leading-relaxed">
                 Transform scattered prompts into an organized knowledge base. Create, manage,
-                and version your AI prompts with professional-grade tools designed for creators.
+                and version your prompts with professional-grade tools designed for creators.
               </p>
 
               <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -156,7 +156,7 @@ export function HomeClient() {
               </span>
             </h2>
             <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed">
-              Built for prompt engineers, researchers, and AI enthusiasts who demand
+              Built for prompt engineers, researchers, and enthusiasts who demand
               organization, efficiency, and professional-grade tools.
             </p>
           </div>
@@ -170,7 +170,7 @@ export function HomeClient() {
               <h3 className="text-2xl font-semibold mb-4 text-card-foreground">Smart Organization</h3>
               <p className="text-muted-foreground leading-relaxed">
                 Organize prompts into folders, tag them intelligently, and find what you need
-                instantly with powerful semantic search capabilities.
+                instantly with powerful search capabilities.
               </p>
             </Card>
 
@@ -193,7 +193,7 @@ export function HomeClient() {
               </div>
               <h3 className="text-2xl font-semibold mb-4 text-card-foreground">Advanced Search</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Find any prompt instantly with semantic search, intelligent tagging, and
+                Find any prompt instantly with intelligent tagging and
                 advanced filters. Your entire prompt library at your fingertips.
               </p>
             </Card>
@@ -233,7 +233,7 @@ export function HomeClient() {
             Ready to master your prompts?
           </h2>
           <p className="text-white/90 text-xl mb-10 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of AI enthusiasts who have transformed their prompt workflow
+            Join thousands of users who have transformed their prompt workflow
             with PromptForge&apos;s professional-grade tools.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

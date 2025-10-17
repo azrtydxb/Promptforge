@@ -26,7 +26,6 @@ export function PromptsSearchPage() {
     results,
     isLoading,
     error,
-    semanticSearchEnabled,
     performSearch,
     trackResultClick,
   } = useUnifiedSearch({
@@ -160,7 +159,7 @@ export function PromptsSearchPage() {
         <div>
           <h1 className="text-3xl font-bold mb-2">Search Prompts</h1>
           <p className="text-muted-foreground">
-            Search through your prompts using {semanticSearchEnabled ? "AI-powered semantic search" : "keyword search"}
+            Search through your prompts
           </p>
         </div>
 
@@ -174,9 +173,7 @@ export function PromptsSearchPage() {
           }}
           placeholder="Search your prompts..."
           filters={filtersComponent}
-          showModeSelector={true}
           showHistory={true}
-          semanticSearchEnabled={semanticSearchEnabled}
         />
 
         {error && (

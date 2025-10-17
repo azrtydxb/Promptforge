@@ -1,7 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
-import { searchPrompts, searchPromptsHybrid } from "@/app/actions/search.actions";
+import { useState, useCallback } from "react";
+import { searchPrompts } from "@/app/actions/search.actions";
 import { searchPromptsKeyword, searchSharedPromptsKeyword, searchTemplatesKeyword } from "@/app/actions/keyword-search.actions";
-import { canUseSemanticSearch } from "@/app/actions/semantic-search.actions";
 import { updateSearchClick } from "@/app/actions/search-history.actions";
 import type { SearchDataSource, SearchMode, SearchFilters } from "@/components/search/unified-search";
 
@@ -17,7 +16,7 @@ interface SearchState {
   error: string | null;
   totalCount: number;
   currentPage: number;
-  semanticSearchEnabled: boolean;
+  semanticSearchEnabled: false;
 }
 
 export function useUnifiedSearch({
@@ -31,22 +30,8 @@ export function useUnifiedSearch({
     error: null,
     totalCount: 0,
     currentPage: 1,
-    semanticSearchEnabled: false,
+    semanticSearchEnabled: false, // Always false now - AI functionality removed
   });
-
-  // Check if semantic search is enabled on mount
-  useEffect(() => {
-    checkSemanticSearchStatus();
-  }, []);
-
-  const checkSemanticSearchStatus = async () => {
-    try {
-      const status = await canUseSemanticSearch();
-      setState(prev => ({ ...prev, semanticSearchEnabled: status.enabled }));
-    } catch (error) {
-      console.error("Error checking semantic search status:", error);
-    }
-  };
 
   const performSearch = useCallback(async (
     query: string,
@@ -59,55 +44,21 @@ export function useUnifiedSearch({
       let results: unknown[] = [];
       let totalCount = 0;
 
-      // Force keyword mode if semantic search is disabled
-      const effectiveMode = state.semanticSearchEnabled ? mode : "keyword";
-
+      // Only keyword mode available (AI functionality removed)
       switch (dataSource) {
         case "prompts":
-          if (effectiveMode === "keyword") {
-            // Use standard keyword search without embeddings
-            const response = await searchPromptsKeyword({
-              query,
-              limit: pageSize,
-              filters: {
-                tags: filters.tags,
-                folderId: filters.folderId,
-                hasEnhancement: filters.hasEnhancement,
-                dateRange: filters.dateRange,
-              },
-            });
-            results = response.prompts || [];
-            totalCount = response.total || results.length;
-          } else if (effectiveMode === "hybrid") {
-            // Use hybrid search
-            const response = await searchPromptsHybrid({
-              query,
-              limit: pageSize,
-              keywordWeight: 0.3,
-              filters: {
-                tags: filters.tags,
-                folderId: filters.folderId,
-                hasEnhancement: filters.hasEnhancement,
-                dateRange: filters.dateRange,
-              },
-            });
-            results = response.prompts || [];
-            totalCount = results.length;
-          } else {
-            // Pure semantic search
-            const response = await searchPrompts({
-              query,
-              limit: pageSize,
-              filters: {
-                tags: filters.tags,
-                folderId: filters.folderId,
-                hasEnhancement: filters.hasEnhancement,
-                dateRange: filters.dateRange,
-              },
-            });
-            results = response.prompts || [];
-            totalCount = results.length;
-          }
+          const response = await searchPromptsKeyword({
+            query,
+            limit: pageSize,
+            filters: {
+              tags: filters.tags,
+              folderId: filters.folderId,
+              hasEnhancement: filters.hasEnhancement,
+              dateRange: filters.dateRange,
+            },
+          });
+          results = response.prompts || [];
+          totalCount = response.total || results.length;
           break;
 
         case "templates":
@@ -124,46 +75,29 @@ export function useUnifiedSearch({
           break;
 
         case "shared":
-          // Shared prompts - use keyword search when semantic is disabled
-          if (effectiveMode === "keyword" || !state.semanticSearchEnabled) {
-            const sharedResponse = await searchSharedPromptsKeyword({
-              query,
-              limit: pageSize,
-              filters: {
-                tags: filters.tags,
-              },
-            });
-            results = sharedResponse.prompts || [];
-            totalCount = sharedResponse.total || results.length;
-          } else {
-            // For semantic/hybrid search on shared prompts, we'd need to implement it
-            // For now, fall back to keyword search
-            const sharedResponse = await searchSharedPromptsKeyword({
-              query,
-              limit: pageSize,
-              filters: {
-                tags: filters.tags,
-              },
-            });
-            results = sharedResponse.prompts || [];
-            totalCount = sharedResponse.total || results.length;
-          }
+          // Shared prompts - keyword search only
+          const sharedResponse = await searchSharedPromptsKeyword({
+            query,
+            limit: pageSize,
+            filters: {
+              tags: filters.tags,
+            },
+          });
+          results = sharedResponse.prompts || [];
+          totalCount = sharedResponse.total || results.length;
           break;
 
         case "all":
-          // Search across all sources
-          // This would require implementing a unified search endpoint
-          // For now, we'll just search prompts
-          const allResponse = await searchPromptsHybrid({
+          // Search across all sources - keyword only
+          const allResponse = await searchPrompts({
             query,
             limit: pageSize,
-            includeTemplates: true,
             filters: {
               tags: filters.tags,
               hasEnhancement: filters.hasEnhancement,
             },
           });
-          results = [...(allResponse.prompts || []), ...(allResponse.templates || [])];
+          results = allResponse.prompts || [];
           totalCount = results.length;
           break;
       }
@@ -184,7 +118,7 @@ export function useUnifiedSearch({
         isLoading: false
       }));
     }
-  }, [dataSource, pageSize, state.semanticSearchEnabled, onResultsChange]);
+  }, [dataSource, pageSize, onResultsChange]);
 
   const trackResultClick = useCallback(async (resultId: string, searchId?: string) => {
     if (searchId) {

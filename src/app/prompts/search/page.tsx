@@ -3,24 +3,18 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { searchPrompts } from "@/app/actions/prompt.actions";
-import type { Prompt, Tag } from "@/generated/prisma";
 import { PromptList } from "@/components/prompts/prompt-list";
-
-type PromptWithTags = Prompt & {
-  tags: Tag[];
-  likeCount: number;
-  isLikedByUser: boolean;
-};
+import type { PromptGridItem } from "@/components/prompts/prompt-grid";
 
 function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
-  const [prompts, setPrompts] = useState<PromptWithTags[]>([]);
+  const [prompts, setPrompts] = useState<PromptGridItem[]>([]);
 
   useEffect(() => {
     const fetchPrompts = async () => {
       const fetchedPrompts = await searchPrompts(query);
-      setPrompts(fetchedPrompts as PromptWithTags[]);
+      setPrompts(fetchedPrompts as PromptGridItem[]);
     };
     fetchPrompts();
   }, [query]);

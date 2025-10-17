@@ -6,15 +6,15 @@ import { cn } from "@/lib/utils";
 
 export type PromptGridItem = Prompt & {
   tags: Tag[];
-  likeCount?: number;
-  isLikedByUser?: boolean;
+  likeCount: number;
+  isLikedByUser: boolean;
   _count?: {
     likes?: number;
     favorites?: number;
     versions?: number;
   };
-  favoriteCount?: number;
-  isFavoritedByUser?: boolean;
+  favoriteCount: number;
+  isFavoritedByUser: boolean;
   isFavorited?: boolean;
   isPinned?: boolean;
   pinnedAt?: Date | null;

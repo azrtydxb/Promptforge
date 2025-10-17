@@ -244,49 +244,57 @@ export async function getSharedPrompts({
 
 /**
  * Get available tags from published shared prompts with counts
+ * OPTIMIZED: Uses a single query with Prisma aggregation to avoid N+1 problem
  */
 export async function getAvailableSharedPromptTags() {
   try {
-    // Get all published shared prompts with their tags
+    // Get all published shared prompts with their prompt IDs in a single query
     const sharedPrompts = await db.sharedPrompt.findMany({
       where: {
         isPublished: true,
         status: 'APPROVED'
       },
+      select: {
+        promptId: true
+      }
+    });
+
+    const promptIds = sharedPrompts.map(sp => sp.promptId);
+
+    // Get all tags for these prompts with a single query using Prisma's relation
+    const tags = await db.tag.findMany({
+      where: {
+        prompts: {
+          some: {
+            id: { in: promptIds }
+          }
+        }
+      },
       include: {
-        prompt: {
-          include: {
-            tags: true
+        _count: {
+          select: {
+            prompts: {
+              where: {
+                id: { in: promptIds }
+              }
+            }
           }
         }
       }
     });
 
-    // Aggregate tags and count occurrences
-    const tagMap = new Map<string, { id: string; name: string; count: number }>();
-
-    for (const sharedPrompt of sharedPrompts) {
-      for (const tag of sharedPrompt.prompt.tags) {
-        if (tagMap.has(tag.id)) {
-          const existing = tagMap.get(tag.id)!;
-          existing.count++;
-        } else {
-          tagMap.set(tag.id, {
-            id: tag.id,
-            name: tag.name,
-            count: 1
-          });
-        }
-      }
-    }
-
-    // Convert to array and sort by count descending
-    const tags = Array.from(tagMap.values())
+    // Map to desired format and sort by count descending
+    const formattedTags = tags
+      .map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        count: tag._count.prompts
+      }))
       .sort((a, b) => b.count - a.count);
 
     return {
       success: true,
-      tags
+      tags: formattedTags
     };
 
   } catch (error) {

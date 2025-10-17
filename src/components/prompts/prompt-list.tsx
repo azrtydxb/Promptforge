@@ -13,8 +13,8 @@ type PromptWithTags = Prompt & {
   tags: Tag[];
   likeCount: number;
   isLikedByUser: boolean;
-  favoriteCount?: number;
-  isFavoritedByUser?: boolean;
+  favoriteCount: number;
+  isFavoritedByUser: boolean;
 };
 
 

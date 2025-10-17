@@ -61,9 +61,10 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
       where.folderId = validated.filters.folderId;
     }
 
-    if (validated.filters?.hasEnhancement) {
-      where.enhancedContent = { not: null };
-    }
+    // hasEnhancement filter removed - AI enhancement feature has been removed
+    // if (validated.filters?.hasEnhancement) {
+    //   where.enhancedContent = { not: null };
+    // }
 
     if (validated.filters?.dateRange) {
       const dateConditions: Prisma.DateTimeFilter = {};
@@ -111,8 +112,13 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
       folder: prompt.folder,
       isLiked: prompt.likes.length > 0,
       hasVersions: prompt.versions.length > 1,
-      hasEnhancement: !!prompt.enhancedContent,
-      enhancedContent: prompt.enhancedContent,
+      _count: {
+        likes: prompt.likes.length,
+        favorites: 0, // favorites not included in this query
+      },
+      // AI enhancement fields removed
+      // hasEnhancement: !!prompt.enhancedContent,
+      // enhancedContent: prompt.enhancedContent,
       createdAt: prompt.createdAt,
       updatedAt: prompt.updatedAt,
     }));

@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev-with-worker.js",
-    "dev:next-only": "next dev --turbopack",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -20,15 +19,10 @@
     "scrape:prompts": "tsx scripts/scrape-prompts.ts",
     "db:verify": "tsx scripts/verify-tags.ts",
     "make-admin": "tsx scripts/make-admin.ts",
-    "worker": "tsx scripts/start-worker-ts.ts",
-    "redis:up": "docker-compose up -d redis",
-    "redis:down": "docker-compose down redis",
-    "redis:logs": "docker-compose logs -f redis",
     "extract-cursor-rules": "node extract-cursor-rules.js",
     "upload-cursor-rules": "node upload-cursor-rules.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.67.0",
     "@codemirror/autocomplete": "^6.19.0",
     "@codemirror/lang-javascript": "^6.2.4",
     "@codemirror/lang-json": "^6.0.2",
@@ -64,27 +58,22 @@
     "@tailwindcss/line-clamp": "^0.4.4",
     "@tanstack/react-query": "^5.90.5",
     "@types/bcryptjs": "^2.4.6",
-    "@types/ioredis": "^4.28.10",
     "@types/qrcode.react": "^1.0.5",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@uiw/codemirror-theme-github": "^4.25.2",
     "@uiw/codemirror-theme-vscode": "^4.25.2",
     "@uiw/react-codemirror": "^4.25.2",
     "bcryptjs": "^3.0.2",
-    "bullmq": "^5.61.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "diff": "^8.0.2",
     "framer-motion": "^12.23.24",
-    "happy-dom": "20.0.4",
-    "ioredis": "^5.8.1",
     "lucide-react": "^0.546.0",
     "nanoid": "^5.1.6",
     "next": "^15.5.6",
     "next-auth": "^4.24.11",
     "next-themes": "^0.4.6",
-    "openai": "^5.23.2",
     "playwright-mcp": "^0.0.12",
     "prisma": "^6.17.1",
     "qrcode.react": "^4.2.0",
@@ -133,7 +122,6 @@
   },
   "pnpm": {
     "overrides": {
-      "happy-dom": ">=20.0.4",
       "prismjs": ">=1.30.0"
     }
   }

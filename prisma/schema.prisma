@@ -52,7 +52,6 @@ model User {
   publishedPrompts SharedPrompt[]
   moderatedPrompts SharedPrompt[]    @relation("ModeratedBy")
   promptTemplates  PromptTemplate[]
-  aiUsageLogs      AIUsageLog[]
   shareLinks       PromptShareLink[]
   searchHistory    SearchHistory[]
   promptRatings    PromptRating[]
@@ -156,37 +155,29 @@ model Folder {
 }
 
 model Prompt {
-  id                     String                 @id @default(cuid())
-  title                  String
-  description            String?
-  content                String?
-  userId                 String
-  user                   User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  folderId               String?
-  folder                 Folder?                @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  tags                   Tag[]
-  versions               PromptVersion[]
-  likes                  PromptLike[]
-  favorites              PromptFavorite[]
+  id                  String            @id @default(cuid())
+  title               String
+  description         String?
+  content             String?
+  userId              String
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId            String?
+  folder              Folder?           @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags                Tag[]
+  versions            PromptVersion[]
+  likes               PromptLike[]
+  favorites           PromptFavorite[]
   // Marketplace publishing
-  sharedPrompt           SharedPrompt?
-  order                  Int?
-  lastUsedAt             DateTime? // Track when prompt was last accessed/used
-  pinnedAt               DateTime? // Track when prompt was pinned
-  // AI Enhancement fields
-  enhancedContent        String? // AI-enhanced version of the prompt
-  enhancementSuggestions Json? // Stored suggestions from AI
-  autoTags               String[] // AI-suggested tags
-  embedding              Unsupported("vector")? // Requires pgvector extension - Vector embeddings for semantic search
-  embeddingVersion       Int?                   @default(1) // Track embedding model version
-  embeddingOutdated      Boolean                @default(true) // Flag for re-generation
-  templateId             String?
-  template               PromptTemplate?        @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  aiUsageLogs            AIUsageLog[]
-  shareLinks             PromptShareLink[]
-  searchHistoryClicks    SearchHistory[]        @relation("ClickedPrompt")
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
+  sharedPrompt        SharedPrompt?
+  order               Int?
+  lastUsedAt          DateTime? // Track when prompt was last accessed/used
+  pinnedAt            DateTime? // Track when prompt was pinned
+  templateId          String?
+  template            PromptTemplate?   @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  shareLinks          PromptShareLink[]
+  searchHistoryClicks SearchHistory[]   @relation("ClickedPrompt")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   @@index([userId])
   @@index([folderId])
@@ -241,6 +232,10 @@ model SharedPrompt {
   @@index([copyCount])
   @@index([commentCount])
   @@index([publishedAt, likeCount])
+  @@index([title])
+  @@index([description])
+  @@index([content])
+  @@index([title, description, content])
 }
 
 enum PromptVisibility {
@@ -484,80 +479,28 @@ model SystemSettings {
   updatedAt   DateTime @updatedAt
 }
 
-// AI Configuration Settings
-model AISettings {
-  id           String    @id @default(cuid())
-  name         String    @unique // e.g., "primary", "fallback"
-  provider     String // e.g., "openai", "anthropic", "google"
-  model        String // e.g., "gpt-4", "claude-3", "gemini-pro"
-  apiKey       String // Encrypted API key
-  isActive     Boolean   @default(true)
-  isDefault    Boolean   @default(false)
-  // Configuration
-  maxTokens    Int?      @default(4096)
-  temperature  Float?    @default(0.7)
-  topP         Float?    @default(1.0)
-  // Rate limits
-  rateLimit    Int? // Requests per minute
-  monthlyQuota Int? // Total requests per month
-  usageCount   Int       @default(0) // Current month usage
-  // Metadata
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  lastUsedAt   DateTime?
-
-  @@index([provider])
-  @@index([isActive, isDefault])
-}
-
 // Prompt Templates
 model PromptTemplate {
-  id                String                 @id @default(cuid())
-  name              String
-  description       String?
-  category          String // e.g., "coding", "writing", "analysis"
-  content           String // Template with variables like {{variable}}
-  variables         Json // Variable definitions with descriptions
-  example           String? // Example of filled template
-  icon              String? // Icon identifier
-  isPublic          Boolean                @default(true)
-  authorId          String?
-  author            User?                  @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  prompts           Prompt[] // Prompts created from this template
-  usageCount        Int                    @default(0)
-  rating            Float?                 @default(0)
-  embedding         Unsupported("vector")? // Requires pgvector extension - Vector embeddings for semantic search
-  embeddingVersion  Int?                   @default(1) // Track embedding model version
-  embeddingOutdated Boolean                @default(true) // Flag for re-generation
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String // e.g., "coding", "writing", "analysis"
+  content     String // Template with variables like {{variable}}
+  variables   Json // Variable definitions with descriptions
+  example     String? // Example of filled template
+  icon        String? // Icon identifier
+  isPublic    Boolean  @default(true)
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  prompts     Prompt[] // Prompts created from this template
+  usageCount  Int      @default(0)
+  rating      Float?   @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([category])
   @@index([isPublic])
   @@index([authorId])
-}
-
-// AI Usage Tracking
-model AIUsageLog {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  promptId   String?
-  prompt     Prompt?  @relation(fields: [promptId], references: [id], onDelete: SetNull)
-  operation  String // "enhance", "auto-tag", "similarity", "embedding"
-  provider   String // "openai", "anthropic", etc.
-  model      String // Model used
-  tokensUsed Int // Tokens consumed
-  cost       Float? // Estimated cost in USD
-  duration   Int // Response time in ms
-  success    Boolean
-  error      String?
-  metadata   Json? // Additional data
-  createdAt  DateTime @default(now())
-
-  @@index([userId])
-  @@index([operation])
-  @@index([createdAt])
 }
 
 // Prompt Share Links
@@ -667,40 +610,36 @@ enum TeamRole {
 }
 
 model TeamPrompt {
-  id                     String                 @id @default(cuid())
-  teamId                 String
-  team                   Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  title                  String
-  description            String?
-  content                String?
-  createdById            String
-  createdBy              User                   @relation(fields: [createdById], references: [id])
-  folderId               String?
-  folder                 TeamFolder?            @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  tags                   TeamTag[]
-  isArchived             Boolean                @default(false)
-  // AI Enhancement fields (similar to Prompt model)
-  enhancedContent        String?
-  enhancementSuggestions Json?
-  autoTags               String[]
-  embedding              Unsupported("vector")? // Requires pgvector extension - Vector embeddings for semantic search
-  embeddingVersion       Int?                   @default(1)
-  embeddingOutdated      Boolean                @default(true)
+  id          String              @id @default(cuid())
+  teamId      String
+  team        Team                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  content     String?
+  createdById String
+  createdBy   User                @relation(fields: [createdById], references: [id])
+  folderId    String?
+  folder      TeamFolder?         @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  tags        TeamTag[]
+  isArchived  Boolean             @default(false)
   // Versioning
-  versions               TeamPromptVersion[]
+  versions    TeamPromptVersion[]
   // Analytics
-  viewCount              Int                    @default(0)
-  copyCount              Int                    @default(0)
-  lastUsedAt             DateTime?
-  pinnedAt               DateTime?
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
+  viewCount   Int                 @default(0)
+  copyCount   Int                 @default(0)
+  lastUsedAt  DateTime?
+  pinnedAt    DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 
   @@index([teamId])
   @@index([createdById])
   @@index([folderId])
   @@index([lastUsedAt])
   @@index([pinnedAt])
+  @@index([title])
+  @@index([description])
+  @@index([teamId, title])
 }
 
 model TeamPromptVersion {
@@ -818,4 +757,43 @@ enum TeamAction {
   TAG_CREATED
   TAG_UPDATED
   TAG_DELETED
+}
+
+// Application Configuration Management
+// Central configuration store for UI elements, badges, colors, etc.
+model AppConfig {
+  id          String         @id @default(cuid())
+  category    ConfigCategory // Badge, Theme, Feature, etc.
+  key         String         @unique // e.g., "badge.CREATOR", "feature.maxFileSize"
+  value       Json // Flexible JSON storage for any config type
+  description String?
+  isActive    Boolean        @default(true)
+  version     Int            @default(1) // Version for cache invalidation
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([category])
+  @@index([category, key])
+  @@index([version])
+}
+
+enum ConfigCategory {
+  BADGE // Badge configurations (icons, colors)
+  THEME // Theme settings
+  FEATURE // Feature flags and limits
+  UI // UI element configurations
+  CACHE // Cache version tracking
+  SYSTEM // System-wide settings
+}
+
+// Cache Version Tracking
+// Track versions of cache groups for efficient invalidation without SCAN
+model CacheVersion {
+  id        String   @id @default(cuid())
+  group     String   @unique // e.g., "shared-prompts", "user-prompts", "analytics"
+  version   Int      @default(1)
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+  @@index([version])
 }

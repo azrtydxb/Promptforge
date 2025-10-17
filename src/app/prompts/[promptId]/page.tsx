@@ -23,7 +23,6 @@ import { Input } from "@/components/ui/input";
 import { ChevronDown, Save, ArrowLeft, Copy, Check, Share2, Eye, Split, Code2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
-import { AIEnhancementPanel } from "@/components/prompts/ai-enhancement-panel";
 import { useSession } from "next-auth/react";
 import { MarkdownPreview } from "@/components/editor/markdown-preview";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -551,25 +550,13 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
         </div>
         {!isCreateMode && prompt && (
           <div className="flex-grow overflow-y-auto">
-            <div className="p-4 border-b">
-              <AIEnhancementPanel
-                promptId={promptId!}
-                currentContent={content}
-                currentTags={tags}
-                onTagsUpdate={handleTagsChange}
-                onContentUpdate={(newContent) => {
-                  setContent(newContent);
-                  updatePrompt(promptId!, { content: newContent });
-                }}
-              />
-            </div>
             <div className="flex-1 overflow-y-auto p-4">
               <PromptHistoryTimeline
                 promptId={promptId!}
                 currentContent={content}
                 currentTitle={title}
                 onRestore={handleRestore}
-                onLoad={(versionContent) => setContent(versionContent)}
+                onLoad={(versionContent: string) => setContent(versionContent)}
               />
             </div>
           </div>

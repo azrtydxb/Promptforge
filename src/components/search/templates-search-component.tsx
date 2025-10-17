@@ -122,9 +122,7 @@ export function TemplatesSearchComponent() {
         onSearch={handleSearch}
         placeholder="Search templates..."
         filters={filtersComponent}
-        showModeSelector={false} // Templates don't support semantic search yet
         showHistory={true}
-        semanticSearchEnabled={false}
       />
 
       {filteredTemplates.length > 0 ? (

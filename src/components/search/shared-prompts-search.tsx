@@ -32,12 +32,10 @@ interface Prompt {
 
 interface SharedPromptsSearchProps {
   initialPrompts?: Prompt[];
-  semanticSearchEnabled?: boolean;
 }
 
-export function SharedPromptsSearch({ 
+export function SharedPromptsSearch({
   initialPrompts = [],
-  semanticSearchEnabled = false 
 }: SharedPromptsSearchProps) {
   const [prompts, setPrompts] = useState(initialPrompts);
   const [isLoading, setIsLoading] = useState(false);
@@ -108,9 +106,7 @@ export function SharedPromptsSearch({
         dataSource="shared"
         onSearch={handleSearch}
         placeholder="Search shared prompts..."
-        showModeSelector={semanticSearchEnabled}
         showHistory={true}
-        semanticSearchEnabled={semanticSearchEnabled}
       />
 
       <MarketplaceFilters

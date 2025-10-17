@@ -470,9 +470,10 @@ export async function copyTeamPromptToPersonal(promptId: string) {
         title: teamPrompt.title,
         description: teamPrompt.description,
         content: teamPrompt.content,
-        enhancedContent: teamPrompt.enhancedContent,
-        enhancementSuggestions: teamPrompt.enhancementSuggestions as unknown as Prisma.InputJsonValue,
-        autoTags: teamPrompt.autoTags,
+        // AI enhancement fields removed - these no longer exist in schema
+        // enhancedContent: teamPrompt.enhancedContent,
+        // enhancementSuggestions: teamPrompt.enhancementSuggestions as unknown as Prisma.InputJsonValue,
+        // autoTags: teamPrompt.autoTags,
       },
     });
     

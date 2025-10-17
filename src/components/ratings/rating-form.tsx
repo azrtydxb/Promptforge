@@ -31,6 +31,11 @@ export function RatingForm({
   const [review, setReview] = useState(existingRating?.review || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [optimisticState, setOptimisticState] = useState<{
+    rating: number;
+    review: string;
+    isSubmitted: boolean;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +47,13 @@ export function RatingForm({
 
     setIsSubmitting(true);
 
+    // Optimistic update
+    setOptimisticState({
+      rating,
+      review: review.trim(),
+      isSubmitted: true
+    });
+
     try {
       const result = await ratePrompt(sharedPromptId, {
         rating,
@@ -52,12 +64,17 @@ export function RatingForm({
         toast.success(
           existingRating ? 'Rating updated successfully' : 'Rating submitted successfully'
         );
+        setOptimisticState(null); // Clear optimistic state on success
         router.refresh();
         onSuccess?.();
       } else {
+        // Revert optimistic update on error
+        setOptimisticState(null);
         toast.error(result.error || 'Failed to submit rating');
       }
     } catch {
+      // Revert optimistic update on error
+      setOptimisticState(null);
       toast.error('An error occurred while submitting rating');
     } finally {
       setIsSubmitting(false);
@@ -91,18 +108,21 @@ export function RatingForm({
   };
 
   return (
-    <Card>
+    <Card className={optimisticState?.isSubmitted ? 'opacity-75' : ''}>
       <CardHeader>
         <CardTitle>
           {existingRating ? 'Update Your Rating' : 'Rate This Prompt'}
         </CardTitle>
+        {optimisticState?.isSubmitted && (
+          <p className="text-sm text-muted-foreground">Submitting your rating...</p>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Your Rating</Label>
             <StarRating
-              rating={rating}
+              rating={optimisticState?.rating || rating}
               onRatingChange={setRating}
               size="lg"
             />

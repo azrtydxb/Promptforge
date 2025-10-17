@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Search, Filter, X, Sparkles } from "lucide-react";
+import { Search, Filter, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,7 +11,7 @@ import { SearchHistoryPanel } from "@/components/search/search-history-panel";
 import { saveSearchToHistory } from "@/app/actions/search-history.actions";
 
 export type SearchDataSource = "prompts" | "templates" | "shared" | "all";
-export type SearchMode = "semantic" | "hybrid" | "keyword";
+export type SearchMode = "keyword";
 
 export interface SearchFilters {
   tags?: string[];
@@ -33,9 +32,7 @@ interface UnifiedSearchProps {
   onResultSelect?: (result: unknown) => void;
   placeholder?: string;
   filters?: React.ReactNode;
-  showModeSelector?: boolean;
   showHistory?: boolean;
-  semanticSearchEnabled?: boolean;
   className?: string;
   autoFocus?: boolean;
   initialQuery?: string;
@@ -48,9 +45,7 @@ export function UnifiedSearch({
   onSearch,
   placeholder = "Search...",
   filters,
-  showModeSelector = true,
   showHistory = true,
-  semanticSearchEnabled = false,
   className,
   autoFocus = false,
   initialQuery = "",
@@ -58,23 +53,14 @@ export function UnifiedSearch({
   onQueryChange,
 }: UnifiedSearchProps) {
   const [query, setQuery] = useState(initialQuery);
-  const [searchMode, setSearchMode] = useState<SearchMode>(
-    semanticSearchEnabled ? "hybrid" : "keyword"
-  );
+  const [searchMode] = useState<SearchMode>("keyword");
   const [isSearching, setIsSearching] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [currentFilters, setCurrentFilters] = useState<SearchFilters>(initialFilters);
-  
-  const debouncedQuery = useDebounce(query, 500);
 
-  // Update search mode when semantic search is toggled
-  useEffect(() => {
-    if (!semanticSearchEnabled && searchMode !== "keyword") {
-      setSearchMode("keyword");
-    }
-  }, [semanticSearchEnabled, searchMode]);
+  const debouncedQuery = useDebounce(query, 500);
 
   // Perform search when query or filters change
   useEffect(() => {
@@ -82,7 +68,7 @@ export function UnifiedSearch({
       performSearch();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, currentFilters, searchMode]);
+  }, [debouncedQuery, currentFilters]);
 
   const performSearch = useCallback(async () => {
     if (!debouncedQuery.trim() && Object.keys(currentFilters).length === 0) {
@@ -170,31 +156,6 @@ export function UnifiedSearch({
           </Button>
         )}
       </div>
-
-      {/* Search Mode Selector */}
-      {showModeSelector && semanticSearchEnabled && (
-        <div className="flex items-center gap-4">
-          <Tabs value={searchMode} onValueChange={(v) => setSearchMode(v as SearchMode)}>
-            <TabsList>
-              <TabsTrigger value="keyword">Keyword</TabsTrigger>
-              <TabsTrigger value="hybrid">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Hybrid
-              </TabsTrigger>
-              <TabsTrigger value="semantic">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Semantic
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          {searchMode !== "keyword" && (
-            <div className="text-sm text-muted-foreground">
-              Using AI-powered search
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Filters */}
       {showFilters && filters}

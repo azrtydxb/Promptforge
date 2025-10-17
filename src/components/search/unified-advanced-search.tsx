@@ -24,12 +24,37 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface AdvancedSearchProps {
-  initialQuery?: string;
-  onResultsChange?: (count: number) => void;
+export type SearchMode = "keyword";
+
+export interface SearchFilters {
+  tags?: string[];
+  folderId?: string | null;
+  hasEnhancement?: boolean;
 }
 
-export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedSearchProps) {
+interface UnifiedAdvancedSearchProps {
+  initialQuery?: string;
+  initialFilters?: SearchFilters;
+  onResultsChange?: (count: number) => void;
+  onSearch?: (query: string, mode: SearchMode, filters: SearchFilters) => Promise<void>;
+  showHistory?: boolean;
+  showFilters?: boolean;
+  showResults?: boolean;
+  placeholder?: string;
+  className?: string;
+}
+
+export function UnifiedAdvancedSearch({
+  initialQuery = "",
+  initialFilters = {},
+  onResultsChange,
+  onSearch,
+  showHistory = true,
+  showFilters = true,
+  showResults = true,
+  placeholder = "Search prompts...",
+  className
+}: UnifiedAdvancedSearchProps) {
   const [query, setQuery] = useState(initialQuery);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<{
@@ -51,21 +76,21 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
       category: string;
       usageCount: number;
       rating: number | null;
-    }>
+    }>;
   }>({ prompts: [] });
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [currentSearchId, setCurrentSearchId] = useState<string | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistoryPanel, setShowHistoryPanel] = useState(false);
 
   // Filters
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const [includeEnhanced, setIncludeEnhanced] = useState(false);
-  
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialFilters.tags || []);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(initialFilters.folderId || null);
+  const [includeEnhanced, setIncludeEnhanced] = useState(initialFilters.hasEnhancement || false);
+
   // Available options
   const [availableTags, setAvailableTags] = useState<Array<{ id: string; name: string }>>([]);
   const [availableFolders, setAvailableFolders] = useState<Array<{ id: string; name: string }>>([]);
-  
+
   const debouncedQuery = useDebounce(query, 500);
 
   // Load available tags and folders
@@ -95,6 +120,17 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
 
     setIsLoading(true);
     try {
+      // If custom onSearch is provided, use it
+      if (onSearch) {
+        await onSearch(debouncedQuery, "keyword", {
+          tags: selectedTags,
+          folderId: selectedFolder,
+          hasEnhancement: includeEnhanced || undefined,
+        });
+        return;
+      }
+
+      // Default search implementation - keyword only
       const searchResults = await searchPromptsKeyword({
         query: debouncedQuery,
         limit: 30,
@@ -133,7 +169,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedQuery, selectedTags, selectedFolder, includeEnhanced, onResultsChange]);
+  }, [debouncedQuery, selectedTags, selectedFolder, includeEnhanced, onResultsChange, onSearch]);
 
   // Trigger search when parameters change
   useEffect(() => {
@@ -148,14 +184,12 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
     );
   };
 
-  // Handle prompt click to track in history
   const handlePromptClick = async (promptId: string) => {
     if (currentSearchId) {
       await updateSearchClick(currentSearchId, promptId);
     }
   };
 
-  // Handle search selection from history
   const handleHistorySelect = (historyQuery: string, filters?: Record<string, unknown>) => {
     setQuery(historyQuery);
     if (filters) {
@@ -163,53 +197,79 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
       setSelectedFolder((filters.folder as string) || null);
       setIncludeEnhanced((filters.includeEnhanced as boolean) || false);
     }
-    setShowHistory(false);
+    setShowHistoryPanel(false);
   };
 
+  const clearSearch = () => {
+    setQuery("");
+    setSelectedTags([]);
+    setSelectedFolder(null);
+    setIncludeEnhanced(false);
+  };
+
+  const activeFiltersCount =
+    selectedTags.length +
+    (selectedFolder ? 1 : 0) +
+    (includeEnhanced ? 1 : 0);
+
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", className)}>
       {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setShowHistory(true)}
-          placeholder="Search prompts..."
+          onFocus={() => setShowHistoryPanel(true)}
+          placeholder={placeholder}
           className="pl-10 pr-32"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setShowHistory(!showHistory)}
-            className="h-7 px-2"
-            title="Search history"
-          >
-            <Clock className="h-3 w-3" />
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setShowFilters(!showFilters)}
-            className={cn(
-              "h-7 gap-1",
-              (selectedTags.length > 0 || selectedFolder || includeEnhanced) && "text-primary"
-            )}
-          >
-            <Filter className="h-3 w-3" />
-            Filters
-            {(selectedTags.length > 0 || selectedFolder || includeEnhanced) && (
-              <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs">
-                {selectedTags.length + (selectedFolder ? 1 : 0) + (includeEnhanced ? 1 : 0)}
-              </Badge>
-            )}
-          </Button>
+          {query && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={clearSearch}
+              className="h-7 px-2"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+          {showHistory && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowHistoryPanel(!showHistoryPanel)}
+              className="h-7 px-2"
+              title="Search history"
+            >
+              <Clock className="h-3 w-3" />
+            </Button>
+          )}
+          {showFilters && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+              className={cn(
+                "h-7 gap-1",
+                activeFiltersCount > 0 && "text-primary"
+              )}
+            >
+              <Filter className="h-3 w-3" />
+              Filters
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ml-1 h-4 px-1 text-xs">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          )}
         </div>
       </div>
-      
+
       {/* Search History Panel */}
-      {showHistory && (
+      {showHistory && showHistoryPanel && (
         <div className="relative">
           <div className="absolute top-0 left-0 right-0 z-10 rounded-lg border bg-background shadow-lg p-4">
             <div className="flex items-center justify-between mb-4">
@@ -217,7 +277,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => setShowHistory(false)}
+                onClick={() => setShowHistoryPanel(false)}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -232,7 +292,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
 
 
       {/* Filters Panel */}
-      {showFilters && (
+      {showFilters && showFiltersPanel && (
         <div className="rounded-lg border bg-card p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium">Search Filters</h3>
@@ -253,7 +313,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
           <div className="space-y-2">
             <Label>Tags</Label>
             <div className="flex flex-wrap gap-2">
-              {availableTags.map(tag => (
+              {availableTags.map((tag) => (
                 <Badge
                   key={tag.id}
                   variant={selectedTags.includes(tag.name) ? "default" : "outline"}
@@ -262,9 +322,7 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
                 >
                   <Hash className="mr-1 h-3 w-3" />
                   {tag.name}
-                  {selectedTags.includes(tag.name) && (
-                    <X className="ml-1 h-3 w-3" />
-                  )}
+                  {selectedTags.includes(tag.name) && <X className="ml-1 h-3 w-3" />}
                 </Badge>
               ))}
             </div>
@@ -273,13 +331,16 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
           {/* Folder Filter */}
           <div className="space-y-2">
             <Label>Folder</Label>
-            <Select value={selectedFolder || ""} onValueChange={(v) => setSelectedFolder(v || null)}>
+            <Select
+              value={selectedFolder || ""}
+              onValueChange={(v) => setSelectedFolder(v || null)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="All folders" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All folders</SelectItem>
-                {availableFolders.map(folder => (
+                {availableFolders.map((folder) => (
                   <SelectItem key={folder.id} value={folder.id}>
                     <div className="flex items-center gap-2">
                       <FolderOpen className="h-4 w-4" />
@@ -306,63 +367,67 @@ export function AdvancedSearch({ initialQuery = "", onResultsChange }: AdvancedS
       )}
 
       {/* Results */}
-      <div className="space-y-6">
-        {isLoading ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-48" />
-            ))}
-          </div>
-        ) : (
-          <>
-            {/* Prompts Results */}
-            {results.prompts.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-lg font-medium">
-                  Prompts ({results.prompts.length})
-                </h3>
-                <PromptGrid
-                  prompts={results.prompts.map(p => ({
-                    id: p.id,
-                    title: p.title,
-                    description: p.description,
-                    content: p.content,
-                    userId: '',
-                    folderId: null,
-                    order: null,
-                    lastUsedAt: null,
-                    pinnedAt: null,
-                    enhancedContent: null,
-                    enhancementSuggestions: null,
-                    autoTags: [],
-                    embedding: null,
-                    embeddingVersion: 1,
-                    embeddingOutdated: false,
-                    templateId: null,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    tags: p.tags,
-                    _count: p._count,
-                  } as unknown as Parameters<typeof PromptGrid>[0]['prompts'][number]))}
-                  showFavoriteButton={true}
-                  onPromptClick={handlePromptClick}
-                />
-              </div>
-            )}
+      {showResults && (
+        <div className="space-y-6">
+          {isLoading ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-48" />
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Prompts Results */}
+              {results.prompts.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-medium">
+                    Prompts ({results.prompts.length})
+                  </h3>
+                  <PromptGrid
+                    prompts={results.prompts.map((p) => ({
+                      id: p.id,
+                      title: p.title,
+                      description: p.description,
+                      content: p.content,
+                      userId: "",
+                      folderId: null,
+                      order: null,
+                      lastUsedAt: null,
+                      pinnedAt: null,
+                      enhancedContent: null,
+                      enhancementSuggestions: null,
+                      autoTags: [],
+                      embedding: null,
+                      embeddingVersion: 1,
+                      embeddingOutdated: false,
+                      templateId: null,
+                      createdAt: new Date(),
+                      updatedAt: new Date(),
+                      tags: p.tags,
+                      _count: p._count,
+                    } as unknown as Parameters<typeof PromptGrid>[0]["prompts"][number]))}
+                    showFavoriteButton={true}
+                    onPromptClick={handlePromptClick}
+                  />
+                </div>
+              )}
 
-            {/* No Results */}
-            {!isLoading && results.prompts.length === 0 && debouncedQuery && (
-              <div className="text-center py-12">
-                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No results found</h3>
-                <p className="text-muted-foreground">
-                  Try adjusting your search query or filters
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+              {/* No Results */}
+              {!isLoading &&
+                results.prompts.length === 0 &&
+                debouncedQuery && (
+                  <div className="text-center py-12">
+                    <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">No results found</h3>
+                    <p className="text-muted-foreground">
+                      Try adjusting your search query or filters
+                    </p>
+                  </div>
+                )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
