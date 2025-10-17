@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache';
 import { fullModerationCheck } from '@/lib/moderation';
 import { z } from 'zod';
 import { Prisma } from "@/generated/prisma";
+import { withPerformance } from "@/lib/performance-wrapper";
 
 // Input validation schemas
 const createCommentSchema = z.object({
@@ -23,7 +24,7 @@ const updateCommentSchema = z.object({
 /**
  * Create a new comment on a shared prompt
  */
-export async function createComment(data: z.infer<typeof createCommentSchema>) {
+export const createComment = withPerformance('createComment', async (data: z.infer<typeof createCommentSchema>) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -130,7 +131,7 @@ export async function createComment(data: z.infer<typeof createCommentSchema>) {
     console.error('Error creating comment:', error);
     return { success: false, error: 'Failed to create comment' };
   }
-}
+});
 
 /**
  * Update an existing comment
@@ -226,7 +227,7 @@ export async function updateComment(data: z.infer<typeof updateCommentSchema>) {
 /**
  * Delete a comment
  */
-export async function deleteComment(commentId: string) {
+export const deleteComment = withPerformance('deleteComment', async (commentId: string) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -280,7 +281,7 @@ export async function deleteComment(commentId: string) {
     console.error('Error deleting comment:', error);
     return { success: false, error: 'Failed to delete comment' };
   }
-}
+});
 
 /**
  * Toggle like on a comment
@@ -361,7 +362,7 @@ export async function toggleCommentLike(commentId: string) {
 /**
  * Get comments for a shared prompt with pagination
  */
-export async function getComments({
+export const getComments = withPerformance('getComments', async ({
   sharedPromptId,
   page = 1,
   limit = 20,
@@ -371,7 +372,7 @@ export async function getComments({
   page?: number;
   limit?: number;
   sortBy?: 'newest' | 'oldest' | 'mostLiked';
-}) {
+}) => {
   try {
     const session = await getServerSession(authOptions);
     const skip = (page - 1) * limit;
@@ -494,7 +495,7 @@ export async function getComments({
     console.error('Error getting comments:', error);
     return { success: false, error: 'Failed to load comments' };
   }
-}
+});
 
 /**
  * Update user reputation for comment actions

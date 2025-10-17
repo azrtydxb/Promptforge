@@ -10,6 +10,7 @@ import {
   ModerationStatus,
   Prisma
 } from '@/generated/prisma';
+import { withPerformance } from "@/lib/performance-wrapper";
 
 interface PublishPromptData {
   promptId: string;
@@ -22,7 +23,7 @@ interface PublishPromptData {
 /**
  * Publish a prompt to the marketplace
  */
-export async function publishPromptToMarketplace(data: PublishPromptData) {
+export const publishPromptToMarketplace = withPerformance('publishPromptToMarketplace', async (data: PublishPromptData) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -104,12 +105,12 @@ export async function publishPromptToMarketplace(data: PublishPromptData) {
     console.error('Error publishing prompt:', error);
     return { success: false, error: 'Failed to publish prompt' };
   }
-}
+});
 
 /**
  * Get shared prompts with filtering and pagination
  */
-export async function getSharedPrompts({
+export const getSharedPrompts = withPerformance('getSharedPrompts', async ({
   page = 1,
   limit = 12,
   search = '',
@@ -123,7 +124,7 @@ export async function getSharedPrompts({
   tags?: string[];
   sortBy?: 'recent' | 'popular' | 'liked' | 'copied';
   authorId?: string;
-} = {}) {
+} = {}) => {
   try {
     const session = await getServerSession(authOptions);
     const skip = (page - 1) * limit;
@@ -240,7 +241,7 @@ export async function getSharedPrompts({
     console.error('Error getting shared prompts:', error);
     return { success: false, error: 'Failed to load shared prompts' };
   }
-}
+});
 
 /**
  * Get available tags from published shared prompts with counts
@@ -412,7 +413,7 @@ export async function getSharedPrompt(id: string) {
 /**
  * Copy a shared prompt to user's personal library
  */
-export async function copySharedPrompt(sharedPromptId: string, folderId?: string) {
+export const copySharedPrompt = withPerformance('copySharedPrompt', async (sharedPromptId: string, folderId?: string) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -498,7 +499,7 @@ export async function copySharedPrompt(sharedPromptId: string, folderId?: string
     console.error('Error copying shared prompt:', error);
     return { success: false, error: 'Failed to copy prompt' };
   }
-}
+});
 
 /**
  * Record a view for analytics

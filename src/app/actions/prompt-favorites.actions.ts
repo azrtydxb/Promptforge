@@ -4,8 +4,9 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/logger";
+import { withPerformance } from "@/lib/performance-wrapper";
 
-export async function togglePromptFavorite(promptId: string) {
+export const togglePromptFavorite = withPerformance('togglePromptFavorite', async (promptId: string) => {
   const user = await requireAuth();
 
   try {
@@ -29,7 +30,7 @@ export async function togglePromptFavorite(promptId: string) {
           },
         },
       });
-      
+
       logger.info("Prompt unfavorited", { promptId, userId: user.id });
       revalidatePath("/prompts");
       revalidatePath("/favorites");
@@ -42,7 +43,7 @@ export async function togglePromptFavorite(promptId: string) {
           userId: user.id,
         },
       });
-      
+
       logger.info("Prompt favorited", { promptId, userId: user.id });
       revalidatePath("/prompts");
       revalidatePath("/favorites");
@@ -52,9 +53,9 @@ export async function togglePromptFavorite(promptId: string) {
     logger.error("Error toggling prompt favorite:", error);
     throw error;
   }
-}
+});
 
-export async function getFavoritePrompts() {
+export const getFavoritePrompts = withPerformance('getFavoritePrompts', async () => {
   const user = await requireAuth();
 
   try {
@@ -93,7 +94,7 @@ export async function getFavoritePrompts() {
     logger.error("Error fetching favorite prompts:", error);
     throw error;
   }
-}
+});
 
 export async function checkPromptFavorite(promptId: string) {
   const user = await requireAuth();

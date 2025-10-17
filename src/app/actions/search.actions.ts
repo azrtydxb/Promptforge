@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { keywordSearch } from "@/services/search-service";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
+import { withPerformance } from "@/lib/performance-wrapper";
 
 // Validation schemas
 const searchSchema = z.object({
@@ -23,7 +24,7 @@ const searchSchema = z.object({
 /**
  * Perform keyword search on user's prompts
  */
-export async function searchPrompts(input: z.infer<typeof searchSchema>) {
+export const searchPrompts = withPerformance('searchPrompts', async (input: z.infer<typeof searchSchema>) => {
   try {
     const user = await requireAuth();
     const validated = searchSchema.parse(input);
@@ -43,12 +44,12 @@ export async function searchPrompts(input: z.infer<typeof searchSchema>) {
     logger.error('Error searching prompts', { error });
     throw new Error('Failed to search prompts');
   }
-}
+});
 
 /**
  * Search across all public content (marketplace)
  */
-export async function searchMarketplace(input: z.infer<typeof searchSchema>) {
+export const searchMarketplace = withPerformance('searchMarketplace', async (input: z.infer<typeof searchSchema>) => {
   try {
     const validated = searchSchema.parse(input);
 
@@ -66,4 +67,4 @@ export async function searchMarketplace(input: z.infer<typeof searchSchema>) {
     logger.error('Error searching marketplace', { error });
     throw new Error('Failed to search marketplace');
   }
-}
+});

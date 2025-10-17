@@ -6,6 +6,7 @@ import { requireAuth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { generateRandomUsername } from "@/lib/username-generator";
 import { logger } from "@/lib/logger";
+import { withPerformance } from "@/lib/performance-wrapper";
 
 interface CreateUserParams {
     name: string;
@@ -55,7 +56,7 @@ interface UpdateUserParams {
     image?: string;
 }
 
-export async function updateUser(userId: string, user: UpdateUserParams) {
+export const updateUser = withPerformance('updateUser', async (userId: string, user: UpdateUserParams) => {
     try {
         // SECURITY: Verify the current user has permission to update this user
         const currentUser = await requireAuth();
@@ -80,7 +81,7 @@ export async function updateUser(userId: string, user: UpdateUserParams) {
         console.error("Error updating user:", error);
         throw error;
     }
-}
+});
 
 export async function deleteUser(userId: string) {
     try {
@@ -116,12 +117,12 @@ interface ChangePasswordParams {
     newPassword: string;
 }
 
-export async function changePassword({ currentPassword, newPassword }: ChangePasswordParams) {
+export const changePassword = withPerformance('changePassword', async ({ currentPassword, newPassword }: ChangePasswordParams) => {
     let userId: string | undefined;
     try {
         const user = await requireAuth();
         userId = user.id;
-        
+
         // Get the user's current password hash
         const userWithPassword = await db.user.findUnique({
             where: { id: user.id },
@@ -153,4 +154,4 @@ export async function changePassword({ currentPassword, newPassword }: ChangePas
         logger.error("Error changing password", error, { userId });
         throw error;
     }
-}
+});

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import type { Folder } from '@/generated/prisma';
+import { withPerformance } from "@/lib/performance-wrapper";
 
 // Type for folder with nested children
 type FolderWithChildren = Folder & {
@@ -20,7 +21,7 @@ function sortFoldersRecursively(folders: FolderWithChildren[]): FolderWithChildr
     }));
 }
 
-export async function getFolders() {
+export const getFolders = withPerformance('getFolders', async () => {
   const user = await requireAuth();
 
   // Only fetch root-level folders (parentId is null) with their nested children
@@ -55,16 +56,16 @@ export async function getFolders() {
 
   // Apply recursive sorting to ensure all nested children are properly ordered
   return sortFoldersRecursively(folders);
-}
+});
 
 interface CreateFolderParams {
   name: string;
   parentId?: string | null;
 }
 
-export async function createFolder({ name, parentId }: CreateFolderParams) {
+export const createFolder = withPerformance('createFolder', async ({ name, parentId }: CreateFolderParams) => {
   console.log("SERVER ACTION: createFolder called with:", { name, parentId });
-  
+
   try {
     const user = await requireAuth();
     console.log("SERVER ACTION: User authenticated:", user.id);
@@ -94,11 +95,11 @@ export async function createFolder({ name, parentId }: CreateFolderParams) {
     console.error("SERVER ACTION: Error in createFolder:", error);
     throw error;
   }
-}
+});
 
-export async function updateFolder(id: string, name: string) {
+export const updateFolder = withPerformance('updateFolder', async (id: string, name: string) => {
   console.log("SERVER ACTION: updateFolder called with:", { id, name });
-  
+
   try {
     const user = await requireAuth();
     console.log("SERVER ACTION: User authenticated:", user.id);
@@ -115,11 +116,11 @@ export async function updateFolder(id: string, name: string) {
     console.error("SERVER ACTION: Error in updateFolder:", error);
     throw error;
   }
-}
+});
 
-export async function deleteFolder(id: string) {
+export const deleteFolder = withPerformance('deleteFolder', async (id: string) => {
   console.log("SERVER ACTION: deleteFolder called with:", { id });
-  
+
   try {
     const user = await requireAuth();
     console.log("SERVER ACTION: User authenticated:", user.id);
@@ -160,9 +161,9 @@ export async function deleteFolder(id: string) {
     console.error("SERVER ACTION: Error in deleteFolder:", error);
     throw error;
   }
-}
+});
 
-export async function moveFolder(id: string, parentId: string | null, order: number) {
+export const moveFolder = withPerformance('moveFolder', async (id: string, parentId: string | null, order: number) => {
   const user = await requireAuth();
 
   await db.folder.update({
@@ -171,4 +172,4 @@ export async function moveFolder(id: string, parentId: string | null, order: num
   });
 
   revalidatePath("/prompts");
-}
+});
