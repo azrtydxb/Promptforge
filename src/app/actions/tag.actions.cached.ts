@@ -104,15 +104,14 @@ export async function getTagsByIds(tagIds: string[]): Promise<TagBase[]> {
   
   // Try to get all tags from cache first
   cacheKeys_tags.forEach(key => {
-    // @ts-expect-error - Pipeline types don't match but this is a stub implementation
     pipeline.get(key);
   });
   const cachedResults = await pipeline.exec();
   
   const tags: TagBase[] = [];
   const missingTagIds: string[] = [];
-  
-  cachedResults?.forEach((result: [Error | null, string | null] | null, index: number) => {
+
+  cachedResults?.forEach((result, index) => {
     if (result && result[1]) {
       try {
         tags.push(JSON.parse(result[1] as string));
@@ -138,7 +137,6 @@ export async function getTagsByIds(tagIds: string[]): Promise<TagBase[]> {
     // Cache the missing tags
     const cachePipeline = cacheService.pipeline();
     missingTags.forEach(tag => {
-      // @ts-expect-error - Pipeline types don't match but this is a stub implementation
       cachePipeline.setex(`tag:${tag.id}`, cacheTTL.tags, JSON.stringify(tag));
     });
     await cachePipeline.exec();

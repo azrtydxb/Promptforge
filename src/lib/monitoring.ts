@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getRedisClient } from "@/lib/redis";
 import { logger } from "@/lib/logger";
 
 export interface PostgreSQLMetrics {
@@ -245,42 +246,43 @@ export class MonitoringService {
   }
 
   async getRedisMetrics(): Promise<RedisMetrics> {
-    // Redis has been removed from the application - return empty metrics
-    logger.warn('Redis has been removed from the application');
-    return {
-      info: {
-        version: 'removed',
-        uptime: 0,
-        connectedClients: 0,
-        usedMemory: 0,
-        usedMemoryHuman: '0B',
-        totalCommandsProcessed: 0,
-        instantaneousOpsPerSec: 0,
-        keyspaceHits: 0,
-        keyspaceMisses: 0,
-        evictedKeys: 0,
-      },
-      keyStats: {
-        totalKeys: 0,
-        keysByType: {},
-        keysByPattern: [],
-      },
-      performance: {
-        hitRate: 0,
-        avgTtl: 0,
-        memoryEfficiency: 0,
-      },
-    };
-
-    /* Redis implementation removed - keeping for reference
     try {
       const redis = getRedisClient();
+
+      // Check if Redis is connected
+      if (redis.status !== 'ready') {
+        logger.warn('Redis client not ready', { status: redis.status });
+        return {
+          info: {
+            version: 'unknown',
+            uptime: 0,
+            connectedClients: 0,
+            usedMemory: 0,
+            usedMemoryHuman: '0B',
+            totalCommandsProcessed: 0,
+            instantaneousOpsPerSec: 0,
+            keyspaceHits: 0,
+            keyspaceMisses: 0,
+            evictedKeys: 0,
+          },
+          keyStats: {
+            totalKeys: 0,
+            keysByType: {},
+            keysByPattern: [],
+          },
+          performance: {
+            hitRate: 0,
+            avgTtl: 0,
+            memoryEfficiency: 0,
+          },
+        };
+      }
 
       // Get Redis INFO
       const info = await redis.info();
       const infoLines = info.split('\r\n');
       const infoObj: Record<string, string> = {};
-      
+
       infoLines.forEach((line: string) => {
         if (line.includes(':')) {
           const [key, value] = line.split(':');
@@ -314,7 +316,7 @@ export class MonitoringService {
       try {
         const allKeys = await redis.keys('*');
         const patternMap: Record<string, number> = {};
-        
+
         allKeys.forEach((key: string) => {
           const pattern = key.split(':')[0] + ':*';
           patternMap[pattern] = (patternMap[pattern] || 0) + 1;
@@ -332,7 +334,7 @@ export class MonitoringService {
               memory = 0;
             }
           }
-          
+
           keyPatterns.push({ pattern, count, memory });
         }
       } catch (error) {
@@ -342,8 +344,8 @@ export class MonitoringService {
       // Calculate performance metrics
       const keyspaceHits = parseInt(infoObj.keyspace_hits || '0');
       const keyspaceMisses = parseInt(infoObj.keyspace_misses || '0');
-      const hitRate = keyspaceHits + keyspaceMisses > 0 
-        ? (keyspaceHits / (keyspaceHits + keyspaceMisses)) * 100 
+      const hitRate = keyspaceHits + keyspaceMisses > 0
+        ? (keyspaceHits / (keyspaceHits + keyspaceMisses)) * 100
         : 0;
 
       const usedMemory = parseInt(infoObj.used_memory || '0');
@@ -378,7 +380,6 @@ export class MonitoringService {
       logger.error('Error getting Redis metrics', error);
       throw error;
     }
-    */
   }
 
   async getCachePerformanceMetrics(): Promise<CachePerformanceMetrics> {
@@ -430,12 +431,18 @@ export class MonitoringService {
       logger.error('PostgreSQL health check failed', error);
     }
 
-    // Redis has been removed - always mark as unhealthy
-    results.redis = {
-      status: 'unhealthy',
-      latency: 0,
-    };
-    logger.debug('Redis has been removed from the application');
+    // Test Redis
+    try {
+      const redis = getRedisClient();
+      const start = Date.now();
+      await redis.ping();
+      results.redis = {
+        status: 'healthy',
+        latency: Date.now() - start,
+      };
+    } catch (error) {
+      logger.error('Redis health check failed', error);
+    }
 
     return results;
   }
