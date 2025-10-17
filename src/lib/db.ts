@@ -5,20 +5,14 @@ declare global {
   var prisma: PrismaClient | undefined
 }
 
-// Enhanced database configuration with connection pooling
+// Enhanced database configuration
+// Note: Connection pooling is configured via DATABASE_URL query parameters
+// Example: postgresql://user:pass@host:5432/db?connection_limit=10&pool_timeout=20&connect_timeout=10
 const prismaConfig = {
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
-    },
-  },
-  // Connection pooling settings
-  __internal: {
-    engine: {
-      connectionLimit: 10,
-      poolTimeout: 10000,
-      connectTimeout: 10000,
     },
   },
 }
