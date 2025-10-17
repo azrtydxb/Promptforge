@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -210,9 +211,9 @@ export function ChangePasswordModal() {
             <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Changing..." : "Change Password"}
-            </Button>
+            <LoadingButton type="submit" loading={isLoading} loadingText="Changing...">
+              Change Password
+            </LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>

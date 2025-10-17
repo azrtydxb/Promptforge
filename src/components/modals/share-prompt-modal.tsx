@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,18 +33,17 @@ import {
   deleteShareLink,
   getShareLinkAnalytics
 } from "@/app/actions/prompt-share.actions";
-import { 
-  Copy, 
-  Check, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
+import {
+  Copy,
+  Check,
+  Trash2,
+  Eye,
+  EyeOff,
   Calendar,
   Activity,
   Share2,
   QrCode,
-  AlertCircle,
-  Loader2
+  AlertCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -396,22 +396,15 @@ export function SharePromptModal() {
                 </div>
                 
                 <DialogFooter>
-                  <Button
+                  <LoadingButton
                     onClick={handleCreateShare}
-                    disabled={isLoading || !title}
+                    loading={isLoading}
+                    disabled={!title}
+                    loadingText="Creating..."
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
-                      </>
-                    ) : (
-                      <>
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Create Share Link
-                      </>
-                    )}
-                  </Button>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Create Share Link
+                  </LoadingButton>
                 </DialogFooter>
               </>
             )}

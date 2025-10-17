@@ -4,11 +4,11 @@ import { useState } from "react"
 import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { LoadingButton } from "@/components/ui/loading-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Zap, Mail, Lock, ArrowRight, Loader2 } from "lucide-react"
+import { Zap, Mail, Lock, ArrowRight } from "lucide-react"
 
 export default function SignInPage() {
   const router = useRouter()
@@ -127,24 +127,16 @@ export default function SignInPage() {
                 </div>
               )}
 
-              <Button
+              <LoadingButton
                 type="submit"
                 data-testid="submit-button"
                 className="w-full bg-[#6379c3] hover:bg-[#546ee5] text-white shadow-lg hover:shadow-xl active:scale-[0.98] transition-all duration-200 font-medium py-3 group"
-                disabled={isLoading}
+                loading={isLoading}
+                loadingText="Signing In..."
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Signing In...
-                  </>
-                ) : (
-                  <>
-                    Sign In
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
-              </Button>
+                Sign In
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </LoadingButton>
             </form>
 
             <div className="text-center text-sm text-muted-foreground">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Textarea } from "@/components/ui/textarea";
 import { createComment, updateComment } from "@/app/actions/comments.actions";
 import { Send, X, Edit3 } from "lucide-react";
@@ -122,16 +123,16 @@ export function CommentForm({
               Cancel
             </Button>
           )}
-          
-          <Button
+
+          <LoadingButton
             type="submit"
             size="sm"
-            disabled={!content.trim() || isSubmitting}
+            loading={isSubmitting}
+            disabled={!content.trim()}
+            loadingText="Posting..."
             className="min-w-[80px]"
           >
-            {isSubmitting ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
-            ) : editingComment ? (
+            {editingComment ? (
               <>
                 <Edit3 className="h-4 w-4 mr-1" />
                 Update
@@ -142,7 +143,7 @@ export function CommentForm({
                 Post
               </>
             )}
-          </Button>
+          </LoadingButton>
         </div>
       </div>
     </form>

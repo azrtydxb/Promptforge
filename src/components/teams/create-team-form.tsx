@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { createTeam } from "@/app/actions/team.actions";
-import { Loader2 } from "lucide-react";
 
 export function CreateTeamForm() {
   const router = useRouter();
@@ -128,13 +128,15 @@ export function CreateTeamForm() {
       </div>
       
       <div className="flex gap-4">
-        <Button type="submit" disabled={isSubmitting || !formData.name.trim()}>
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+        <LoadingButton
+          type="submit"
+          loading={isSubmitting}
+          loadingText="Creating Team..."
+          disabled={!formData.name.trim()}
+        >
           Create Team
-        </Button>
-        
+        </LoadingButton>
+
         <Button
           type="button"
           variant="outline"

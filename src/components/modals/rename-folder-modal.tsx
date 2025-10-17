@@ -9,6 +9,7 @@ import {
   DialogFooter,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { LoadingButton } from "../ui/loading-button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ import { updateFolder } from "@/app/actions/folder.actions";
 export const RenameFolderModal = () => {
   const { isOpen, onClose, type, data } = useModal();
   const [name, setName] = useState("");
+  const [isRenaming, setIsRenaming] = useState(false);
 
   const isModalOpen = isOpen && type === "renameFolder";
 
@@ -31,16 +33,17 @@ export const RenameFolderModal = () => {
       alert("Please enter a folder name");
       return;
     }
-    
+
+    setIsRenaming(true);
     try {
       console.log("Renaming folder with data:", { folderId: data.folder.id, name: name.trim() });
-      
+
       const result = await updateFolder(data.folder.id, name.trim());
-      
+
       console.log("Folder renamed successfully:", result);
-      
+
       onClose();
-      
+
       // Call the success callback if provided
       if (data.onSuccess) {
         data.onSuccess();
@@ -48,6 +51,8 @@ export const RenameFolderModal = () => {
     } catch (error) {
       console.error("Error renaming folder:", error);
       alert("Failed to rename folder. Please check the console for details.");
+    } finally {
+      setIsRenaming(false);
     }
   };
 
@@ -69,7 +74,14 @@ export const RenameFolderModal = () => {
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleRename} variant="default">Rename</Button>
+          <LoadingButton
+            onClick={handleRename}
+            variant="default"
+            loading={isRenaming}
+            loadingText="Renaming..."
+          >
+            Rename
+          </LoadingButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

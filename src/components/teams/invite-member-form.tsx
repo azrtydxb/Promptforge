@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,7 +16,7 @@ import {
 import { toast } from "sonner";
 import { inviteTeamMember } from "@/app/actions/team-members.actions";
 import { TeamRole } from "@/generated/prisma";
-import { Loader2, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 
 interface InviteMemberFormProps {
   teamId: string;
@@ -153,13 +154,15 @@ export function InviteMemberForm({ teamId }: InviteMemberFormProps) {
       </div>
       
       <div className="flex gap-4">
-        <Button type="submit" disabled={isSubmitting || !formData.email.trim()}>
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+        <LoadingButton
+          type="submit"
+          loading={isSubmitting}
+          loadingText="Sending..."
+          disabled={!formData.email.trim()}
+        >
           Send Invitation
-        </Button>
-        
+        </LoadingButton>
+
         <Button
           type="button"
           variant="outline"

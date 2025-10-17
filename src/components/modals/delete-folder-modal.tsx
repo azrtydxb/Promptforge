@@ -10,10 +10,13 @@ import {
   DialogDescription,
 } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { LoadingButton } from "../ui/loading-button";
+import { useState } from "react";
 import { deleteFolder } from "@/app/actions/folder.actions";
 
 export const DeleteFolderModal = () => {
   const { isOpen, onClose, type, data } = useModal();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isModalOpen = isOpen && type === "deleteFolder";
 
@@ -22,16 +25,17 @@ export const DeleteFolderModal = () => {
       alert("No folder selected for deletion");
       return;
     }
-    
+
+    setIsDeleting(true);
     try {
       console.log("Deleting folder with data:", { folderId: data.folder.id, folderName: data.folder.name });
-      
+
       const result = await deleteFolder(data.folder.id);
-      
+
       console.log("Folder deleted successfully:", result);
-      
+
       onClose();
-      
+
       // Call the success callback if provided
       if (data.onSuccess) {
         data.onSuccess();
@@ -39,6 +43,8 @@ export const DeleteFolderModal = () => {
     } catch (error) {
       console.error("Error deleting folder:", error);
       alert("Failed to delete folder. Please check the console for details.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -56,9 +62,14 @@ export const DeleteFolderModal = () => {
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDelete}>
+          <LoadingButton
+            variant="destructive"
+            onClick={handleDelete}
+            loading={isDeleting}
+            loadingText="Deleting..."
+          >
             Delete
-          </Button>
+          </LoadingButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

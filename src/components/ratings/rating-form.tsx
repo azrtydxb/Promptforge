@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { LoadingButton } from '@/components/ui/loading-button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StarRating } from './star-rating';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { ratePrompt, deleteRating } from '@/app/actions/template-rating.actions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -145,36 +145,25 @@ export function RatingForm({
           </div>
 
           <div className="flex gap-2">
-            <Button
+            <LoadingButton
               type="submit"
-              disabled={isSubmitting || rating === 0}
+              loading={isSubmitting}
+              disabled={rating === 0}
+              loadingText="Submitting..."
               className="flex-1"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Submitting...
-                </>
-              ) : existingRating ? (
-                'Update Rating'
-              ) : (
-                'Submit Rating'
-              )}
-            </Button>
+              {existingRating ? 'Update Rating' : 'Submit Rating'}
+            </LoadingButton>
             {existingRating && (
-              <Button
+              <LoadingButton
                 type="button"
-                variant="outline"
+                variant="destructive"
                 onClick={handleDelete}
-                disabled={isDeleting}
-                className="text-destructive hover:bg-destructive/10"
+                loading={isDeleting}
+                className="px-3"
               >
-                {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-              </Button>
+                <Trash2 className="w-4 h-4" />
+              </LoadingButton>
             )}
           </div>
         </form>

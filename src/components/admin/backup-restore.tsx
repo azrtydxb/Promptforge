@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { LoadingButton } from '@/components/ui/loading-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
@@ -209,23 +210,15 @@ export function BackupRestore() {
             </AlertDescription>
           </Alert>
 
-          <Button
+          <LoadingButton
             onClick={handleCreateBackup}
-            disabled={isCreatingBackup}
+            loading={isCreatingBackup}
+            loadingText="Creating Backup..."
             className="w-full sm:w-auto"
           >
-            {isCreatingBackup ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Backup...
-              </>
-            ) : (
-              <>
-                <Download className="mr-2 h-4 w-4" />
-                Create Backup
-              </>
-            )}
-          </Button>
+            <Download className="mr-2 h-4 w-4" />
+            Create Backup
+          </LoadingButton>
         </CardContent>
       </Card>
 
@@ -336,24 +329,17 @@ export function BackupRestore() {
               Dry Run (Test)
             </Button>
 
-            <Button
+            <LoadingButton
               onClick={handleRestore}
-              disabled={isRestoring || !validation?.valid}
+              disabled={!validation?.valid}
+              loading={isRestoring}
+              loadingText="Restoring..."
               variant="destructive"
               className="flex-1"
             >
-              {isRestoring ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Restoring...
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Restore Database
-                </>
-              )}
-            </Button>
+              <Upload className="mr-2 h-4 w-4" />
+              Restore Database
+            </LoadingButton>
           </div>
         </CardContent>
       </Card>

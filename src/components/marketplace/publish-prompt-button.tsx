@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
+import { LoadingButton } from '@/components/ui/loading-button';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -14,11 +15,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Share2, 
-  Loader2, 
-  Globe, 
-  Users, 
+import {
+  Share2,
+  Globe,
+  Users,
   Lock,
   CheckCircle,
   AlertTriangle
@@ -270,23 +270,16 @@ export function PublishPromptButton({
           >
             Cancel
           </Button>
-          <Button
+          <LoadingButton
             onClick={handlePublish}
-            disabled={isPublishing || !formData.title.trim()}
+            loading={isPublishing}
+            disabled={!formData.title.trim()}
+            loadingText="Publishing..."
             className="bg-[#007DB8] hover:bg-[#007DB8]/90 text-white"
           >
-            {isPublishing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              <>
-                <Share2 className="w-4 h-4 mr-2" />
-                Publish Prompt
-              </>
-            )}
-          </Button>
+            <Share2 className="w-4 h-4 mr-2" />
+            Publish Prompt
+          </LoadingButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
