@@ -334,9 +334,9 @@ export class CacheWarmer {
     setInterval(async () => {
       await this.warmPopularContent();
     }, 60 * 60 * 1000); // 1 hour
-    
-    // Run immediately on startup
-    this.warmPopularContent();
+
+    // DO NOT run immediately - it's called from init-performance.ts after Redis is ready
+    // Removed: this.warmPopularContent();
   }
 }
 
