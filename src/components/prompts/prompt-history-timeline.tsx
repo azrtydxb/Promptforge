@@ -280,10 +280,11 @@ export function PromptHistoryTimeline({
                       </div>
                       
                       {/* Version content */}
-                      <div className="flex-1 bg-card border rounded-lg p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0 bg-card border rounded-lg p-4">
+                        {/* Header section with info and primary actions */}
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-medium">
                                 {version.version || `Version ${versions.length - index}`}
                               </span>
@@ -296,7 +297,7 @@ export function PromptHistoryTimeline({
                             <p className="text-sm text-muted-foreground mt-1">
                               {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
                             </p>
-                            
+
                             {/* Diff summary */}
                             <div className="flex items-center gap-4 mt-2 text-sm">
                               <span className="text-green-600">
@@ -307,79 +308,115 @@ export function PromptHistoryTimeline({
                               </span>
                             </div>
                           </div>
-                          
-                          {/* Actions */}
-                          <div className="flex flex-col items-end gap-2">
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedVersion(version);
-                                  setShowDiffDialog(true);
-                                }}
-                                className="h-8 text-xs"
-                              >
-                                <Eye className="h-3 w-3 mr-1" />
-                                View
-                              </Button>
 
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedVersion(version);
-                                  setShowRestoreDialog(true);
-                                }}
-                                className="h-8 text-xs bg-[#546ee5] hover:bg-[#4560d6] text-white border-[#546ee5]"
-                              >
-                                <RotateCcw className="h-3 w-3 mr-1" />
-                                Restore
-                              </Button>
-                            </div>
+                          {/* Primary Actions - Always visible */}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedVersion(version);
+                                      setShowDiffDialog(true);
+                                    }}
+                                    className="h-9 text-xs px-3"
+                                  >
+                                    <Eye className="h-3.5 w-3.5 mr-1.5" />
+                                    View
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>View full version content</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
 
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleVersionExpanded(version.id)}
-                                className="h-7 text-xs"
-                              >
-                                {isExpanded ? (
-                                  <><ChevronUp className="h-3 w-3 mr-1" />Hide</>
-                                ) : (
-                                  <><ChevronDown className="h-3 w-3 mr-1" />Show</>
-                                )}
-                              </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedVersion(version);
+                                      setShowRestoreDialog(true);
+                                    }}
+                                    className="h-9 text-xs px-3 bg-[#546ee5] hover:bg-[#4560d6] text-white border-[#546ee5]"
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                    Restore
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Restore this version</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </div>
 
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  setDiffVersion(version);
-                                }}
-                                className="h-7 text-xs"
-                              >
-                                <GitCompare className="h-3 w-3 mr-1" />
-                                Compare
-                              </Button>
+                        {/* Secondary Actions - Below header */}
+                        <div className="flex items-center gap-2 pt-2 border-t flex-wrap">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleVersionExpanded(version.id)}
+                                  className="h-8 text-xs px-2"
+                                >
+                                  {isExpanded ? (
+                                    <><ChevronUp className="h-3 w-3 mr-1" />Collapse</>
+                                  ) : (
+                                    <><ChevronDown className="h-3 w-3 mr-1" />Expand</>
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {isExpanded ? "Hide content preview" : "Show content preview"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
 
-                              {versions.length > 1 && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    setSelectedVersion(version);
-                                    setShowDeleteDialog(true);
+                                    setDiffVersion(version);
                                   }}
-                                  className="h-7 text-xs text-destructive hover:text-destructive"
+                                  className="h-8 text-xs px-2"
                                 >
-                                  <Trash2 className="h-3 w-3 mr-1" />
-                                  Delete
+                                  <GitCompare className="h-3 w-3 mr-1" />
+                                  Compare
                                 </Button>
-                              )}
-                            </div>
-                          </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Compare with current version</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          {versions.length > 1 && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedVersion(version);
+                                      setShowDeleteDialog(true);
+                                    }}
+                                    className="h-8 text-xs px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    Delete
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Delete this version</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </div>
                         
                         {/* Expanded content preview */}
