@@ -92,3 +92,7 @@ k8s/**/*-secrets.yaml
 
 .gemini/
 gha-creds-*.json
+
+# Temporary data/extraction files
+scraped-*.json
+*-extracted.json
