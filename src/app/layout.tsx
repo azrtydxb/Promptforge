@@ -7,6 +7,7 @@ import { AuthProvider } from "@/components/providers/auth-provider";
 import { GlobalErrorBoundary } from "@/components/error-boundary/global-error-boundary";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
+import NextTopLoader from "nextjs-toploader";
 
 // Initialize performance optimizations
 import '@/lib/init-performance';
@@ -42,6 +43,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("antialiased", inter.className, nunito.variable, systemMono.variable)}>
+        <NextTopLoader
+          color="#546ee5"
+          height={3}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+        />
         {/* Skip navigation links for accessibility */}
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 bg-primary text-white px-4 py-2 rounded-md">
           Skip to main content
