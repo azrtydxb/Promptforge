@@ -2,16 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { 
-  Clock, 
-  GitBranch, 
-  RotateCcw, 
-  Trash2, 
-  Eye, 
-  ChevronDown,
-  ChevronUp,
-  FileText,
-  GitCompare
+import {
+  Clock,
+  RotateCcw,
+  Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,20 +21,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import {
   getPromptVersions,
-  restorePromptVersion,
-  deletePromptVersion
+  restorePromptVersion
 } from "@/app/actions/prompt-version.actions";
-import { PromptDiffModal } from "./prompt-diff-modal";
 
 interface PromptVersion {
   id: string;
@@ -57,21 +42,18 @@ interface PromptHistoryTimelineProps {
   onRestore?: () => void;
 }
 
-export function PromptHistoryTimeline({ 
+export function PromptHistoryTimeline({
   promptId,
   currentContent,
   currentTitle = "Current Version",
-  onRestore 
+  onRestore
 }: PromptHistoryTimelineProps) {
   const [versions, setVersions] = useState<PromptVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVersion, setSelectedVersion] = useState<PromptVersion | null>(null);
-  const [showDiffDialog, setShowDiffDialog] = useState(false);
-  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [expandedVersions, setExpandedVersions] = useState<Set<string>>(new Set());
-  const [processingAction, setProcessingAction] = useState<string | null>(null);
-  const [diffVersion, setDiffVersion] = useState<PromptVersion | null>(null);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showRevertDialog, setShowRevertDialog] = useState(false);
+  const [processingRevert, setProcessingRevert] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -94,21 +76,28 @@ export function PromptHistoryTimeline({
     loadVersions();
   }, [promptId, toast]);
 
-  const handleRestore = async () => {
+  const handleLoadVersion = (version: PromptVersion) => {
+    // Just trigger the parent's onRestore callback to load the content
+    // This does NOT save or create a new version
+    setSelectedVersion(version);
+    onRestore?.();
+  };
+
+  const handleRevertVersion = async () => {
     if (!selectedVersion) return;
 
     try {
-      setProcessingAction("restore");
+      setProcessingRevert(true);
       const result = await restorePromptVersion(promptId, selectedVersion.id);
-      
+
       toast({
         title: "Success",
-        description: `Restored to ${result.restoredVersion}`
+        description: `Reverted to ${result.restoredVersion}. Newer versions have been deleted.`
       });
-      
-      setShowRestoreDialog(false);
+
+      setShowRevertDialog(false);
       setSelectedVersion(null);
-      
+
       // Reload versions and notify parent
       const data = await getPromptVersions(promptId);
       setVersions(data);
@@ -116,73 +105,12 @@ export function PromptHistoryTimeline({
     } catch {
       toast({
         title: "Error",
-        description: "Failed to restore version",
+        description: "Failed to revert to this version",
         variant: "destructive"
       });
     } finally {
-      setProcessingAction(null);
+      setProcessingRevert(false);
     }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedVersion) return;
-
-    try {
-      setProcessingAction("delete");
-      await deletePromptVersion(promptId, selectedVersion.id);
-      
-      toast({
-        title: "Success",
-        description: "Version deleted successfully"
-      });
-      
-      setShowDeleteDialog(false);
-      setSelectedVersion(null);
-      
-      // Reload versions
-      const data = await getPromptVersions(promptId);
-      setVersions(data);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete version",
-        variant: "destructive"
-      });
-    } finally {
-      setProcessingAction(null);
-    }
-  };
-
-  const toggleVersionExpanded = (versionId: string) => {
-    const newExpanded = new Set(expandedVersions);
-    if (newExpanded.has(versionId)) {
-      newExpanded.delete(versionId);
-    } else {
-      newExpanded.add(versionId);
-    }
-    setExpandedVersions(newExpanded);
-  };
-
-  const getDiffPreview = (oldContent: string, newContent: string) => {
-    const oldLines = oldContent.split('\n');
-    const newLines = newContent.split('\n');
-    const maxLines = Math.max(oldLines.length, newLines.length);
-    
-    let addedCount = 0;
-    let removedCount = 0;
-    
-    for (let i = 0; i < maxLines; i++) {
-      if (i >= oldLines.length) {
-        addedCount++;
-      } else if (i >= newLines.length) {
-        removedCount++;
-      } else if (oldLines[i] !== newLines[i]) {
-        addedCount++;
-        removedCount++;
-      }
-    }
-    
-    return { addedCount, removedCount };
   };
 
   if (loading) {
@@ -237,209 +165,65 @@ export function PromptHistoryTimeline({
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-4">
-              {/* Current version indicator */}
-              <div className="flex items-start gap-4 pb-4 border-b">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Current Version</span>
-                    <Badge variant="default" className="text-xs">Active</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Last modified {formatDistanceToNow(new Date(), { addSuffix: true })}
-                  </p>
-                </div>
-              </div>
-
-              {/* Version timeline */}
-              <div className="relative">
-                {/* Timeline line */}
-                <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-border" />
-                
-                {versions.map((version, index) => {
-                  const isExpanded = expandedVersions.has(version.id);
-                  const isLatest = index === 0;
-                  const diff = index < versions.length - 1 
-                    ? getDiffPreview(versions[index + 1].content, version.content)
-                    : getDiffPreview("", version.content);
-
-                  return (
-                    <div key={version.id} className="relative flex items-start gap-4 pb-6">
-                      {/* Timeline node */}
-                      <div className={cn(
-                        "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center z-10",
-                        isLatest ? "bg-[hsl(var(--primary))]/20" : "bg-muted"
-                      )}>
-                        <GitBranch className={cn(
-                          "h-5 w-5",
-                          isLatest ? "text-[hsl(var(--primary))]" : "text-muted-foreground"
-                        )} />
-                      </div>
-                      
-                      {/* Version content */}
-                      <div className="flex-1 min-w-0 bg-card border rounded-lg p-4">
-                        {/* Header section with info and primary actions */}
-                        <div className="flex items-start justify-between gap-4 mb-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium">
-                                {version.version || `Version ${versions.length - index}`}
-                              </span>
-                              {version.changeMessage && (
-                                <Badge variant="outline" className="text-xs">
-                                  {version.changeMessage}
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
-                            </p>
-
-                            {/* Diff summary */}
-                            <div className="flex items-center gap-4 mt-2 text-sm">
-                              <span className="text-green-600">
-                                +{diff.addedCount} added
-                              </span>
-                              <span className="text-red-600">
-                                -{diff.removedCount} removed
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Primary Actions - Always visible */}
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedVersion(version);
-                                      setShowDiffDialog(true);
-                                    }}
-                                    className="h-9 text-xs px-3"
-                                  >
-                                    <Eye className="h-3.5 w-3.5 mr-1.5" />
-                                    View
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>View full version content</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedVersion(version);
-                                      setShowRestoreDialog(true);
-                                    }}
-                                    className="h-9 text-xs px-3 bg-[#546ee5] hover:bg-[#4560d6] text-white border-[#546ee5]"
-                                  >
-                                    <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                                    Restore
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Restore this version</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </div>
-
-                        {/* Secondary Actions - Below header */}
-                        <div className="flex items-center gap-2 pt-2 border-t flex-wrap">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleVersionExpanded(version.id)}
-                                  className="h-8 text-xs px-2"
-                                >
-                                  {isExpanded ? (
-                                    <><ChevronUp className="h-3 w-3 mr-1" />Collapse</>
-                                  ) : (
-                                    <><ChevronDown className="h-3 w-3 mr-1" />Expand</>
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {isExpanded ? "Hide content preview" : "Show content preview"}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setDiffVersion(version);
-                                  }}
-                                  className="h-8 text-xs px-2"
-                                >
-                                  <GitCompare className="h-3 w-3 mr-1" />
-                                  Compare
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Compare with current version</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          {versions.length > 1 && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setSelectedVersion(version);
-                                      setShowDeleteDialog(true);
-                                    }}
-                                    className="h-8 text-xs px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  >
-                                    <Trash2 className="h-3 w-3 mr-1" />
-                                    Delete
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Delete this version</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+            <div className="space-y-3">
+              {versions.map((version, index) => (
+                <Card key={version.id} className="border">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      {/* Version Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <span className="font-medium">
+                            {version.version || `Version ${versions.length - index}`}
+                          </span>
+                          {version.changeMessage && (
+                            <Badge variant="outline" className="text-xs">
+                              {version.changeMessage}
+                            </Badge>
                           )}
                         </div>
-                        
-                        {/* Expanded content preview */}
-                        {isExpanded && (
-                          <div className="mt-4 p-3 bg-muted rounded-md">
-                            <pre className="text-sm whitespace-pre-wrap break-words">
-                              {version.content.substring(0, 200)}
-                              {version.content.length > 200 && "..."}
-                            </pre>
-                          </div>
-                        )}
+                        <p className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedVersion(version);
+                            setShowViewDialog(true);
+                          }}
+                          className="h-9 px-3"
+                        >
+                          <Eye className="h-4 w-4 mr-1.5" />
+                          Load
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedVersion(version);
+                            setShowRevertDialog(true);
+                          }}
+                          className="h-9 px-3 bg-[#546ee5] hover:bg-[#4560d6] text-white"
+                        >
+                          <RotateCcw className="h-4 w-4 mr-1.5" />
+                          Revert
+                        </Button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </ScrollArea>
         </CardContent>
       </Card>
 
       {/* View Content Dialog */}
-      <Dialog open={showDiffDialog} onOpenChange={setShowDiffDialog}>
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>
@@ -454,89 +238,53 @@ export function PromptHistoryTimeline({
               {selectedVersion?.content}
             </pre>
           </ScrollArea>
-        </DialogContent>
-      </Dialog>
-
-      {/* Restore Confirmation Dialog */}
-      <Dialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Restore Version</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to restore to {selectedVersion?.version}? 
-              The current content will be saved as a new version before restoring.
-            </DialogDescription>
-          </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowRestoreDialog(false)}
-              disabled={processingAction === "restore"}
+              onClick={() => {
+                setShowViewDialog(false);
+                setSelectedVersion(null);
+              }}
             >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleRestore}
-              disabled={processingAction === "restore"}
-            >
-              {processingAction === "restore" ? "Restoring..." : "Restore"}
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      {/* Revert Confirmation Dialog */}
+      <Dialog open={showRevertDialog} onOpenChange={setShowRevertDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Version</DialogTitle>
+            <DialogTitle>Revert to This Version</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {selectedVersion?.version}? 
+              Are you sure you want to revert to {selectedVersion?.version}?
+              <br /><br />
+              <strong>Warning:</strong> This will permanently delete all versions created after this one.
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-              disabled={processingAction === "delete"}
+              onClick={() => {
+                setShowRevertDialog(false);
+                setSelectedVersion(null);
+              }}
+              disabled={processingRevert}
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={processingAction === "delete"}
+              onClick={handleRevertVersion}
+              disabled={processingRevert}
+              className="bg-[#546ee5] hover:bg-[#4560d6] text-white"
             >
-              {processingAction === "delete" ? "Deleting..." : "Delete"}
+              {processingRevert ? "Reverting..." : "Revert and Delete Newer Versions"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Diff Comparison Modal */}
-      {diffVersion && (
-        <PromptDiffModal
-          open={!!diffVersion}
-          onOpenChange={(open) => !open && setDiffVersion(null)}
-          leftPrompt={{
-            id: "current",
-            title: currentTitle,
-            content: currentContent,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }}
-          rightPrompt={{
-            id: diffVersion.id,
-            title: diffVersion.version || `Version from ${formatDistanceToNow(new Date(diffVersion.createdAt), { addSuffix: true })}`,
-            content: diffVersion.content,
-            createdAt: new Date(diffVersion.createdAt),
-            updatedAt: new Date(diffVersion.createdAt),
-          }}
-          leftTitle="Current Version"
-          rightTitle={diffVersion.version || "Previous Version"}
-        />
-      )}
     </>
   );
 }
