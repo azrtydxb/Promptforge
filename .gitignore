@@ -33,6 +33,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# lock files (we use pnpm only)
+package-lock.json
+yarn.lock
+
 # env files (can opt-in for committing if needed)
 .env*
 
@@ -85,3 +89,6 @@ hive-mind-prompt-*.txt
 k8s/base/02-secrets.yaml
 k8s/**/secrets.yaml
 k8s/**/*-secrets.yaml
+
+.gemini/
+gha-creds-*.json
