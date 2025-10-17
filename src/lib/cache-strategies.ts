@@ -1,6 +1,5 @@
 import { db } from '@/lib/db';
 import { cacheService, cacheKeys, cacheTTL } from '@/lib/redis';
-import { PerformanceMonitor } from '@/lib/performance';
 import { logger } from '@/lib/logger';
 
 export class CacheWarmer {
@@ -24,11 +23,10 @@ export class CacheWarmer {
   
   private static async cacheTrendingPrompts() {
     const limits = [10, 20, 50];
-    
+
     await Promise.all(
       limits.map(async (limit) => {
-        const prompts = await PerformanceMonitor.measureQuery('cache.trendingPrompts', () =>
-          db.sharedPrompt.findMany({
+        const prompts = await db.sharedPrompt.findMany({
             where: { 
               isPublished: true,
               status: 'APPROVED'
@@ -63,23 +61,19 @@ export class CacheWarmer {
                 }
               }
             }
-          })
-        );
-        
-        await PerformanceMonitor.measureCache('set.trendingPrompts', () =>
-          cacheService.set(
-            cacheKeys.trendingPrompts(limit),
-            prompts,
-            cacheTTL.trendingPrompts
-          )
+          });
+
+        await cacheService.set(
+          cacheKeys.trendingPrompts(limit),
+          prompts,
+          cacheTTL.trendingPrompts
         );
       })
     );
   }
   
   private static async cachePopularTags() {
-    const tags = await PerformanceMonitor.measureQuery('cache.popularTags', () =>
-      db.tag.findMany({
+    const tags = await db.tag.findMany({
         include: {
           _count: {
             select: {
@@ -93,32 +87,26 @@ export class CacheWarmer {
           }
         },
         take: 50
-      })
-    );
-    
-    await PerformanceMonitor.measureCache('set.popularTags', () =>
-      cacheService.set(cacheKeys.allTags(), tags, cacheTTL.tags)
-    );
+      });
+
+    await cacheService.set(cacheKeys.allTags(), tags, cacheTTL.tags);
     
     // Cache different limit variations
     const limits = [10, 20, 30];
     await Promise.all(
       limits.map(async (limit) => {
         const limitedTags = tags.slice(0, limit);
-        await PerformanceMonitor.measureCache('set.popularTagsLimited', () =>
-          cacheService.set(
-            cacheKeys.popularTags(limit),
-            limitedTags,
-            cacheTTL.tags
-          )
+        await cacheService.set(
+          cacheKeys.popularTags(limit),
+          limitedTags,
+          cacheTTL.tags
         );
       })
     );
   }
   
   private static async cacheFeaturedPrompts() {
-    const featuredPrompts = await PerformanceMonitor.measureQuery('cache.featuredPrompts', () =>
-      db.sharedPrompt.findMany({
+    const featuredPrompts = await db.sharedPrompt.findMany({
         where: { 
           isPublished: true,
           status: 'APPROVED',
@@ -152,15 +140,12 @@ export class CacheWarmer {
             }
           }
         }
-      })
-    );
-    
-    await PerformanceMonitor.measureCache('set.featuredPrompts', () =>
-      cacheService.set(
-        cacheKeys.featuredPrompts(),
-        featuredPrompts,
-        cacheTTL.featuredPrompts
-      )
+      });
+
+    await cacheService.set(
+      cacheKeys.featuredPrompts(),
+      featuredPrompts,
+      cacheTTL.featuredPrompts
     );
   }
   
@@ -170,8 +155,7 @@ export class CacheWarmer {
     
     await Promise.all(
       pages.map(async (page) => {
-        const prompts = await PerformanceMonitor.measureQuery('cache.recentPrompts', () =>
-          db.sharedPrompt.findMany({
+        const prompts = await db.sharedPrompt.findMany({
             where: { 
               isPublished: true,
               status: 'APPROVED'
@@ -202,23 +186,19 @@ export class CacheWarmer {
                 }
               }
             }
-          })
-        );
-        
-        await PerformanceMonitor.measureCache('set.recentPrompts', () =>
-          cacheService.set(
-            cacheKeys.sharedPrompts(page, limit),
-            prompts,
-            cacheTTL.sharedPrompts
-          )
+          });
+
+        await cacheService.set(
+          cacheKeys.sharedPrompts(page, limit),
+          prompts,
+          cacheTTL.sharedPrompts
         );
       })
     );
   }
   
   private static async cachePopularUsers() {
-    const users = await PerformanceMonitor.measureQuery('cache.popularUsers', () =>
-      db.user.findMany({
+    const users = await db.user.findMany({
         select: {
           id: true,
           name: true,
@@ -238,20 +218,16 @@ export class CacheWarmer {
           { publishedPrompts: { _count: 'desc' } }
         ],
         take: 20
-      })
-    );
-    
-    await PerformanceMonitor.measureCache('set.popularUsers', () =>
-      cacheService.set('popular:users', users, cacheTTL.userProfile)
-    );
+      });
+
+    await cacheService.set('popular:users', users, cacheTTL.userProfile);
   }
   
   // Warm cache for specific user
   static async warmUserCache(userId: string) {
     try {
       const [user, userPrompts, userStats] = await Promise.all([
-        PerformanceMonitor.measureQuery('cache.userProfile', () =>
-          db.user.findUnique({
+        db.user.findUnique({
             where: { id: userId },
             select: {
               id: true,
@@ -273,11 +249,9 @@ export class CacheWarmer {
                 }
               }
             }
-          })
-        ),
-        
-        PerformanceMonitor.measureQuery('cache.userPrompts', () =>
-          db.prompt.findMany({
+          }),
+
+        db.prompt.findMany({
             where: { userId },
             include: {
               tags: true,
@@ -293,11 +267,9 @@ export class CacheWarmer {
               { updatedAt: 'desc' }
             ],
             take: 50
-          })
-        ),
-        
-        PerformanceMonitor.measureQuery('cache.userStats', () =>
-          db.$queryRaw`
+          }),
+
+        db.$queryRaw`
             SELECT 
               COUNT(*) as total_prompts,
               COUNT(CASE WHEN p."isPublished" = true THEN 1 END) as published_prompts,
@@ -308,19 +280,12 @@ export class CacheWarmer {
             LEFT JOIN "SharedPrompt" sp ON p.id = sp."promptId"
             WHERE p."userId" = ${userId}
           `
-        )
       ]);
-      
+
       await Promise.all([
-        PerformanceMonitor.measureCache('set.userProfile', () =>
-          cacheService.set(cacheKeys.userProfile(userId), user, cacheTTL.userProfile)
-        ),
-        PerformanceMonitor.measureCache('set.userPrompts', () =>
-          cacheService.set(cacheKeys.userPrompts(userId), userPrompts, cacheTTL.userStats)
-        ),
-        PerformanceMonitor.measureCache('set.userStats', () =>
-          cacheService.set(cacheKeys.userStats(userId), userStats[0], cacheTTL.userStats)
-        )
+        cacheService.set(cacheKeys.userProfile(userId), user, cacheTTL.userProfile),
+        cacheService.set(cacheKeys.userPrompts(userId), userPrompts, cacheTTL.userStats),
+        cacheService.set(cacheKeys.userStats(userId), (userStats as any[])[0], cacheTTL.userStats)
       ]);
       
       logger.info(`User cache warmed for user: ${userId}`);
@@ -335,8 +300,8 @@ export class CacheWarmer {
       await this.warmPopularContent();
     }, 60 * 60 * 1000); // 1 hour
 
-    // DO NOT run immediately - it's called from init-performance.ts after Redis is ready
-    // Removed: this.warmPopularContent();
+    // Run immediately on startup (after Redis is ready)
+    this.warmPopularContent();
   }
 }
 

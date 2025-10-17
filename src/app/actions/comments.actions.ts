@@ -7,7 +7,6 @@ import { revalidatePath } from 'next/cache';
 import { fullModerationCheck } from '@/lib/moderation';
 import { z } from 'zod';
 import { Prisma } from "@/generated/prisma";
-import { withPerformance } from "@/lib/performance-wrapper";
 
 // Input validation schemas
 const createCommentSchema = z.object({
@@ -24,7 +23,7 @@ const updateCommentSchema = z.object({
 /**
  * Create a new comment on a shared prompt
  */
-export const createComment = withPerformance('createComment', async (data: z.infer<typeof createCommentSchema>) => {
+export async function createComment(data: z.infer<typeof createCommentSchema>) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -124,14 +123,14 @@ export const createComment = withPerformance('createComment', async (data: z.inf
       }
     };
 
-  } catch (error) {
-    if (error instanceof z.ZodError) {
+  } catch (_error) {
+    if (_error instanceof z.ZodError) {
       return { success: false, error: 'Invalid input data' };
     }
-    console.error('Error creating comment:', error);
+
     return { success: false, error: 'Failed to create comment' };
   }
-});
+}
 
 /**
  * Update an existing comment
@@ -215,11 +214,11 @@ export async function updateComment(data: z.infer<typeof updateCommentSchema>) {
       }
     };
 
-  } catch (error) {
-    if (error instanceof z.ZodError) {
+  } catch (_error) {
+    if (_error instanceof z.ZodError) {
       return { success: false, error: 'Invalid input data' };
     }
-    console.error('Error updating comment:', error);
+
     return { success: false, error: 'Failed to update comment' };
   }
 }
@@ -227,7 +226,7 @@ export async function updateComment(data: z.infer<typeof updateCommentSchema>) {
 /**
  * Delete a comment
  */
-export const deleteComment = withPerformance('deleteComment', async (commentId: string) => {
+export async function deleteComment(commentId: string) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -277,11 +276,11 @@ export const deleteComment = withPerformance('deleteComment', async (commentId: 
 
     return { success: true, message: 'Comment deleted successfully' };
 
-  } catch (error) {
-    console.error('Error deleting comment:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to delete comment' };
   }
-});
+}
 
 /**
  * Toggle like on a comment
@@ -353,8 +352,8 @@ export async function toggleCommentLike(commentId: string) {
 
     return { success: true, isLiked, likeCount };
 
-  } catch (error) {
-    console.error('Error toggling comment like:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to toggle like' };
   }
 }
@@ -362,7 +361,7 @@ export async function toggleCommentLike(commentId: string) {
 /**
  * Get comments for a shared prompt with pagination
  */
-export const getComments = withPerformance('getComments', async ({
+export async function getComments({
   sharedPromptId,
   page = 1,
   limit = 20,
@@ -372,7 +371,7 @@ export const getComments = withPerformance('getComments', async ({
   page?: number;
   limit?: number;
   sortBy?: 'newest' | 'oldest' | 'mostLiked';
-}) => {
+}) {
   try {
     const session = await getServerSession(authOptions);
     const skip = (page - 1) * limit;
@@ -491,11 +490,11 @@ export const getComments = withPerformance('getComments', async ({
       }
     };
 
-  } catch (error) {
-    console.error('Error getting comments:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to load comments' };
   }
-});
+}
 
 /**
  * Update user reputation for comment actions
@@ -514,7 +513,7 @@ async function updateUserReputation(
         }
       }
     });
-  } catch (error) {
-    console.error('Error updating user reputation:', error);
+  } catch (_error) {
+
   }
 }

@@ -161,8 +161,8 @@ export async function checkAndAwardBadges(userId: string) {
     }
 
     return { success: true, newBadges };
-  } catch (error) {
-    logger.error("Failed to check and award badges", { error, userId });
+  } catch (_error) {
+    logger.error("Failed to check and award badges", { _error, userId });
     return { success: false, error: "Failed to check badges" };
   }
 }
@@ -222,8 +222,8 @@ export async function awardBadge(
 
     revalidatePath(`/users/${userId}`);
     return { success: true, badge };
-  } catch (error) {
-    logger.error("Failed to award badge", { error, userId, badgeType });
+  } catch (_error) {
+    logger.error("Failed to award badge", { _error, userId, badgeType });
     return { success: false, error: "Failed to award badge" };
   }
 }
@@ -257,8 +257,8 @@ export async function removeBadge(userId: string, badgeType: string) {
 
     revalidatePath(`/users/${userId}`);
     return { success: true };
-  } catch (error) {
-    logger.error("Failed to remove badge", { error, userId, badgeType });
+  } catch (_error) {
+    logger.error("Failed to remove badge", { _error, userId, badgeType });
     return { success: false, error: "Failed to remove badge" };
   }
 }
@@ -274,8 +274,8 @@ export async function getUserBadges(userId: string) {
     });
 
     return { success: true, badges };
-  } catch (error) {
-    logger.error("Failed to get user badges", { error, userId });
+  } catch (_error) {
+    logger.error("Failed to get user badges", { _error, userId });
     return { success: false, error: "Failed to retrieve badges" };
   }
 }
@@ -365,8 +365,8 @@ export async function getBadgeProgress(userId: string) {
     };
 
     return { success: true, progress };
-  } catch (error) {
-    logger.error("Failed to get badge progress", { error, userId });
+  } catch (_error) {
+    logger.error("Failed to get badge progress", { _error, userId });
     return { success: false, error: "Failed to retrieve badge progress" };
   }
 }
@@ -428,8 +428,8 @@ export async function updateReputationScore(userId: string) {
     logger.info("Reputation score updated", { userId, score });
 
     return { success: true, score };
-  } catch (error) {
-    logger.error("Failed to update reputation score", { error, userId });
+  } catch (_error) {
+    logger.error("Failed to update reputation score", { _error, userId });
     return { success: false, error: "Failed to update reputation" };
   }
 }

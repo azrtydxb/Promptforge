@@ -129,8 +129,8 @@ export async function searchPromptsKeyword(input: z.infer<typeof keywordSearchSc
       query: validated.query,
       filters: validated.filters
     };
-  } catch (error) {
-    logger.error('Error in keyword search', { error });
+  } catch (_error) {
+    logger.error('Error in keyword search', { _error });
     throw new Error('Failed to search prompts');
   }
 }
@@ -228,8 +228,8 @@ export async function searchSharedPromptsKeyword(input: z.infer<typeof keywordSe
       query: validated.query,
       filters: validated.filters
     };
-  } catch (error) {
-    logger.error('Error in shared prompts keyword search', { error });
+  } catch (_error) {
+    logger.error('Error in shared prompts keyword search', { _error });
     throw new Error('Failed to search shared prompts');
   }
 }
@@ -289,8 +289,8 @@ export async function searchTemplatesKeyword(input: z.infer<typeof keywordSearch
       query: validated.query,
       filters: validated.filters
     };
-  } catch (error) {
-    logger.error('Error in templates keyword search', { error });
+  } catch (_error) {
+    logger.error('Error in templates keyword search', { _error });
     throw new Error('Failed to search templates');
   }
 }

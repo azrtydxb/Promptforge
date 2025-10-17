@@ -409,8 +409,8 @@ const getTrendingPromptsData = async ({
       metric
     };
 
-  } catch (error) {
-    console.error('Error getting trending prompts:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to load trending prompts' };
   }
 };
@@ -568,8 +568,8 @@ export async function getTrendingStats({
       }
     };
 
-  } catch (error) {
-    console.error('Error getting trending stats:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to load trending statistics' };
   }
 }
@@ -623,8 +623,8 @@ export async function getTrendingCategories() {
       }))
     };
 
-  } catch (error) {
-    console.error('Error getting trending categories:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to load categories' };
   }
 }

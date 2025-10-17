@@ -66,9 +66,9 @@ export async function getTeamActivity(params: GetTeamActivityParams) {
       total,
       hasMore: (params.offset || 0) + activities.length < total,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting team activity", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -173,9 +173,9 @@ export async function getTeamActivitySummary(teamId: string) {
       activeUsers: activeUsersWithDetails,
       recentActivity,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting team activity summary", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -241,9 +241,9 @@ export async function getTeamActivityLog(
         hasPrev: page > 1,
       },
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting team activity log", error);
-    throw error;
+    throw _error;
   }
 }
 

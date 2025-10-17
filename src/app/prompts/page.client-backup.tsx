@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useTransition } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { FolderSidebar } from "@/components/folders/folder-sidebar";
 import { TagSidebar } from "@/components/tags/tag-sidebar";
 import { PromptList } from "@/components/prompts/prompt-list";
@@ -24,21 +24,12 @@ import {
 } from "@/app/actions/prompt.actions.cached";
 import type { PromptGridItem } from "@/components/prompts/prompt-grid";
 
-interface PromptsClientWrapperProps {
-  initialPrompts: PromptGridItem[];
-  folders: Array<{ id: string; name: string; children?: unknown[] }>;
-  tags: Array<{ id: string; name: string }>;
-  initialViewMode: 'folders' | 'tags';
-  initialFolderId: string | null;
-  initialTagId: string | null;
-  initialSearchQuery: string;
-  initialSelectedTagIds: string[];
-}
-
 interface SelectedFolder {
   id: string | null;
   name: string;
 }
+
+type ViewMode = "folders" | "tags";
 
 interface SelectedTag {
   id: string | null;
@@ -67,69 +58,57 @@ function flattenFolderTree(
   ]);
 }
 
-export function PromptsClientWrapper({
-  initialPrompts,
-  folders,
-  tags,
-  initialViewMode,
-  initialFolderId,
-  initialTagId,
-  initialSearchQuery,
-  initialSelectedTagIds
-}: PromptsClientWrapperProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [, startTransition] = useTransition();
-
-  const [viewMode, setViewMode] = useState<'folders' | 'tags'>(initialViewMode);
+export default function Prompts() {
+  const [viewMode, setViewMode] = useState<ViewMode>("folders");
   const [selectedFolder, setSelectedFolder] = useState<SelectedFolder>({
-    id: initialFolderId,
-    name: initialFolderId ? folders.find(f => f.id === initialFolderId)?.name || 'Default' : 'Default',
+    id: null,
+    name: "Default",
   });
   const [selectedTag, setSelectedTag] = useState<SelectedTag>({
-    id: initialTagId,
-    name: initialTagId ? tags.find(t => t.id === initialTagId)?.name || 'All Prompts' : 'All Prompts',
+    id: null,
+    name: "All Prompts",
   });
-  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(initialSelectedTagIds);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedPromptIds, setSelectedPromptIds] = useState<string[]>([]);
   const [moveOptions, setMoveOptions] = useState<MoveFolderOption[]>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const router = useRouter();
 
-  // Update URL when filters change
-  const updateURL = useCallback((updates: Record<string, string | string[] | null>) => {
-    const params = new URLSearchParams(searchParams);
+  // Persisted preferences
+  useEffect(() => {
+    const savedViewMode = localStorage.getItem("promptsViewMode");
+    if (savedViewMode === "folders" || savedViewMode === "tags") {
+      setViewMode(savedViewMode);
+    }
 
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === '') {
-        params.delete(key);
-      } else if (Array.isArray(value)) {
-        if (value.length > 0) {
-          params.set(key, value.join(','));
-        } else {
-          params.delete(key);
-        }
-      } else {
-        params.set(key, value);
+    const savedFolder = localStorage.getItem("selectedFolder");
+    if (savedFolder) {
+      try {
+        const parsed = JSON.parse(savedFolder);
+        setSelectedFolder(parsed);
+      } catch (error) {
+        console.error("Error parsing saved folder:", error);
       }
-    });
+    }
 
-    const queryString = params.toString();
-    const newURL = queryString ? `${pathname}?${queryString}` : pathname;
+    const savedTag = localStorage.getItem("selectedTag");
+    if (savedTag) {
+      try {
+        const parsedTag = JSON.parse(savedTag);
+        setSelectedTag(parsedTag);
+      } catch (error) {
+        console.error("Error parsing saved tag:", error);
+      }
+    }
+  }, []);
 
-    startTransition(() => {
-      router.push(newURL);
-    });
-  }, [pathname, searchParams, router]);
-
-  const handleViewModeChange = useCallback((mode: 'folders' | 'tags') => {
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem("promptsViewMode", mode);
-    updateURL({ view: mode });
-  }, [updateURL]);
+  }, []);
 
   const handleFolderSelect = useCallback((folderId: string, folderName: string) => {
     const newFolder = {
@@ -138,8 +117,7 @@ export function PromptsClientWrapper({
     };
     setSelectedFolder(newFolder);
     localStorage.setItem("selectedFolder", JSON.stringify(newFolder));
-    updateURL({ folderId: folderId || null, tagId: null });
-  }, [updateURL]);
+  }, []);
 
   const handleTagSelect = useCallback((tagId: string | null, tagName: string) => {
     const newTag = {
@@ -148,18 +126,7 @@ export function PromptsClientWrapper({
     };
     setSelectedTag(newTag);
     localStorage.setItem("selectedTag", JSON.stringify(newTag));
-    updateURL({ tagId: tagId, folderId: null });
-  }, [updateURL]);
-
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query);
-    updateURL({ search: query || null });
-  }, [updateURL]);
-
-  const handleTagsChange = useCallback((tagIds: string[]) => {
-    setSelectedTagIds(tagIds);
-    updateURL({ tags: tagIds });
-  }, [updateURL]);
+  }, []);
 
   const handleImportComplete = useCallback(() => {
     setRefreshKey((prev) => prev + 1);
@@ -248,7 +215,7 @@ export function PromptsClientWrapper({
   }, [selectedPromptIds]);
 
   const sidebar = viewMode === "folders" ? (
-    <FolderSidebar onSelectFolder={handleFolderSelect} selectedFolder={selectedFolder} initialFolders={folders} />
+    <FolderSidebar onSelectFolder={handleFolderSelect} selectedFolder={selectedFolder} />
   ) : (
     <TagSidebar onSelectTag={handleTagSelect} selectedTag={selectedTag} />
   );
@@ -277,7 +244,7 @@ export function PromptsClientWrapper({
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 max-w-full">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">View by:</span>
-                <Tabs value={viewMode} onValueChange={(value) => handleViewModeChange(value as 'folders' | 'tags')}>
+                <Tabs value={viewMode} onValueChange={(value) => handleViewModeChange(value as ViewMode)}>
                   <TabsList>
                     <TabsTrigger value="folders" className="flex items-center gap-1 sm:gap-2">
                       <Folder className="h-4 w-4" />
@@ -356,8 +323,8 @@ export function PromptsClientWrapper({
 
           <div className="mb-6">
             <PromptFilters
-              onSearchChange={handleSearchChange}
-              onTagsChange={handleTagsChange}
+              onSearchChange={setSearchQuery}
+              onTagsChange={setSelectedTagIds}
               searchValue={searchQuery}
               selectedTagIds={selectedTagIds}
               onNewPrompt={() => {
@@ -380,7 +347,6 @@ export function PromptsClientWrapper({
             selectedPromptIds={selectedPromptIds}
             onToggleSelect={handleTogglePromptSelection}
             onPromptsLoaded={handlePromptsLoaded}
-            prompts={initialPrompts}
             {...promptListProps}
           />
         </div>

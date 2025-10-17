@@ -50,8 +50,8 @@ export async function getCurrentUserProfile() {
     }
 
     return { success: true, user };
-  } catch (error) {
-    console.error('Error getting user profile:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to get profile' };
   }
 }
@@ -116,9 +116,9 @@ export async function updateUserProfile(data: z.infer<typeof profileUpdateSchema
     revalidatePath('/');
 
     return { success: true, user: updatedUser };
-  } catch (error) {
-    console.error('Error updating user profile:', error);
-    if (error instanceof z.ZodError) {
+  } catch (_error) {
+
+    if (_error instanceof z.ZodError) {
       return { success: false, error: 'Invalid input data' };
     }
     return { success: false, error: 'Failed to update profile' };
@@ -198,8 +198,8 @@ export async function generateUserUsername() {
     revalidatePath('/');
 
     return { success: true, user: updatedUser, username };
-  } catch (error) {
-    console.error('Error generating username:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to generate username' };
   }
 }
@@ -231,8 +231,8 @@ export async function checkUsernameAvailability(username: string) {
       available: !existingUser,
       message: existingUser ? 'Username is already taken' : 'Username is available',
     };
-  } catch (error) {
-    console.error('Error checking username availability:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to check username availability' };
   }
 }
@@ -285,8 +285,8 @@ export async function getUsernameSuggestions(count: number = 5) {
     }
 
     return { success: true, suggestions };
-  } catch (error) {
-    console.error('Error getting username suggestions:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to get username suggestions' };
   }
 }
@@ -333,8 +333,8 @@ export async function updateUserAvatarType(avatarType: AvatarType, additionalDat
     revalidatePath('/');
 
     return { success: true, user: updatedUser };
-  } catch (error) {
-    console.error('Error updating avatar type:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to update avatar type' };
   }
 }
@@ -373,8 +373,8 @@ export async function deleteUserProfilePicture() {
     revalidatePath('/');
 
     return { success: true, user: updatedUser };
-  } catch (error) {
-    console.error('Error deleting profile picture:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to delete profile picture' };
   }
 }
@@ -427,8 +427,8 @@ export async function getProfileCompletionStatus() {
         avatar: user.avatarType === 'UPLOAD' && !user.profilePicture,
       },
     };
-  } catch (error) {
-    console.error('Error getting profile completion status:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to get profile completion status' };
   }
 }

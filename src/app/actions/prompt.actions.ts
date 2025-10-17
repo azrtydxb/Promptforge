@@ -3,10 +3,18 @@
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import {
+  onPromptCreate,
+  onPromptUpdate,
+  onPromptDelete,
+  onPromptMove,
+  onPromptTagsUpdate
+} from '@/lib/cache-manager';
 
 export async function getPromptsByFolder(folderId?: string) {
   const user = await requireAuth();
 
+  // Main query with simple includes only - uses indexes efficiently
   const prompts = await db.prompt.findMany({
     where: {
       userId: user.id,
@@ -14,27 +22,6 @@ export async function getPromptsByFolder(folderId?: string) {
     },
     include: {
       tags: true,
-      likes: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      favorites: {
-        where: {
-          userId: user.id,
-        },
-      },
-      _count: {
-        select: {
-          likes: true,
-          favorites: true,
-        },
-      },
     },
     orderBy: [
       { pinnedAt: { sort: 'desc', nulls: 'last' } },
@@ -42,13 +29,62 @@ export async function getPromptsByFolder(folderId?: string) {
     ],
   });
 
-  // Add computed fields for easier frontend consumption
+  // Early return if no prompts found
+  if (prompts.length === 0) {
+    return [];
+  }
+
+  const promptIds = prompts.map(p => p.id);
+
+  // Separate efficient queries for counts and user-specific data
+  const [likeCounts, favoriteCounts, userLikes, userFavorites] = await Promise.all([
+    // Get like counts using groupBy aggregation
+    db.promptLike.groupBy({
+      by: ['promptId'],
+      where: { promptId: { in: promptIds } },
+      _count: { promptId: true },
+    }),
+    // Get favorite counts using groupBy aggregation
+    db.promptFavorite.groupBy({
+      by: ['promptId'],
+      where: { promptId: { in: promptIds } },
+      _count: { promptId: true },
+    }),
+    // Check which prompts this user has liked
+    db.promptLike.findMany({
+      where: {
+        promptId: { in: promptIds },
+        userId: user.id,
+      },
+      select: { promptId: true },
+    }),
+    // Check which prompts this user has favorited
+    db.promptFavorite.findMany({
+      where: {
+        promptId: { in: promptIds },
+        userId: user.id,
+      },
+      select: { promptId: true },
+    }),
+  ]);
+
+  // Create lookup maps for O(1) access
+  const likeCountMap = new Map(
+    likeCounts.map(item => [item.promptId, item._count.promptId])
+  );
+  const favoriteCountMap = new Map(
+    favoriteCounts.map(item => [item.promptId, item._count.promptId])
+  );
+  const userLikedSet = new Set(userLikes.map(like => like.promptId));
+  const userFavoritedSet = new Set(userFavorites.map(fav => fav.promptId));
+
+  // Merge results in application layer
   const promptsWithLikeData = prompts.map(prompt => ({
     ...prompt,
-    likeCount: prompt._count.likes,
-    favoriteCount: prompt._count.favorites,
-    isLikedByUser: prompt.likes.some((like: { userId: string }) => like.userId === user.id),
-    isFavoritedByUser: prompt.favorites.length > 0,
+    likeCount: likeCountMap.get(prompt.id) || 0,
+    favoriteCount: favoriteCountMap.get(prompt.id) || 0,
+    isLikedByUser: userLikedSet.has(prompt.id),
+    isFavoritedByUser: userFavoritedSet.has(prompt.id),
     isPinned: !!prompt.pinnedAt,
   }));
 
@@ -58,33 +94,13 @@ export async function getPromptsByFolder(folderId?: string) {
 export async function getAllPrompts() {
   const user = await requireAuth();
 
+  // Main query with simple includes only - uses indexes efficiently
   const prompts = await db.prompt.findMany({
     where: {
       userId: user.id,
     },
     include: {
       tags: true,
-      likes: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      favorites: {
-        where: {
-          userId: user.id,
-        },
-      },
-      _count: {
-        select: {
-          likes: true,
-          favorites: true,
-        },
-      },
     },
     orderBy: [
       { pinnedAt: { sort: 'desc', nulls: 'last' } },
@@ -92,13 +108,62 @@ export async function getAllPrompts() {
     ],
   });
 
-  // Add computed fields for easier frontend consumption
+  // Early return if no prompts found
+  if (prompts.length === 0) {
+    return [];
+  }
+
+  const promptIds = prompts.map(p => p.id);
+
+  // Separate efficient queries for counts and user-specific data
+  const [likeCounts, favoriteCounts, userLikes, userFavorites] = await Promise.all([
+    // Get like counts using groupBy aggregation
+    db.promptLike.groupBy({
+      by: ['promptId'],
+      where: { promptId: { in: promptIds } },
+      _count: { promptId: true },
+    }),
+    // Get favorite counts using groupBy aggregation
+    db.promptFavorite.groupBy({
+      by: ['promptId'],
+      where: { promptId: { in: promptIds } },
+      _count: { promptId: true },
+    }),
+    // Check which prompts this user has liked
+    db.promptLike.findMany({
+      where: {
+        promptId: { in: promptIds },
+        userId: user.id,
+      },
+      select: { promptId: true },
+    }),
+    // Check which prompts this user has favorited
+    db.promptFavorite.findMany({
+      where: {
+        promptId: { in: promptIds },
+        userId: user.id,
+      },
+      select: { promptId: true },
+    }),
+  ]);
+
+  // Create lookup maps for O(1) access
+  const likeCountMap = new Map(
+    likeCounts.map(item => [item.promptId, item._count.promptId])
+  );
+  const favoriteCountMap = new Map(
+    favoriteCounts.map(item => [item.promptId, item._count.promptId])
+  );
+  const userLikedSet = new Set(userLikes.map(like => like.promptId));
+  const userFavoritedSet = new Set(userFavorites.map(fav => fav.promptId));
+
+  // Merge results in application layer
   const promptsWithLikeData = prompts.map(prompt => ({
     ...prompt,
-    likeCount: prompt._count.likes,
-    favoriteCount: prompt._count.favorites,
-    isLikedByUser: prompt.likes.some((like: { userId: string }) => like.userId === user.id),
-    isFavoritedByUser: prompt.favorites.length > 0,
+    likeCount: likeCountMap.get(prompt.id) || 0,
+    favoriteCount: favoriteCountMap.get(prompt.id) || 0,
+    isLikedByUser: userLikedSet.has(prompt.id),
+    isFavoritedByUser: userFavoritedSet.has(prompt.id),
     isPinned: !!prompt.pinnedAt,
   }));
 
@@ -113,6 +178,9 @@ export async function renamePrompt(id: string, title: string) {
     data: { title },
   });
 
+  // Cache invalidation
+  await onPromptUpdate(user.id, id, { folderId: updatedPrompt.folderId });
+
   revalidatePath(`/prompts`);
   return updatedPrompt;
 }
@@ -120,9 +188,20 @@ export async function renamePrompt(id: string, title: string) {
 export async function deletePrompt(id: string) {
   const user = await requireAuth();
 
+  // Get prompt before deletion to know its folderId
+  const prompt = await db.prompt.findUnique({
+    where: { id, userId: user.id },
+    select: { folderId: true },
+  });
+
   await db.prompt.delete({
     where: { id, userId: user.id },
   });
+
+  // Cache invalidation
+  if (prompt) {
+    await onPromptDelete(user.id, id);
+  }
 
   revalidatePath(`/prompts`);
 }
@@ -142,11 +221,8 @@ export async function createPrompt({
   folderId,
   tags,
 }: CreatePromptParams) {
-  console.log("SERVER ACTION: createPrompt called with:", { title, description, content, folderId, tags });
-  
   try {
     const user = await requireAuth();
-    console.log("SERVER ACTION: User authenticated:", user.id);
 
     const lastPrompt = await db.prompt.findFirst({
       where: { userId: user.id, folderId },
@@ -154,7 +230,6 @@ export async function createPrompt({
     });
 
     const newOrder = lastPrompt ? lastPrompt.order! + 1 : 0;
-    console.log("SERVER ACTION: Creating prompt with order:", newOrder);
 
     const newPrompt = await db.prompt.create({
       data: {
@@ -180,7 +255,8 @@ export async function createPrompt({
       },
     });
 
-    console.log("SERVER ACTION: Prompt created successfully:", newPrompt);
+    // Cache invalidation
+    await onPromptCreate(user.id, { invalidateFolders: !!folderId });
 
     revalidatePath(`/prompts`);
     if (folderId) {
@@ -188,9 +264,8 @@ export async function createPrompt({
     }
 
     return newPrompt;
-  } catch (error) {
-    console.error("SERVER ACTION: Error in createPrompt:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
@@ -267,6 +342,12 @@ export async function updatePrompt(
         : undefined,
     },
   });
+
+  // Cache invalidation
+  await onPromptUpdate(user.id, id, { folderId: existingPrompt.folderId });
+  if (tags) {
+    await onPromptTagsUpdate(user.id, id);
+  }
 
   revalidatePath(`/prompts/${id}`);
   return updatedPrompt;
@@ -376,6 +457,9 @@ export async function movePrompt(id: string, folderId: string | null, order: num
     data: { folderId, order },
   });
 
+  // Cache invalidation
+  await onPromptMove(user.id, id);
+
   revalidatePath(`/prompts`);
   if (folderId) {
     revalidatePath(`/prompts/folders/${folderId}`);
@@ -450,9 +534,8 @@ export async function likePrompt(promptId: string) {
 
     revalidatePath("/prompts");
     return like;
-  } catch (error) {
-    console.error("Error liking prompt:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
@@ -472,9 +555,8 @@ export async function unlikePrompt(promptId: string) {
 
     revalidatePath("/prompts");
     return deletedLike;
-  } catch (error) {
-    console.error("Error unliking prompt:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
@@ -515,9 +597,8 @@ export async function togglePromptLike(promptId: string) {
       revalidatePath("/prompts");
       return { liked: true };
     }
-  } catch (error) {
-    console.error("Error toggling prompt like:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
@@ -541,9 +622,8 @@ export async function getPromptLikes(promptId: string) {
     });
 
     return likes;
-  } catch (error) {
-    console.error("Error fetching prompt likes:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
@@ -656,15 +736,14 @@ export async function pinPrompt(promptId: string) {
     });
 
     revalidatePath("/prompts");
-    return { 
-      success: true, 
-      isPinned: !!updatedPrompt.pinnedAt 
+    return {
+      success: true,
+      isPinned: !!updatedPrompt.pinnedAt
     };
-  } catch (error) {
-    console.error("Error pinning/unpinning prompt:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to update pin status" 
+  } catch (_error) {
+    return {
+      success: false,
+      error: _error instanceof Error ? "Failed" : "Failed to update pin status"
     };
   }
 }

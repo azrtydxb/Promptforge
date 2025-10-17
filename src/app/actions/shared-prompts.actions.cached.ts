@@ -182,8 +182,7 @@ export async function getSharedPromptsCached(filters: SharedPromptFilters = {}):
           }
         };
 
-      } catch (error) {
-        console.error('Error getting shared prompts:', error);
+      } catch (_error) {
         return { success: false, error: 'Failed to load shared prompts' };
       }
     },
@@ -282,8 +281,7 @@ export async function getSharedPromptCached(id: string): Promise<SharedPromptDet
           }
         };
 
-      } catch (error) {
-        console.error('Error getting shared prompt:', error);
+      } catch (_error) {
         return { success: false, error: 'Failed to load shared prompt' };
       }
     },
@@ -474,18 +472,14 @@ export async function invalidateSharedPromptsCaches(): Promise<void> {
       cacheService.delPattern('tagged-shared-prompts:*'),
       cacheService.delPattern('search-shared-prompts:*')
     ]);
-    
-    console.log('Shared prompts caches invalidated');
-  } catch (error) {
-    console.error('Error invalidating shared prompts caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }
 
 // Function to warm up shared prompts caches
 export async function warmSharedPromptsCaches(): Promise<void> {
   try {
-    console.log('Warming up shared prompts caches...');
-    
     await Promise.all([
       getSharedPromptsCached({ limit: 12, sortBy: 'recent' }),
       getSharedPromptsCached({ limit: 12, sortBy: 'popular' }),
@@ -493,26 +487,20 @@ export async function warmSharedPromptsCaches(): Promise<void> {
       getRecentSharedPromptsCached(10),
       getSharedPromptsStatsCached()
     ]);
-    
-    console.log('Shared prompts caches warmed up successfully');
-  } catch (error) {
-    console.error('Error warming shared prompts caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }
 
 // Function to refresh shared prompts caches
 export async function refreshSharedPromptsCaches(): Promise<void> {
   try {
-    console.log('Refreshing shared prompts caches...');
-    
     // Invalidate caches
     await invalidateSharedPromptsCaches();
-    
+
     // Warm up caches again
     await warmSharedPromptsCaches();
-    
-    console.log('Shared prompts caches refreshed successfully');
-  } catch (error) {
-    console.error('Error refreshing shared prompts caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }

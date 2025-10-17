@@ -9,9 +9,6 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
 import NextTopLoader from "nextjs-toploader";
 
-// Initialize performance optimizations
-import '@/lib/init-performance';
-
 const inter = Inter({
   subsets: ["latin"],
   display: "swap",

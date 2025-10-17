@@ -62,9 +62,9 @@ export async function createTeamFolder(params: CreateTeamFolderParams) {
     });
     
     return { success: true, folder };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error creating team folder", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -137,9 +137,9 @@ export async function updateTeamFolder(params: UpdateTeamFolderParams) {
     });
     
     return { success: true, folder: updatedFolder };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error updating team folder", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -198,9 +198,9 @@ export async function deleteTeamFolder(folderId: string) {
     });
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error deleting team folder", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -230,9 +230,9 @@ export async function getTeamFolders(teamId: string) {
     });
     
     return folders;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting team folders", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -282,9 +282,9 @@ export async function createTeamTag(params: CreateTeamTagParams) {
     });
     
     return { success: true, tag };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error creating team tag", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -335,9 +335,9 @@ export async function updateTeamTag(tagId: string, updates: { name?: string; des
     });
     
     return { success: true, tag: updatedTag };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error updating team tag", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -390,9 +390,9 @@ export async function deleteTeamTag(tagId: string) {
     });
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error deleting team tag", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -420,8 +420,8 @@ export async function getTeamTags(teamId: string) {
     });
     
     return tags;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting team tags", error);
-    throw error;
+    throw _error;
   }
 }

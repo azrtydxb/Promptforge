@@ -9,7 +9,7 @@ import type { Session, User } from "next-auth"
 export const authOptions: AuthOptions = {
   // Note: PrismaAdapter is incompatible with CredentialsProvider
   // adapter: PrismaAdapter(db),
-  debug: true,
+  debug: process.env.NODE_ENV === 'development' && process.env.NEXTAUTH_DEBUG === 'true',
   providers: [
     CredentialsProvider({
       name: "credentials",

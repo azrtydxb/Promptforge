@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/ui/icons";
-import { getAllTags } from "@/app/actions/tag-management.actions";
+import { getAllTagsRedis as getAllTags } from "@/app/actions/tag.actions.redis";
 import { Download, Upload } from "lucide-react";
 import { exportPrompts, importPrompts } from "@/app/actions/prompt-export-import.actions";
 import { useRef } from "react";

@@ -134,15 +134,15 @@ export async function importPrompts(data: unknown, folderId?: string): Promise<{
         });
 
         imported++;
-      } catch (error) {
-        errors.push(`Failed to import "${promptData.title}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } catch (_error) {
+        errors.push(`Failed to import "${promptData.title}": ${_error instanceof Error ? "Failed" : 'Unknown error'}`);
       }
     }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
+  } catch (_error) {
+    if (_error instanceof z.ZodError) {
       throw new Error("Invalid import file format");
     }
-    throw error;
+    throw _error;
   }
 
   return {

@@ -5,7 +5,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { X, ChevronDown, Plus } from "lucide-react";
-import { getAllTags } from "@/app/actions/tag-management.actions";
+import { getAllTagsRedis as getAllTags } from "@/app/actions/tag.actions.redis";
 import { cn } from "@/lib/utils";
 
 interface Tag {

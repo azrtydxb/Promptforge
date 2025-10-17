@@ -4,9 +4,8 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/logger";
-import { withPerformance } from "@/lib/performance-wrapper";
 
-export const togglePromptFavorite = withPerformance('togglePromptFavorite', async (promptId: string) => {
+export async function togglePromptFavorite(promptId: string) {
   const user = await requireAuth();
 
   try {
@@ -49,13 +48,13 @@ export const togglePromptFavorite = withPerformance('togglePromptFavorite', asyn
       revalidatePath("/favorites");
       return { favorited: true };
     }
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error toggling prompt favorite:", error);
-    throw error;
+    throw _error;
   }
-});
+}
 
-export const getFavoritePrompts = withPerformance('getFavoritePrompts', async () => {
+export async function getFavoritePrompts() {
   const user = await requireAuth();
 
   try {
@@ -90,11 +89,11 @@ export const getFavoritePrompts = withPerformance('getFavoritePrompts', async ()
     }));
 
     return prompts;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error fetching favorite prompts:", error);
-    throw error;
+    throw _error;
   }
-});
+}
 
 export async function checkPromptFavorite(promptId: string) {
   const user = await requireAuth();
@@ -110,7 +109,7 @@ export async function checkPromptFavorite(promptId: string) {
     });
 
     return { isFavorited: !!favorite };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error checking prompt favorite:", error);
     return { isFavorited: false };
   }
@@ -125,7 +124,7 @@ export async function getFavoriteCount(promptId: string) {
     });
 
     return count;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting favorite count:", error);
     return 0;
   }
@@ -179,8 +178,8 @@ export async function getMostFavoritedPrompts(limit: number = 10) {
       ...prompt,
       isFavorited: favoriteSet.has(prompt.id),
     }));
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error fetching most favorited prompts:", error);
-    throw error;
+    throw _error;
   }
 }

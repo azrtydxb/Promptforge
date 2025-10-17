@@ -96,8 +96,8 @@ export async function getPendingModeration() {
         recentLogs,
       },
     };
-  } catch (error) {
-    logger.error("Failed to get pending moderation", { error });
+  } catch (_error) {
+    logger.error("Failed to get pending moderation", { _error });
     return { success: false, error: "Failed to retrieve moderation queue" };
   }
 }
@@ -156,11 +156,11 @@ export async function moderatePrompt(input: z.infer<typeof moderatePromptSchema>
     revalidatePath("/admin/moderation");
     revalidatePath(`/marketplace/${validated.promptId}`);
     return { success: true };
-  } catch (error) {
-    logger.error("Failed to moderate prompt", { error });
+  } catch (_error) {
+    logger.error("Failed to moderate prompt", { _error });
 
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+    if (_error instanceof z.ZodError) {
+      return { success: false, error: _error.errors[0].message };
     }
 
     return { success: false, error: "Failed to moderate prompt" };
@@ -188,8 +188,8 @@ export async function getModerationRules() {
     });
 
     return { success: true, rules };
-  } catch (error) {
-    logger.error("Failed to get moderation rules", { error });
+  } catch (_error) {
+    logger.error("Failed to get moderation rules", { _error });
     return { success: false, error: "Failed to retrieve moderation rules" };
   }
 }
@@ -219,11 +219,11 @@ export async function createModerationRule(input: z.infer<typeof createRuleSchem
 
     revalidatePath("/admin/moderation");
     return { success: true, rule };
-  } catch (error) {
-    logger.error("Failed to create moderation rule", { error });
+  } catch (_error) {
+    logger.error("Failed to create moderation rule", { _error });
 
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+    if (_error instanceof z.ZodError) {
+      return { success: false, error: _error.errors[0].message };
     }
 
     return { success: false, error: "Failed to create moderation rule" };
@@ -257,8 +257,8 @@ export async function updateModerationRule(
 
     revalidatePath("/admin/moderation");
     return { success: true, rule };
-  } catch (error) {
-    logger.error("Failed to update moderation rule", { error, ruleId });
+  } catch (_error) {
+    logger.error("Failed to update moderation rule", { _error, ruleId });
     return { success: false, error: "Failed to update moderation rule" };
   }
 }
@@ -286,8 +286,8 @@ export async function deleteModerationRule(ruleId: string) {
 
     revalidatePath("/admin/moderation");
     return { success: true };
-  } catch (error) {
-    logger.error("Failed to delete moderation rule", { error, ruleId });
+  } catch (_error) {
+    logger.error("Failed to delete moderation rule", { _error, ruleId });
     return { success: false, error: "Failed to delete moderation rule" };
   }
 }
@@ -328,8 +328,8 @@ export async function getModerationStats() {
         total: pending + flagged + approved + rejected,
       },
     };
-  } catch (error) {
-    logger.error("Failed to get moderation stats", { error });
+  } catch (_error) {
+    logger.error("Failed to get moderation stats", { _error });
     return {
       success: false,
       error: "Failed to retrieve moderation statistics",
@@ -366,8 +366,8 @@ export async function getModerationLogs(limit = 100, contentType?: string) {
     });
 
     return { success: true, logs };
-  } catch (error) {
-    logger.error("Failed to get moderation logs", { error });
+  } catch (_error) {
+    logger.error("Failed to get moderation logs", { _error });
     return { success: false, error: "Failed to retrieve moderation logs" };
   }
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useModal } from "@/hooks/use-modal-store";
 import { movePrompt } from "@/app/actions/prompt.actions";
-import { getFolders } from "@/app/actions/folder.actions";
+import { getFoldersRedis as getFolders } from "@/app/actions/folder.actions.redis";
 import {
   Dialog,
   DialogContent,

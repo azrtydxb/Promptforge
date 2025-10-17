@@ -68,7 +68,7 @@ export async function createTeam(params: CreateTeamParams) {
     
     logger.info("Team created", { teamId: team.id, userId: user.id });
     return { success: true, team };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error creating team", error);
     throw new Error("Failed to create team");
   }
@@ -132,9 +132,9 @@ export async function updateTeam(params: UpdateTeamParams) {
     
     logger.info("Team updated", { teamId: team.id, userId: user.id });
     return { success: true, team };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error updating team", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -166,9 +166,9 @@ export async function deleteTeam(teamId: string) {
     
     logger.info("Team deleted", { teamId, userId: user.id });
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error deleting team", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -209,9 +209,9 @@ export async function getTeam(teamId: string) {
     }
     
     return team;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting team", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -247,9 +247,9 @@ export async function getUserTeams() {
     });
     
     return teams;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting user teams", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -269,7 +269,7 @@ export async function getUserTeamRole(teamId: string, userId?: string) {
     });
     
     return member?.role || null;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting user team role", error);
     return null;
   }

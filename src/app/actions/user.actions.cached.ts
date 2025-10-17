@@ -31,8 +31,8 @@ export const getUserByEmail = unstable_cache(
         where: { email },
       });
       return user;
-    } catch (error) {
-      console.error("Error getting user by email:", error);
+    } catch (_error) {
+
       return null;
     }
   },
@@ -62,8 +62,8 @@ export const getUserById = unstable_cache(
         },
       });
       return user;
-    } catch (error) {
-      console.error("Error getting user by id:", error);
+    } catch (_error) {
+
       return null;
     }
   },
@@ -91,8 +91,8 @@ export const getUserProfile = unstable_cache(
         },
       });
       return user;
-    } catch (error) {
-      console.error("Error getting user profile:", error);
+    } catch (_error) {
+
       return null;
     }
   },
@@ -155,9 +155,9 @@ export async function createUserWithCache(user: CreateUserParams) {
     await invalidateUserCaches(newUser.id, newUser.email || undefined);
     
     return newUser;
-  } catch (error) {
-    console.error("Error creating user:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }
 
@@ -172,9 +172,9 @@ export async function updateUserWithCache(userId: string, user: UpdateUserParams
     await invalidateUserCaches(userId, updatedUser.email || undefined);
     
     return updatedUser;
-  } catch (error) {
-    console.error("Error updating user:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }
 
@@ -188,9 +188,9 @@ export async function deleteUserWithCache(userId: string) {
     await invalidateUserCaches(userId, deletedUser.email || undefined);
     
     return deletedUser;
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }
 
@@ -227,8 +227,8 @@ export async function changePasswordWithCache({ currentPassword, newPassword }: 
     await invalidateUserCaches(user.id);
     
     return { success: true };
-  } catch (error) {
-    console.error("Error changing password:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }

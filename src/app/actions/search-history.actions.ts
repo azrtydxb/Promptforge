@@ -25,8 +25,8 @@ export async function saveSearchToHistory(params: {
     });
 
     return { success: true, searchEntry };
-  } catch (error) {
-    console.error("Error saving search to history:", error);
+  } catch (_error) {
+
     return { success: false, error: "Failed to save search history" };
   }
 }
@@ -46,8 +46,8 @@ export async function updateSearchClick(searchHistoryId: string, promptId: strin
     });
 
     return { success: true, updated };
-  } catch (error) {
-    console.error("Error updating search click:", error);
+  } catch (_error) {
+
     return { success: false, error: "Failed to update search click" };
   }
 }
@@ -75,8 +75,8 @@ export async function getSearchHistory(limit: number = 10) {
     });
 
     return history;
-  } catch (error) {
-    console.error("Error fetching search history:", error);
+  } catch (_error) {
+
     return [];
   }
 }
@@ -104,8 +104,8 @@ export async function deleteSearchHistory(searchHistoryId?: string) {
 
     revalidatePath("/prompts");
     return { success: true };
-  } catch (error) {
-    console.error("Error deleting search history:", error);
+  } catch (_error) {
+
     return { success: false, error: "Failed to delete search history" };
   }
 }
@@ -138,8 +138,8 @@ export async function getPopularSearches(limit: number = 5) {
       query: search.query,
       count: search._count.query,
     }));
-  } catch (error) {
-    console.error("Error fetching popular searches:", error);
+  } catch (_error) {
+
     return [];
   }
 }
@@ -172,8 +172,8 @@ export async function getSuggestedSearches(partialQuery: string, limit: number =
     });
 
     return suggestions.map(s => s.query);
-  } catch (error) {
-    console.error("Error fetching search suggestions:", error);
+  } catch (_error) {
+
     return [];
   }
 }

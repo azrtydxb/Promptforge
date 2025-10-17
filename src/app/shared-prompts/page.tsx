@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
-import { getSharedPrompts, getAvailableSharedPromptTags } from '@/app/actions/shared-prompts.actions';
+import { getSharedPromptsCached as getSharedPrompts } from '@/app/actions/shared-prompts.actions.cached';
+import { getAvailableSharedPromptTags } from '@/app/actions/shared-prompts.actions';
 import { SharedPromptsClient } from './shared-prompts-client';
 import { SharedPromptsFilters } from '@/components/marketplace/marketplace-filters-server';
 import { ResizablePanels } from '@/components/ui/resizable-panels';

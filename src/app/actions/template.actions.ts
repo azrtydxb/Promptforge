@@ -35,9 +35,9 @@ export async function getPromptTemplates(options?: {
     });
 
     return templates;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error fetching templates", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -57,9 +57,9 @@ export async function getTemplateById(templateId: string) {
     });
 
     return template;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error fetching template", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -87,9 +87,9 @@ export async function createTemplate(data: {
     revalidatePath("/templates");
 
     return template;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error creating template", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -128,9 +128,9 @@ export async function updateTemplate(
     revalidatePath(`/templates/${templateId}`);
 
     return updated;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error updating template", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -155,9 +155,9 @@ export async function deleteTemplate(templateId: string) {
     revalidatePath("/templates");
 
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error deleting template", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -196,9 +196,9 @@ export async function createPromptFromTemplate(templateId: string) {
     logger.info("Template used", { templateId, promptId: prompt.id, userId: user.id });
 
     return prompt.id;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error using template", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -234,8 +234,8 @@ export async function rateTemplate(templateId: string, rating: number) {
     revalidatePath("/templates");
 
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error rating template", error);
-    throw error;
+    throw _error;
   }
 }

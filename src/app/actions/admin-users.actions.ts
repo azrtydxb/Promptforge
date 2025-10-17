@@ -68,7 +68,7 @@ export async function getUsers(page = 1, limit = 20, search?: string) {
         hasPrev: page > 1,
       },
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error fetching users", error);
     throw new Error("Failed to fetch users");
   }
@@ -104,11 +104,11 @@ export async function updateUser({ userId, updates }: UpdateUserParams) {
     
     revalidatePath("/admin");
     return { success: true, user };
-  } catch (error) {
-    logger.error("Error updating user", error, { userId, updates });
+  } catch (_error) {
+    logger.error("Error updating user", _error, { userId, updates });
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : "Failed to update user" 
+      error: _error instanceof Error ? "Failed" : "Failed to update user" 
     };
   }
 }
@@ -133,8 +133,8 @@ export async function deleteUser(userId: string) {
     
     revalidatePath("/admin");
     return { success: true };
-  } catch (error) {
-    logger.error("Error deleting user", error, { userId });
+  } catch (_error) {
+    logger.error("Error deleting user", _error, { userId });
     return { 
       success: false, 
       error: "Failed to delete user" 
@@ -159,8 +159,8 @@ export async function resetUserPassword(userId: string, newPassword: string) {
     });
     
     return { success: true };
-  } catch (error) {
-    logger.error("Error resetting user password", error, { userId });
+  } catch (_error) {
+    logger.error("Error resetting user password", _error, { userId });
     return { 
       success: false, 
       error: "Failed to reset password" 
@@ -202,7 +202,7 @@ export async function getUserStats() {
       verifiedUsers,
       newUsersThisMonth,
     };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error fetching user stats", error);
     throw new Error("Failed to fetch user statistics");
   }

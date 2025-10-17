@@ -1,6 +1,9 @@
 import Redis from 'ioredis';
 import { logger } from '@/lib/logger';
 
+// Check if Redis is enabled via environment variable
+const REDIS_ENABLED = process.env.REDIS_ENABLED === 'true';
+
 // Redis client configuration with best practices from ioredis docs
 const redisConfig = {
   host: process.env.REDIS_HOST || 'localhost',
@@ -9,11 +12,11 @@ const redisConfig = {
   db: 0,
 
   // Connection settings
-  lazyConnect: true, // Don't connect immediately
+  lazyConnect: false, // Connect immediately on initialization (FIX B: connection pooling)
   keepAlive: 30000,
   family: 4, // IPv4
   connectTimeout: 10000,
-  commandTimeout: 30000, // Increased from 5 seconds to 30 seconds
+  commandTimeout: 5000, // 5 seconds for faster failures
 
   // Retry and reconnection settings
   retryDelayOnFailover: 100,
@@ -35,8 +38,8 @@ const redisConfig = {
   // Enable autopipelining for better performance
   enableAutoPipelining: true,
 
-  // Disable offline queue for strict connection requirements
-  enableOfflineQueue: false,
+  // Enable offline queue to buffer commands when connection is lost (FIX B: connection pooling)
+  enableOfflineQueue: true,
 };
 
 // Create Redis client instance
@@ -72,6 +75,11 @@ export const getRedisClient = (): Redis => {
 
 // Initialize connection
 export const initRedis = async (): Promise<void> => {
+  if (!REDIS_ENABLED) {
+    logger.info('Redis is disabled via REDIS_ENABLED environment variable');
+    return;
+  }
+
   const client = getRedisClient();
   try {
     await client.connect();
@@ -323,6 +331,9 @@ export class CacheService {
 // Export singleton instance
 export const cacheService = new CacheService();
 
+// Export Redis enabled flag for other modules
+export const isRedisEnabled = () => REDIS_ENABLED;
+
 // Helper function for cache-aside pattern with error handling
 export async function cacheAside<T>(
   key: string,
@@ -334,6 +345,11 @@ export async function cacheAside<T>(
   } = {}
 ): Promise<T> {
   const { skipCache = false, refreshCache = false } = options;
+
+  // FIX A: Check if Redis is enabled via environment variable
+  if (!REDIS_ENABLED) {
+    return await fetchFunction();
+  }
 
   // Skip cache if requested
   if (skipCache) {
@@ -361,6 +377,8 @@ export async function cacheAside<T>(
 
 // Helper functions for cache invalidation patterns
 export async function invalidateUserCaches(userId: string): Promise<void> {
+  if (!REDIS_ENABLED) return;
+
   const patterns = [
     cacheKeys.user(userId),
     cacheKeys.userProfile(userId),
@@ -379,6 +397,8 @@ export async function invalidateUserCaches(userId: string): Promise<void> {
 }
 
 export async function invalidateTagCaches(): Promise<void> {
+  if (!REDIS_ENABLED) return;
+
   await Promise.all([
     cacheService.del(cacheKeys.allTags()),
     cacheService.delPattern('tags:popular*'),
@@ -388,6 +408,8 @@ export async function invalidateTagCaches(): Promise<void> {
 }
 
 export async function invalidatePromptCaches(promptId: string): Promise<void> {
+  if (!REDIS_ENABLED) return;
+
   await Promise.all([
     cacheService.del(cacheKeys.prompt(promptId)),
     cacheService.del(cacheKeys.promptVersions(promptId)),
@@ -400,6 +422,8 @@ export async function invalidatePromptCaches(promptId: string): Promise<void> {
 }
 
 export async function invalidateAnalyticsCaches(): Promise<void> {
+  if (!REDIS_ENABLED) return;
+
   await Promise.all([
     cacheService.delPattern('analytics:*'),
     cacheService.delPattern('stats:*'),
@@ -413,6 +437,15 @@ export async function checkRateLimit(
   limit: number,
   windowSeconds: number = 900 // 15 minutes default
 ): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
+  // If Redis is disabled, fail open (allow all requests)
+  if (!REDIS_ENABLED) {
+    return {
+      allowed: true,
+      remaining: limit,
+      resetTime: Date.now() + (windowSeconds * 1000),
+    };
+  }
+
   const key = cacheKeys.rateLimit(identifier, windowSeconds.toString());
 
   try {

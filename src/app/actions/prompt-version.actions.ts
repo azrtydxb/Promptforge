@@ -38,9 +38,9 @@ export async function getPromptVersions(promptId: string) {
     });
 
     return versions;
-  } catch (error) {
-    logger.error("Error fetching prompt versions", { error, promptId });
-    throw error;
+  } catch (_error) {
+    logger.error("Error fetching prompt versions", { _error, promptId });
+    throw _error;
   }
 }
 
@@ -101,9 +101,9 @@ export async function createPromptVersion(
     revalidatePath(`/prompts/${promptId}`);
     
     return version;
-  } catch (error) {
-    logger.error("Error creating prompt version", { error, promptId });
-    throw error;
+  } catch (_error) {
+    logger.error("Error creating prompt version", { _error, promptId });
+    throw _error;
   }
 }
 
@@ -161,9 +161,9 @@ export async function restorePromptVersion(promptId: string, versionId: string) 
     revalidatePath(`/prompts/${promptId}`);
     
     return { success: true, restoredVersion: version.version };
-  } catch (error) {
-    logger.error("Error restoring prompt version", { error, promptId, versionId });
-    throw error;
+  } catch (_error) {
+    logger.error("Error restoring prompt version", { _error, promptId, versionId });
+    throw _error;
   }
 }
 
@@ -211,9 +211,9 @@ export async function deletePromptVersion(promptId: string, versionId: string) {
     revalidatePath(`/prompts/${promptId}`);
     
     return { success: true };
-  } catch (error) {
-    logger.error("Error deleting prompt version", { error, promptId, versionId });
-    throw error;
+  } catch (_error) {
+    logger.error("Error deleting prompt version", { _error, promptId, versionId });
+    throw _error;
   }
 }
 
@@ -264,8 +264,8 @@ export async function comparePromptVersions(versionId1: string, versionId2: stri
         changeMessage: version2.changeMessage
       }
     };
-  } catch (error) {
-    logger.error("Error comparing prompt versions", { error, versionId1, versionId2 });
-    throw error;
+  } catch (_error) {
+    logger.error("Error comparing prompt versions", { _error, versionId1, versionId2 });
+    throw _error;
   }
 }

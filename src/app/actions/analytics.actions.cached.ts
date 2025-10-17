@@ -438,10 +438,8 @@ export async function invalidateUserAnalytics(userId: string): Promise<void> {
       cacheService.del(cacheKeys.userStats(userId)),
       invalidateUserCaches(userId)
     ]);
-    
-    console.log(`Analytics caches invalidated for user: ${userId}`);
-  } catch (error) {
-    console.error('Error invalidating user analytics caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }
 
@@ -452,18 +450,14 @@ export async function invalidateGlobalAnalytics(): Promise<void> {
       cacheService.del(cacheKeys.globalAnalytics()),
       cacheService.delPattern('trending:*')
     ]);
-    
-    console.log('Global analytics caches invalidated');
-  } catch (error) {
-    console.error('Error invalidating global analytics caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }
 
 // Function to warm up analytics caches
 export async function warmAnalyticsCaches(userId?: string): Promise<void> {
   try {
-    console.log('Warming up analytics caches...');
-    
     const promises: Promise<unknown>[] = [
       getGlobalAnalyticsCached(),
       getTrendingPromptsCached(10),
@@ -476,31 +470,25 @@ export async function warmAnalyticsCaches(userId?: string): Promise<void> {
         getUserStatsCached(userId)
       );
     }
-    
+
     await Promise.all(promises);
-    
-    console.log('Analytics caches warmed up successfully');
-  } catch (error) {
-    console.error('Error warming analytics caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }
 
 // Function to refresh analytics caches
 export async function refreshAnalyticsCaches(userId?: string): Promise<void> {
   try {
-    console.log('Refreshing analytics caches...');
-    
     // Invalidate caches
     await invalidateGlobalAnalytics();
     if (userId) {
       await invalidateUserAnalytics(userId);
     }
-    
+
     // Warm up caches again
     await warmAnalyticsCaches(userId);
-    
-    console.log('Analytics caches refreshed successfully');
-  } catch (error) {
-    console.error('Error refreshing analytics caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }

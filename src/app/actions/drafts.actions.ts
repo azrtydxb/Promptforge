@@ -122,11 +122,11 @@ export async function saveDraft(input: z.infer<typeof draftSchema>) {
     });
 
     return { success: true, draft };
-  } catch (error) {
-    logger.error("Failed to save draft", { error });
+  } catch (_error) {
+    logger.error("Failed to save draft", { _error });
 
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+    if (_error instanceof z.ZodError) {
+      return { success: false, error: _error.errors[0].message };
     }
 
     return { success: false, error: "Failed to save draft" };
@@ -151,8 +151,8 @@ export async function getUserDrafts() {
     });
 
     return { success: true, drafts };
-  } catch (error) {
-    logger.error("Failed to get user drafts", { error });
+  } catch (_error) {
+    logger.error("Failed to get user drafts", { _error });
     return { success: false, error: "Failed to retrieve drafts" };
   }
 }
@@ -176,8 +176,8 @@ export async function getDraft(draftId: string) {
     }
 
     return { success: true, draft };
-  } catch (error) {
-    logger.error("Failed to get draft", { error, draftId });
+  } catch (_error) {
+    logger.error("Failed to get draft", { _error, draftId });
     return { success: false, error: "Failed to retrieve draft" };
   }
 }
@@ -197,8 +197,8 @@ export async function getDraftForPrompt(promptId: string) {
     });
 
     return { success: true, draft };
-  } catch (error) {
-    logger.error("Failed to get draft for prompt", { error, promptId });
+  } catch (_error) {
+    logger.error("Failed to get draft for prompt", { _error, promptId });
     return { success: false, error: "Failed to retrieve draft" };
   }
 }
@@ -232,8 +232,8 @@ export async function deleteDraft(draftId: string) {
     });
 
     return { success: true };
-  } catch (error) {
-    logger.error("Failed to delete draft", { error, draftId });
+  } catch (_error) {
+    logger.error("Failed to delete draft", { _error, draftId });
     return { success: false, error: "Failed to delete draft" };
   }
 }
@@ -268,8 +268,8 @@ export async function deleteOldDrafts(daysOld = 30) {
     });
 
     return { success: true, count: result.count };
-  } catch (error) {
-    logger.error("Failed to delete old drafts", { error });
+  } catch (_error) {
+    logger.error("Failed to delete old drafts", { _error });
     return { success: false, error: "Failed to delete old drafts" };
   }
 }
@@ -301,8 +301,8 @@ export async function getDraftStats() {
         new: total - withPromptId,
       },
     };
-  } catch (error) {
-    logger.error("Failed to get draft stats", { error });
+  } catch (_error) {
+    logger.error("Failed to get draft stats", { _error });
     return {
       success: false,
       error: "Failed to retrieve stats",

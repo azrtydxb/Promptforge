@@ -1,5 +1,4 @@
 import { PrismaClient } from '@/generated/prisma'
-import { PerformanceMonitor } from '@/lib/performance'
 import { logger } from '@/lib/logger'
 
 declare global {
@@ -8,7 +7,7 @@ declare global {
 
 // Enhanced database configuration with connection pooling
 const prismaConfig = {
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
@@ -27,51 +26,6 @@ const prismaConfig = {
 export const db =
   global.prisma ||
   new PrismaClient(prismaConfig)
-
-// Performance monitoring wrapper
-export const dbWithMonitoring = {
-  // Wrap all Prisma methods with performance monitoring
-  async findMany(args: any) {
-    return PerformanceMonitor.measureQuery('findMany', () => db.$queryRaw`SELECT * FROM "Prompt"`)
-  },
-  
-  // Add more wrapped methods as needed
-  user: {
-    findUnique: (args: any) => PerformanceMonitor.measureQuery('user.findUnique', () => db.user.findUnique(args)),
-    findMany: (args: any) => PerformanceMonitor.measureQuery('user.findMany', () => db.user.findMany(args)),
-    create: (args: any) => PerformanceMonitor.measureQuery('user.create', () => db.user.create(args)),
-    update: (args: any) => PerformanceMonitor.measureQuery('user.update', () => db.user.update(args)),
-    delete: (args: any) => PerformanceMonitor.measureQuery('user.delete', () => db.user.delete(args)),
-  },
-  
-  prompt: {
-    findUnique: (args: any) => PerformanceMonitor.measureQuery('prompt.findUnique', () => db.prompt.findUnique(args)),
-    findMany: (args: any) => PerformanceMonitor.measureQuery('prompt.findMany', () => db.prompt.findMany(args)),
-    create: (args: any) => PerformanceMonitor.measureQuery('prompt.create', () => db.prompt.create(args)),
-    update: (args: any) => PerformanceMonitor.measureQuery('prompt.update', () => db.prompt.update(args)),
-    delete: (args: any) => PerformanceMonitor.measureQuery('prompt.delete', () => db.prompt.delete(args)),
-    count: (args: any) => PerformanceMonitor.measureQuery('prompt.count', () => db.prompt.count(args)),
-  },
-  
-  sharedPrompt: {
-    findUnique: (args: any) => PerformanceMonitor.measureQuery('sharedPrompt.findUnique', () => db.sharedPrompt.findUnique(args)),
-    findMany: (args: any) => PerformanceMonitor.measureQuery('sharedPrompt.findMany', () => db.sharedPrompt.findMany(args)),
-    create: (args: any) => PerformanceMonitor.measureQuery('sharedPrompt.create', () => db.sharedPrompt.create(args)),
-    update: (args: any) => PerformanceMonitor.measureQuery('sharedPrompt.update', () => db.sharedPrompt.update(args)),
-    delete: (args: any) => PerformanceMonitor.measureQuery('sharedPrompt.delete', () => db.sharedPrompt.delete(args)),
-    count: (args: any) => PerformanceMonitor.measureQuery('sharedPrompt.count', () => db.sharedPrompt.count(args)),
-  },
-  
-  tag: {
-    findUnique: (args: any) => PerformanceMonitor.measureQuery('tag.findUnique', () => db.tag.findUnique(args)),
-    findMany: (args: any) => PerformanceMonitor.measureQuery('tag.findMany', () => db.tag.findMany(args)),
-    create: (args: any) => PerformanceMonitor.measureQuery('tag.create', () => db.tag.create(args)),
-    update: (args: any) => PerformanceMonitor.measureQuery('tag.update', () => db.tag.update(args)),
-    delete: (args: any) => PerformanceMonitor.measureQuery('tag.delete', () => db.tag.delete(args)),
-  },
-  
-  // Add other models as needed...
-}
 
 // Database health check
 export async function checkDatabaseHealth(): Promise<boolean> {

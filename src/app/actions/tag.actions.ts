@@ -3,9 +3,8 @@
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { withPerformance } from "@/lib/performance-wrapper";
 
-export const addTagToPrompt = withPerformance('addTagToPrompt', async (promptId: string, tagName: string) => {
+export async function addTagToPrompt(promptId: string, tagName: string) {
   const user = await requireAuth();
 
   await db.prompt.update({
@@ -21,9 +20,9 @@ export const addTagToPrompt = withPerformance('addTagToPrompt', async (promptId:
   });
 
   revalidatePath(`/prompts/${promptId}`);
-});
+}
 
-export const removeTagFromPrompt = withPerformance('removeTagFromPrompt', async (promptId: string, tagName: string) => {
+export async function removeTagFromPrompt(promptId: string, tagName: string) {
   const user = await requireAuth();
 
   await db.prompt.update({
@@ -38,9 +37,9 @@ export const removeTagFromPrompt = withPerformance('removeTagFromPrompt', async 
   });
 
   revalidatePath(`/prompts/${promptId}`);
-});
+}
 
-export const searchTags = withPerformance('searchTags', async (query: string) => {
+export async function searchTags(query: string) {
   const tags = await db.tag.findMany({
     where: {
       name: {
@@ -51,4 +50,4 @@ export const searchTags = withPerformance('searchTags', async (query: string) =>
   });
 
   return tags;
-});
+}

@@ -89,11 +89,8 @@ interface CreateFolderParams {
 }
 
 export async function createFolder({ name, parentId }: CreateFolderParams) {
-  console.log("SERVER ACTION: createFolder called with:", { name, parentId });
-  
   try {
     const user = await requireAuth();
-    console.log("SERVER ACTION: User authenticated:", user.id);
 
     const lastFolder = await db.folder.findFirst({
       where: { userId: user.id, parentId },
@@ -101,7 +98,6 @@ export async function createFolder({ name, parentId }: CreateFolderParams) {
     });
 
     const newOrder = lastFolder ? lastFolder.order! + 1 : 0;
-    console.log("SERVER ACTION: Creating folder with order:", newOrder);
 
     const newFolder = await db.folder.create({
       data: {
@@ -112,51 +108,39 @@ export async function createFolder({ name, parentId }: CreateFolderParams) {
       },
     });
 
-    console.log("SERVER ACTION: Folder created successfully:", newFolder);
-    
     // Invalidate caches
     await invalidateFolderCaches(user.id);
-    
+
     // Revalidate the entire prompts layout to ensure all folder-related components refresh
     revalidatePath("/prompts", "layout");
     return newFolder;
-  } catch (error) {
-    console.error("SERVER ACTION: Error in createFolder:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
 export async function updateFolder(id: string, name: string) {
-  console.log("SERVER ACTION: updateFolder called with:", { id, name });
-  
   try {
     const user = await requireAuth();
-    console.log("SERVER ACTION: User authenticated:", user.id);
 
     const updatedFolder = await db.folder.update({
       where: { id, userId: user.id },
       data: { name },
     });
 
-    console.log("SERVER ACTION: Folder updated successfully:", updatedFolder);
-    
     // Invalidate caches
     await invalidateFolderCaches(user.id);
-    
+
     revalidatePath("/prompts");
     return updatedFolder;
-  } catch (error) {
-    console.error("SERVER ACTION: Error in updateFolder:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
 export async function deleteFolder(id: string) {
-  console.log("SERVER ACTION: deleteFolder called with:", { id });
-  
   try {
     const user = await requireAuth();
-    console.log("SERVER ACTION: User authenticated:", user.id);
 
     // Recursive function to delete folder and all its children
     async function deleteFolderRecursively(folderId: string) {
@@ -180,23 +164,18 @@ export async function deleteFolder(id: string) {
       await db.folder.delete({
         where: { id: folderId, userId: user.id },
       });
-
-      console.log("SERVER ACTION: Folder deleted recursively:", folderId);
     }
 
     // Start the recursive deletion
     await deleteFolderRecursively(id);
 
-    console.log("SERVER ACTION: Folder and all children deleted successfully:", id);
-    
     // Invalidate caches
     await invalidateFolderCaches(user.id);
-    
+
     revalidatePath("/prompts");
     return { success: true, deletedId: id };
-  } catch (error) {
-    console.error("SERVER ACTION: Error in deleteFolder:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 

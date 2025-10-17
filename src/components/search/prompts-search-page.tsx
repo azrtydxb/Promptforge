@@ -6,8 +6,8 @@ import { useUnifiedSearch } from "@/hooks/use-unified-search";
 import { PromptGrid } from "@/components/prompts/prompt-grid";
 import { LoadingStates } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getAllTags } from "@/app/actions/tag-management.actions";
-import { getFolders } from "@/app/actions/folder.actions";
+import { getAllTagsRedis as getAllTags } from "@/app/actions/tag.actions.redis";
+import { getFoldersRedis as getFolders } from "@/app/actions/folder.actions.redis";
 import {
   Select,
   SelectContent,

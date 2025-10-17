@@ -42,8 +42,8 @@ export async function getUserCollections() {
     });
 
     return { success: true, collections };
-  } catch (error) {
-    logger.error("Failed to get user collections", { error });
+  } catch (_error) {
+    logger.error("Failed to get user collections", { _error });
     return { success: false, error: "Failed to retrieve collections" };
   }
 }
@@ -110,8 +110,8 @@ export async function getCollection(collectionId: string) {
     });
 
     return { success: true, collection };
-  } catch (error) {
-    logger.error("Failed to get collection", { error, collectionId });
+  } catch (_error) {
+    logger.error("Failed to get collection", { _error, collectionId });
     return { success: false, error: "Failed to retrieve collection" };
   }
 }
@@ -143,8 +143,8 @@ export async function getPublicCollections() {
     });
 
     return { success: true, collections };
-  } catch (error) {
-    logger.error("Failed to get public collections", { error });
+  } catch (_error) {
+    logger.error("Failed to get public collections", { _error });
     return { success: false, error: "Failed to retrieve public collections" };
   }
 }
@@ -181,11 +181,11 @@ export async function createCollection(
 
     revalidatePath("/collections");
     return { success: true, collection };
-  } catch (error) {
-    logger.error("Failed to create collection", { error });
+  } catch (_error) {
+    logger.error("Failed to create collection", { _error });
 
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+    if (_error instanceof z.ZodError) {
+      return { success: false, error: _error.errors[0].message };
     }
 
     return { success: false, error: "Failed to create collection" };
@@ -241,11 +241,11 @@ export async function updateCollection(
     revalidatePath("/collections");
     revalidatePath(`/collections/${collectionId}`);
     return { success: true, collection };
-  } catch (error) {
-    logger.error("Failed to update collection", { error, collectionId });
+  } catch (_error) {
+    logger.error("Failed to update collection", { _error, collectionId });
 
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+    if (_error instanceof z.ZodError) {
+      return { success: false, error: _error.errors[0].message };
     }
 
     return { success: false, error: "Failed to update collection" };
@@ -282,8 +282,8 @@ export async function deleteCollection(collectionId: string) {
 
     revalidatePath("/collections");
     return { success: true };
-  } catch (error) {
-    logger.error("Failed to delete collection", { error, collectionId });
+  } catch (_error) {
+    logger.error("Failed to delete collection", { _error, collectionId });
     return { success: false, error: "Failed to delete collection" };
   }
 }
@@ -349,7 +349,7 @@ export async function addPromptToCollection(
 
     revalidatePath(`/collections/${collectionId}`);
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Failed to add prompt to collection", {
       error,
       collectionId,
@@ -399,7 +399,7 @@ export async function removePromptFromCollection(
 
     revalidatePath(`/collections/${collectionId}`);
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Failed to remove prompt from collection", {
       error,
       collectionId,
@@ -464,8 +464,8 @@ export async function getCollectionPrompts(collectionId: string) {
     });
 
     return { success: true, prompts };
-  } catch (error) {
-    logger.error("Failed to get collection prompts", { error, collectionId });
+  } catch (_error) {
+    logger.error("Failed to get collection prompts", { _error, collectionId });
     return { success: false, error: "Failed to retrieve collection prompts" };
   }
 }

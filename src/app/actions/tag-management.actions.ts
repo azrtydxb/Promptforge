@@ -45,12 +45,11 @@ export async function createTag(data: z.infer<typeof CreateTagSchema>) {
       }
     });
 
-    console.log("SERVER ACTION: Tag created successfully:", newTag);
     revalidatePath("/tags");
     return newTag;
-  } catch (error) {
-    console.error("Error creating tag:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }
 
@@ -89,12 +88,11 @@ export async function updateTag(data: z.infer<typeof UpdateTagSchema>) {
       }
     });
 
-    console.log("SERVER ACTION: Tag updated successfully:", updatedTag);
     revalidatePath("/tags");
     return updatedTag;
-  } catch (error) {
-    console.error("Error updating tag:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }
 
@@ -139,11 +137,10 @@ export async function deleteTag(id: string) {
       }
     });
 
-    console.log("SERVER ACTION: Tag deleted successfully:", id);
     revalidatePath("/tags");
-  } catch (error) {
-    console.error("Error deleting tag:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }
 
@@ -167,9 +164,9 @@ export async function getAllTags() {
     });
 
     return tags;
-  } catch (error) {
-    console.error("Error fetching tags:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }
 
@@ -218,8 +215,8 @@ export async function getTagsWithPrompts() {
     });
 
     return tags;
-  } catch (error) {
-    console.error("Error fetching tags with prompts:", error);
-    throw error;
+  } catch (_error) {
+
+    throw _error;
   }
 }

@@ -170,9 +170,8 @@ export async function createTagWithCache(data: z.infer<typeof createTagSchema>) 
     await cacheService.set(`tag:${newTag.id}`, newTag, cacheTTL.tags);
     
     return newTag;
-  } catch (error) {
-    console.error('Error creating tag with cache:', error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
@@ -187,20 +186,19 @@ export async function updateTagWithCache(data: z.infer<typeof updateTagSchema>) 
   try {
     // Validate the input
     const validatedData = updateTagSchema.parse(data);
-    
+
     // Update the tag
     const updatedTag = await _updateTag(validatedData);
-    
+
     // Invalidate tag caches
     await invalidateTagCaches();
-    
+
     // Update the individual tag cache
     await cacheService.set(`tag:${updatedTag.id}`, updatedTag, cacheTTL.tags);
-    
+
     return updatedTag;
-  } catch (error) {
-    console.error('Error updating tag with cache:', error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
 }
 
@@ -208,16 +206,15 @@ export async function deleteTagWithCache(id: string) {
   try {
     // Delete the tag
     await _deleteTag(id);
-    
+
     // Invalidate tag caches
     await invalidateTagCaches();
-    
+
     // Remove the individual tag from cache
     await cacheService.del(`tag:${id}`);
-    
-  } catch (error) {
-    console.error('Error deleting tag with cache:', error);
-    throw error;
+
+  } catch (_error) {
+    throw _error;
   }
 }
 
@@ -284,8 +281,6 @@ export async function getTagStatistics(): Promise<{
 // Function to warm up tag caches (useful for application startup)
 export async function warmTagCaches(): Promise<void> {
   try {
-    console.log('Warming up tag caches...');
-    
     // Pre-load popular data
     await Promise.all([
       getAllTags(),
@@ -293,26 +288,20 @@ export async function warmTagCaches(): Promise<void> {
       getPopularTags(20),
       getTagStatistics()
     ]);
-    
-    console.log('Tag caches warmed up successfully');
-  } catch (error) {
-    console.error('Error warming tag caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }
 
 // Function to refresh tag caches (useful for admin operations)
 export async function refreshTagCaches(): Promise<void> {
   try {
-    console.log('Refreshing tag caches...');
-    
     // Invalidate all tag caches
     await invalidateTagCaches();
-    
+
     // Warm up caches again
     await warmTagCaches();
-    
-    console.log('Tag caches refreshed successfully');
-  } catch (error) {
-    console.error('Error refreshing tag caches:', error);
+  } catch (_error) {
+    // Error already logged by underlying services
   }
 }

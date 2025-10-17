@@ -6,7 +6,6 @@ import { requireAuth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { generateRandomUsername } from "@/lib/username-generator";
 import { logger } from "@/lib/logger";
-import { withPerformance } from "@/lib/performance-wrapper";
 
 interface CreateUserParams {
     name: string;
@@ -45,9 +44,9 @@ export async function createUser(user: CreateUserParams) {
             },
         });
         return newUser;
-    } catch (error) {
-        logger.error("Error creating user", error, { email: user.email });
-        throw error;
+    } catch (_error) {
+        logger.error("Error creating user", _error, { email: user.email });
+        throw _error;
     }
 }
 
@@ -56,7 +55,7 @@ interface UpdateUserParams {
     image?: string;
 }
 
-export const updateUser = withPerformance('updateUser', async (userId: string, user: UpdateUserParams) => {
+export async function updateUser(userId: string, user: UpdateUserParams) {
     try {
         // SECURITY: Verify the current user has permission to update this user
         const currentUser = await requireAuth();
@@ -77,11 +76,11 @@ export const updateUser = withPerformance('updateUser', async (userId: string, u
         });
         revalidatePath(`/`);
         return updatedUser;
-    } catch (error) {
-        console.error("Error updating user:", error);
-        throw error;
+    } catch (_error) {
+
+        throw _error;
     }
-});
+}
 
 export async function deleteUser(userId: string) {
     try {
@@ -94,9 +93,9 @@ export async function deleteUser(userId: string) {
         // This function is deprecated and should not be used directly.
 
         throw new Error("Direct user deletion is disabled for security. Use admin panel or account settings for proper deletion flow.");
-    } catch (error) {
-        logger.error("Error deleting user", error, { userId });
-        throw error;
+    } catch (_error) {
+        logger.error("Error deleting user", _error, { userId });
+        throw _error;
     }
 }
 
@@ -106,8 +105,8 @@ export async function getUserByEmail(email: string) {
             where: { email },
         });
         return user;
-    } catch (error) {
-        logger.error("Error getting user by email", error, { email });
+    } catch (_error) {
+        logger.error("Error getting user by email", _error, { email });
         return null;
     }
 }
@@ -117,7 +116,7 @@ interface ChangePasswordParams {
     newPassword: string;
 }
 
-export const changePassword = withPerformance('changePassword', async ({ currentPassword, newPassword }: ChangePasswordParams) => {
+export async function changePassword({ currentPassword, newPassword }: ChangePasswordParams) {
     let userId: string | undefined;
     try {
         const user = await requireAuth();
@@ -150,8 +149,8 @@ export const changePassword = withPerformance('changePassword', async ({ current
 
         revalidatePath("/");
         return { success: true };
-    } catch (error) {
-        logger.error("Error changing password", error, { userId });
-        throw error;
+    } catch (_error) {
+        logger.error("Error changing password", _error, { userId });
+        throw _error;
     }
-});
+}

@@ -116,9 +116,9 @@ export async function inviteTeamMember(params: InviteMemberParams) {
     revalidatePath(`/teams/${params.teamId}/members`);
     
     return { success: true, invitation };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error inviting team member", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -197,9 +197,9 @@ export async function acceptTeamInvitation(token: string) {
     });
     
     return { success: true, team: invitation.team };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error accepting team invitation", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -240,9 +240,9 @@ export async function declineTeamInvitation(token: string) {
     });
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error declining team invitation", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -322,9 +322,9 @@ export async function updateTeamMemberRole(params: UpdateMemberRoleParams) {
     });
     
     return { success: true, member: updatedMember };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error updating team member role", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -400,9 +400,9 @@ export async function removeTeamMember(params: RemoveMemberParams) {
     });
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error removing team member", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -439,9 +439,9 @@ export async function getTeamMembers(teamId: string) {
     });
     
     return members;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting team members", error);
-    throw error;
+    throw _error;
   }
 }
 
@@ -475,8 +475,8 @@ export async function getTeamInvitations(teamId: string) {
     });
     
     return invitations;
-  } catch (error) {
+  } catch (_error) {
     logger.error("Error getting team invitations", error);
-    throw error;
+    throw _error;
   }
 }

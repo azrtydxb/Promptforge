@@ -70,8 +70,8 @@ export async function getCurrentUserProfile() {
     }
 
     return { success: true, user };
-  } catch (error) {
-    console.error('Error getting user profile:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to get user profile' };
   }
 }
@@ -146,9 +146,9 @@ export async function updateUserProfile(data: {
     revalidatePath('/profile');
 
     return { success: true, user: updatedUser };
-  } catch (error) {
-    console.error('Error updating user profile:', error);
-    if (error instanceof z.ZodError) {
+  } catch (_error) {
+
+    if (_error instanceof z.ZodError) {
       return { success: false, error: 'Invalid input data' };
     }
     return { success: false, error: 'Failed to update profile' };
@@ -203,8 +203,8 @@ export async function checkUsernameAvailability(username: string) {
       available: isAvailable,
       message: isAvailable ? 'Username is available' : 'Username is already taken'
     };
-  } catch (error) {
-    console.error('Error checking username availability:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to check username availability' };
   }
 }
@@ -251,8 +251,8 @@ export async function getUsernameSuggestions(count: number = 5) {
     }
 
     return { success: true, suggestions };
-  } catch (error) {
-    console.error('Error generating username suggestions:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to generate suggestions' };
   }
 }
@@ -286,8 +286,8 @@ export async function generateUserUsername() {
     // Fallback to random username
     const randomUsername = generateRandomUsername();
     return { success: true, username: randomUsername };
-  } catch (error) {
-    console.error('Error generating username:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to generate username' };
   }
 }
@@ -340,8 +340,8 @@ export async function uploadProfilePicture(formData: FormData) {
     revalidatePath('/profile');
 
     return { success: true, user: updatedUser, url: uploadResult.url };
-  } catch (error) {
-    console.error('Error uploading profile picture:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to upload profile picture' };
   }
 }

@@ -56,8 +56,8 @@ export async function followUser(targetUserId: string) {
     revalidatePath(`/users/${targetUserId}`);
     revalidatePath("/following");
     return { success: true };
-  } catch (error) {
-    logger.error("Failed to follow user", { error, targetUserId });
+  } catch (_error) {
+    logger.error("Failed to follow user", { _error, targetUserId });
     return { success: false, error: "Failed to follow user" };
   }
 }
@@ -87,8 +87,8 @@ export async function unfollowUser(targetUserId: string) {
     revalidatePath(`/users/${targetUserId}`);
     revalidatePath("/following");
     return { success: true };
-  } catch (error) {
-    logger.error("Failed to unfollow user", { error, targetUserId });
+  } catch (_error) {
+    logger.error("Failed to unfollow user", { _error, targetUserId });
     return { success: false, error: "Failed to unfollow user" };
   }
 }
@@ -157,8 +157,8 @@ export async function getFollowing(userId?: string) {
     });
 
     return { success: true, following: following.map((f) => f.following) };
-  } catch (error) {
-    logger.error("Failed to get following list", { error, userId });
+  } catch (_error) {
+    logger.error("Failed to get following list", { _error, userId });
     return { success: false, error: "Failed to retrieve following list" };
   }
 }
@@ -200,8 +200,8 @@ export async function getFollowers(userId?: string) {
     });
 
     return { success: true, followers: followers.map((f) => f.follower) };
-  } catch (error) {
-    logger.error("Failed to get followers list", { error, userId });
+  } catch (_error) {
+    logger.error("Failed to get followers list", { _error, userId });
     return { success: false, error: "Failed to retrieve followers list" };
   }
 }
@@ -227,8 +227,8 @@ export async function getFollowStats(userId: string) {
         following: followingCount,
       },
     };
-  } catch (error) {
-    logger.error("Failed to get follow stats", { error, userId });
+  } catch (_error) {
+    logger.error("Failed to get follow stats", { _error, userId });
     return {
       success: false,
       error: "Failed to retrieve follow stats",
@@ -286,8 +286,8 @@ export async function getSuggestedUsers(limit = 10) {
     });
 
     return { success: true, users: suggested };
-  } catch (error) {
-    logger.error("Failed to get suggested users", { error });
+  } catch (_error) {
+    logger.error("Failed to get suggested users", { _error });
     return { success: false, error: "Failed to retrieve suggested users" };
   }
 }

@@ -87,8 +87,8 @@ export async function togglePromptLike(promptId: string) {
       return { success: true, isLiked: true, message: 'Prompt liked!' };
     }
 
-  } catch (error) {
-    console.error('Error toggling prompt like:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to toggle like' };
   }
 }
@@ -190,8 +190,8 @@ export async function addPromptComment(sharedPromptId: string, content: string, 
       message: parentId ? 'Reply added successfully!' : 'Comment added successfully!' 
     };
 
-  } catch (error) {
-    console.error('Error adding prompt comment:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to add comment' };
   }
 }
@@ -240,8 +240,8 @@ export async function getPromptComments(sharedPromptId: string) {
 
     return { success: true, comments };
 
-  } catch (error) {
-    console.error('Error getting prompt comments:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to load comments' };
   }
 }
@@ -300,8 +300,8 @@ export async function deletePromptComment(commentId: string) {
 
     return { success: true, message: 'Comment deleted successfully' };
 
-  } catch (error) {
-    console.error('Error deleting prompt comment:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to delete comment' };
   }
 }
@@ -362,8 +362,8 @@ export async function updatePromptComment(commentId: string, content: string) {
       message: 'Comment updated successfully' 
     };
 
-  } catch (error) {
-    console.error('Error updating prompt comment:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to update comment' };
   }
 }
@@ -412,8 +412,8 @@ export async function getUserLikedPrompts() {
 
     return { success: true, likedPrompts };
 
-  } catch (error) {
-    console.error('Error getting user liked prompts:', error);
+  } catch (_error) {
+
     return { success: false, error: 'Failed to load liked prompts' };
   }
 }
@@ -435,7 +435,7 @@ async function updateUserReputation(
         }
       }
     });
-  } catch (error) {
-    console.error('Error updating user reputation:', error);
+  } catch (_error) {
+
   }
 }

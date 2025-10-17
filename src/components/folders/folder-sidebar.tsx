@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, memo } from "react";
 import { Tree, NodeApi, NodeRendererProps, TreeApi } from "react-arborist";
 import { Icons } from "../ui/icons";
 import { Button } from "../ui/button";
-import { getFolders } from "@/app/actions/folder.actions.cached";
+import { getFoldersRedis as getFolders } from "@/app/actions/folder.actions.redis";
 import { useModal } from "@/hooks/use-modal-store";
 import { dellFolderItem } from "@/lib/styles";
 import {
@@ -26,6 +26,7 @@ type FolderNode = {
 interface FolderSidebarProps {
   onSelectFolder: (id: string, name: string) => void;
   selectedFolder?: { id: string | null; name: string };
+  initialFolders?: Array<{ id: string; name: string; children?: unknown[] }>;
 }
 
 interface FolderWithChildren {
@@ -203,36 +204,41 @@ const FolderNodeComponent = memo(({ node, style, dragHandle, onRefresh }: Folder
 
 FolderNodeComponent.displayName = 'FolderNodeComponent';
 
-export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarProps) => {
-  const [data, setData] = useState<FolderNode[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+// Transform folder data for react-arborist - moved outside component to prevent SSR issues
+const transformFolder = (folder: FolderWithChildren): FolderNode => ({
+  id: folder.id,
+  name: folder.name,
+  children: folder.children?.map(transformFolder) || []
+});
+
+const transformFolders = (folders: FolderWithChildren[]): FolderNode[] => {
+  // Add Default folder at the beginning with all top-level folders as its children
+  const defaultFolder: FolderNode = {
+    id: "default",
+    name: "Default",
+    isDefault: true,
+    children: folders.map(transformFolder)
+  };
+  return [defaultFolder];
+};
+
+export const FolderSidebar = ({ onSelectFolder, selectedFolder, initialFolders }: FolderSidebarProps) => {
+  const [data, setData] = useState<FolderNode[]>(() =>
+    initialFolders ? transformFolders(initialFolders as FolderWithChildren[]) : []
+  );
+  const [isLoading, setIsLoading] = useState(false);
   const treeRef = useRef<TreeApi<FolderNode>>(null);
   const [initialFolderSelected, setInitialFolderSelected] = useState(false);
   const { onOpen } = useModal();
+
+  // Check if we should show loading - only when no initial folders AND no data
+  const shouldShowLoading = isLoading && !initialFolders;
 
   const fetchFolders = async () => {
     try {
       setIsLoading(true);
       const fetchedFolders = await getFolders();
-      
-      // Transform folder data for react-arborist
-      const transformFolder = (folder: FolderWithChildren): FolderNode => ({
-        id: folder.id,
-        name: folder.name,
-        children: folder.children?.map(transformFolder) || []
-      });
-
-      // Add Default folder at the beginning with all top-level folders as its children
-      const defaultFolder: FolderNode = {
-        id: "default",
-        name: "Default",
-        isDefault: true,
-        children: fetchedFolders.map(transformFolder)
-      };
-
-      const transformedData = [defaultFolder];
-
-      setData(transformedData);
+      setData(transformFolders(fetchedFolders as FolderWithChildren[]));
     } catch (error) {
       console.error("Error fetching folders:", error);
     } finally {
@@ -241,8 +247,11 @@ export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarP
   };
 
   useEffect(() => {
-    fetchFolders();
-  }, []);
+    // Only fetch if we don't have initial folders
+    if (!initialFolders) {
+      fetchFolders();
+    }
+  }, [initialFolders]);
 
   // Auto-select folder when data is loaded (either persisted or default)
   useEffect(() => {
@@ -317,7 +326,7 @@ export const FolderSidebar = ({ onSelectFolder, selectedFolder }: FolderSidebarP
       </div>
 
       <div className="flex-1 overflow-auto">
-        {isLoading ? (
+        {shouldShowLoading ? (
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Skeleton className="h-4 w-4" />

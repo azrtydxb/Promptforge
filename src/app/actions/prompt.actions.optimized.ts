@@ -3,7 +3,6 @@
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { PerformanceMonitor } from "@/lib/performance";
 import { withActionValidation } from "@/lib/validation-middleware";
 import { promptSchemas, CreatePromptInput, UpdatePromptInput } from "@/lib/schemas";
 import { cacheInvalidationV2 } from "@/lib/cache-invalidation-v2";
@@ -11,9 +10,8 @@ import { cacheInvalidationV2 } from "@/lib/cache-invalidation-v2";
 // Optimized query with proper select to avoid N+1 issues
 export async function getPromptsByFolder(folderId?: string) {
   const user = await requireAuth();
-  
-  return PerformanceMonitor.measureQuery('getPromptsByFolder', async () => {
-    const prompts = await db.prompt.findMany({
+
+  const prompts = await db.prompt.findMany({
       where: {
         userId: user.id,
         folderId: folderId || null,
@@ -79,14 +77,12 @@ export async function getPromptsByFolder(folderId?: string) {
       isFavoritedByUser: favoritedPromptIds.has(prompt.id),
       isPinned: !!prompt.pinnedAt,
     }));
-  });
 }
 
 export async function getAllPrompts() {
   const user = await requireAuth();
-  
-  return PerformanceMonitor.measureQuery('getAllPrompts', async () => {
-    const prompts = await db.prompt.findMany({
+
+  const prompts = await db.prompt.findMany({
       where: {
         userId: user.id,
       },
@@ -151,7 +147,6 @@ export async function getAllPrompts() {
       isFavoritedByUser: favoritedPromptIds.has(prompt.id),
       isPinned: !!prompt.pinnedAt,
     }));
-  });
 }
 
 // Optimized create prompt with validation
@@ -159,8 +154,8 @@ export const createPrompt = withActionValidation(
   promptSchemas.create,
   async (data: CreatePromptInput) => {
     const user = await requireAuth();
-    
-    return PerformanceMonitor.measureQuery('createPrompt', async () => {
+
+    {
       const prompt = await db.prompt.create({
         data: {
           ...data,
@@ -190,7 +185,7 @@ export const createPrompt = withActionValidation(
       revalidatePath('/folders');
 
       return { success: true, prompt };
-    });
+    }
   }
 );
 
@@ -199,8 +194,8 @@ export const updatePrompt = withActionValidation(
   promptSchemas.update,
   async (data: UpdatePromptInput) => {
     const user = await requireAuth();
-    
-    return PerformanceMonitor.measureQuery('updatePrompt', async () => {
+
+    {
       // Check ownership first
       const existingPrompt = await db.prompt.findUnique({
         where: { id: data.id, userId: user.id },
@@ -273,15 +268,15 @@ export const updatePrompt = withActionValidation(
       revalidatePath(`/prompts/${data.id}`);
 
       return { success: true, prompt };
-    });
+    }
   }
 );
 
 // Optimized delete prompt
 export async function deletePrompt(promptId: string) {
   const user = await requireAuth();
-  
-  return PerformanceMonitor.measureQuery('deletePrompt', async () => {
+
+  {
     // Check ownership
     const prompt = await db.prompt.findUnique({
       where: { id: promptId, userId: user.id },
@@ -303,14 +298,14 @@ export async function deletePrompt(promptId: string) {
     revalidatePath('/folders');
 
     return { success: true };
-  });
+  }
 }
 
 // Batch operations for better performance
 export async function updatePromptOrder(updates: Array<{ id: string; order: number; folderId?: string | null }>) {
   const user = await requireAuth();
-  
-  return PerformanceMonitor.measureQuery('updatePromptOrder', async () => {
+
+  {
     // Verify ownership of all prompts
     const promptIds = updates.map(u => u.id);
     const existingPrompts = await db.prompt.findMany({
@@ -346,14 +341,14 @@ export async function updatePromptOrder(updates: Array<{ id: string; order: numb
     revalidatePath('/folders');
 
     return { success: true };
-  });
+  }
 }
 
 // Get prompt details with optimized queries
 export async function getPromptDetails(promptId: string) {
   const user = await requireAuth();
-  
-  return PerformanceMonitor.measureQuery('getPromptDetails', async () => {
+
+  {
     const prompt = await db.prompt.findUnique({
       where: { id: promptId, userId: user.id },
       select: {
@@ -418,5 +413,5 @@ export async function getPromptDetails(promptId: string) {
       isFavoritedByUser: isFavorited,
       isPinned: !!prompt.pinnedAt,
     };
-  });
+  }
 }

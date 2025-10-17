@@ -21,8 +21,8 @@ export async function getPostgreSQLMetrics() {
   
   try {
     return await monitoringService.getPostgreSQLMetrics();
-  } catch (error) {
-    console.error("Error fetching PostgreSQL metrics:", error);
+  } catch (_error) {
+
     throw new Error("Failed to fetch PostgreSQL metrics");
   }
 }
@@ -32,8 +32,8 @@ export async function getRedisMetrics() {
   
   try {
     return await monitoringService.getRedisMetrics();
-  } catch (error) {
-    console.error("Error fetching Redis metrics:", error);
+  } catch (_error) {
+
     throw new Error("Failed to fetch Redis metrics");
   }
 }
@@ -43,8 +43,8 @@ export async function getCachePerformanceMetrics() {
   
   try {
     return await monitoringService.getCachePerformanceMetrics();
-  } catch (error) {
-    console.error("Error fetching cache performance metrics:", error);
+  } catch (_error) {
+
     throw new Error("Failed to fetch cache performance metrics");
   }
 }
@@ -54,8 +54,8 @@ export async function getSystemHealth() {
   
   try {
     return await monitoringService.getSystemHealth();
-  } catch (error) {
-    console.error("Error fetching system health:", error);
+  } catch (_error) {
+
     throw new Error("Failed to fetch system health");
   }
 }
@@ -83,8 +83,8 @@ export async function getAllMetrics() {
         systemHealth: systemHealth.status === 'rejected' ? systemHealth.reason?.message : null,
       }
     };
-  } catch (error) {
-    console.error("Error fetching all metrics:", error);
+  } catch (_error) {
+
     throw new Error("Failed to fetch metrics");
   }
 }

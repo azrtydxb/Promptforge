@@ -79,11 +79,11 @@ export async function ratePrompt(
     revalidatePath(`/marketplace/${sharedPromptId}`);
     revalidatePath("/marketplace");
     return { success: true, rating };
-  } catch (error) {
-    logger.error("Failed to rate prompt", { error, sharedPromptId });
+  } catch (_error) {
+    logger.error("Failed to rate prompt", { _error, sharedPromptId });
 
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+    if (_error instanceof z.ZodError) {
+      return { success: false, error: _error.errors[0].message };
     }
 
     return { success: false, error: "Failed to rate prompt" };
@@ -135,8 +135,8 @@ export async function deleteRating(sharedPromptId: string) {
     revalidatePath(`/marketplace/${sharedPromptId}`);
     revalidatePath("/marketplace");
     return { success: true };
-  } catch (error) {
-    logger.error("Failed to delete rating", { error, sharedPromptId });
+  } catch (_error) {
+    logger.error("Failed to delete rating", { _error, sharedPromptId });
     return { success: false, error: "Failed to delete rating" };
   }
 }
@@ -191,8 +191,8 @@ export async function getPromptRatings(sharedPromptId: string, limit = 50) {
     });
 
     return { success: true, ratings };
-  } catch (error) {
-    logger.error("Failed to get prompt ratings", { error, sharedPromptId });
+  } catch (_error) {
+    logger.error("Failed to get prompt ratings", { _error, sharedPromptId });
     return { success: false, error: "Failed to retrieve ratings" };
   }
 }
@@ -236,8 +236,8 @@ export async function getRatingStats(sharedPromptId: string) {
         distribution,
       },
     };
-  } catch (error) {
-    logger.error("Failed to get rating stats", { error, sharedPromptId });
+  } catch (_error) {
+    logger.error("Failed to get rating stats", { _error, sharedPromptId });
     return {
       success: false,
       error: "Failed to retrieve rating statistics",
@@ -280,8 +280,8 @@ export async function getTopRatedPrompts(limit = 20) {
     });
 
     return { success: true, prompts };
-  } catch (error) {
-    logger.error("Failed to get top rated prompts", { error });
+  } catch (_error) {
+    logger.error("Failed to get top rated prompts", { _error });
     return { success: false, error: "Failed to retrieve top rated prompts" };
   }
 }
@@ -325,8 +325,8 @@ export async function getUserRatedPrompts(userId?: string) {
     });
 
     return { success: true, ratings };
-  } catch (error) {
-    logger.error("Failed to get user rated prompts", { error, userId });
+  } catch (_error) {
+    logger.error("Failed to get user rated prompts", { _error, userId });
     return { success: false, error: "Failed to retrieve rated prompts" };
   }
 }

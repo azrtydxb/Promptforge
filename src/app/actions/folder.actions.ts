@@ -4,7 +4,12 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import type { Folder } from '@/generated/prisma';
-import { withPerformance } from "@/lib/performance-wrapper";
+import {
+  onFolderCreate,
+  onFolderUpdate,
+  onFolderDelete,
+  onFolderMove
+} from '@/lib/cache-manager';
 
 // Type for folder with nested children
 type FolderWithChildren = Folder & {
@@ -21,7 +26,7 @@ function sortFoldersRecursively(folders: FolderWithChildren[]): FolderWithChildr
     }));
 }
 
-export const getFolders = withPerformance('getFolders', async () => {
+export async function getFolders() {
   const user = await requireAuth();
 
   // Only fetch root-level folders (parentId is null) with their nested children
@@ -56,19 +61,16 @@ export const getFolders = withPerformance('getFolders', async () => {
 
   // Apply recursive sorting to ensure all nested children are properly ordered
   return sortFoldersRecursively(folders);
-});
+}
 
 interface CreateFolderParams {
   name: string;
   parentId?: string | null;
 }
 
-export const createFolder = withPerformance('createFolder', async ({ name, parentId }: CreateFolderParams) => {
-  console.log("SERVER ACTION: createFolder called with:", { name, parentId });
-
+export async function createFolder({ name, parentId }: CreateFolderParams) {
   try {
     const user = await requireAuth();
-    console.log("SERVER ACTION: User authenticated:", user.id);
 
     const lastFolder = await db.folder.findFirst({
       where: { userId: user.id, parentId },
@@ -76,7 +78,6 @@ export const createFolder = withPerformance('createFolder', async ({ name, paren
     });
 
     const newOrder = lastFolder ? lastFolder.order! + 1 : 0;
-    console.log("SERVER ACTION: Creating folder with order:", newOrder);
 
     const newFolder = await db.folder.create({
       data: {
@@ -87,43 +88,39 @@ export const createFolder = withPerformance('createFolder', async ({ name, paren
       },
     });
 
-    console.log("SERVER ACTION: Folder created successfully:", newFolder);
+    // Cache invalidation
+    await onFolderCreate(user.id);
+
     // Revalidate the entire prompts layout to ensure all folder-related components refresh
     revalidatePath("/prompts", "layout");
     return newFolder;
-  } catch (error) {
-    console.error("SERVER ACTION: Error in createFolder:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
-});
+}
 
-export const updateFolder = withPerformance('updateFolder', async (id: string, name: string) => {
-  console.log("SERVER ACTION: updateFolder called with:", { id, name });
-
+export async function updateFolder(id: string, name: string) {
   try {
     const user = await requireAuth();
-    console.log("SERVER ACTION: User authenticated:", user.id);
 
     const updatedFolder = await db.folder.update({
       where: { id, userId: user.id },
       data: { name },
     });
 
-    console.log("SERVER ACTION: Folder updated successfully:", updatedFolder);
+    // Cache invalidation
+    await onFolderUpdate(user.id, id);
+
     revalidatePath("/prompts");
     return updatedFolder;
-  } catch (error) {
-    console.error("SERVER ACTION: Error in updateFolder:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
-});
+}
 
-export const deleteFolder = withPerformance('deleteFolder', async (id: string) => {
-  console.log("SERVER ACTION: deleteFolder called with:", { id });
-
+export async function deleteFolder(id: string) {
   try {
     const user = await requireAuth();
-    console.log("SERVER ACTION: User authenticated:", user.id);
 
     // Recursive function to delete folder and all its children
     async function deleteFolderRecursively(folderId: string) {
@@ -147,23 +144,22 @@ export const deleteFolder = withPerformance('deleteFolder', async (id: string) =
       await db.folder.delete({
         where: { id: folderId, userId: user.id },
       });
-
-      console.log("SERVER ACTION: Folder deleted recursively:", folderId);
     }
 
     // Start the recursive deletion
     await deleteFolderRecursively(id);
 
-    console.log("SERVER ACTION: Folder and all children deleted successfully:", id);
+    // Cache invalidation
+    await onFolderDelete(user.id, id);
+
     revalidatePath("/prompts");
     return { success: true, deletedId: id };
-  } catch (error) {
-    console.error("SERVER ACTION: Error in deleteFolder:", error);
-    throw error;
+  } catch (_error) {
+    throw _error;
   }
-});
+}
 
-export const moveFolder = withPerformance('moveFolder', async (id: string, parentId: string | null, order: number) => {
+export async function moveFolder(id: string, parentId: string | null, order: number) {
   const user = await requireAuth();
 
   await db.folder.update({
@@ -171,5 +167,8 @@ export const moveFolder = withPerformance('moveFolder', async (id: string, paren
     data: { parentId, order },
   });
 
+  // Cache invalidation
+  await onFolderMove(user.id, id);
+
   revalidatePath("/prompts");
-});
+}

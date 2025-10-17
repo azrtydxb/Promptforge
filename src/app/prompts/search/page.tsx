@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import { searchPrompts } from "@/app/actions/prompt.actions";
+import { searchPromptsRedis as searchPrompts } from "@/app/actions/prompt.actions.redis";
 import { PromptList } from "@/components/prompts/prompt-list";
 import type { PromptGridItem } from "@/components/prompts/prompt-grid";
 

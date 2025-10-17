@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { getPromptsByFolder, getAllPrompts } from "@/app/actions/prompt.actions";
+import { getPromptsByFolderRedis as getPromptsByFolder, getAllPromptsRedis as getAllPrompts } from "@/app/actions/prompt.actions.redis";
 import { getTagsWithPrompts } from "@/app/actions/tag-management.actions";
 import type { Prompt, Tag } from "@/generated/prisma";
 import { useModal } from "@/hooks/use-modal-store";
