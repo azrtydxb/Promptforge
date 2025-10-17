@@ -67,17 +67,27 @@ export async function createPromptVersion(
       throw new Error("Prompt not found or unauthorized");
     }
 
-    // Get the current version count to generate version number
-    const versionCount = await db.promptVersion.count({
-      where: { promptId }
+    // Get the last version to calculate next version number
+    const lastVersion = await db.promptVersion.findFirst({
+      where: { promptId },
+      orderBy: { createdAt: 'desc' }
     });
+
+    let newVersionNumber: string;
+    if (lastVersion?.version) {
+      const [major, minor] = lastVersion.version.split('.').map(Number);
+      // Default to minor increment if not specified
+      newVersionNumber = `${major}.${minor + 1}`;
+    } else {
+      newVersionNumber = '1.0';
+    }
 
     // Create the new version
     const version = await db.promptVersion.create({
       data: {
         promptId,
         content,
-        version: `v${versionCount + 1}`,
+        version: newVersionNumber,
         changeMessage
       }
     });
