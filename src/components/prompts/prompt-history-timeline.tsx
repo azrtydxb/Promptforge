@@ -169,10 +169,10 @@ export function PromptHistoryTimeline({
               {versions.map((version, index) => (
                 <Card key={version.id} className="border">
                   <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start justify-between gap-2">
                       {/* Version Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium">
                             {version.version || `Version ${versions.length - index}`}
                           </span>
@@ -182,9 +182,6 @@ export function PromptHistoryTimeline({
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
-                        </p>
                       </div>
 
                       {/* Action Buttons */}
