@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { getFolders } from "@/app/actions/folder.actions.cached";
 import {
   movePromptWithCache,
@@ -76,7 +76,6 @@ export default function Prompts() {
   const [isLoadingFolders, setIsLoadingFolders] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
 
   // Persisted preferences
   useEffect(() => {
@@ -163,15 +162,11 @@ export default function Prompts() {
       setMoveOptions(flat);
     } catch (error) {
       console.error("Failed to load folders:", error);
-      toast({
-        variant: "destructive",
-        title: "Couldn't load folders",
-        description: "Please try again shortly.",
-      });
+      toast.error("Couldn't load folders");
     } finally {
       setIsLoadingFolders(false);
     }
-  }, [toast]);
+  }, []);
 
   const handleMoveSelected = useCallback(
     async (targetFolderId: string | null, label: string) => {
@@ -183,24 +178,17 @@ export default function Prompts() {
             movePromptWithCache(promptId, targetFolderId, index)
           )
         );
-        toast({
-          title: "Prompts moved",
-          description: `Moved to ${label}.`,
-        });
+        toast.success(`Moved to ${label}.`);
         setSelectedPromptIds([]);
         setRefreshKey((prev) => prev + 1);
       } catch (error) {
         console.error("Failed to move prompts:", error);
-        toast({
-          variant: "destructive",
-          title: "Couldn't move prompts",
-          description: error instanceof Error ? error.message : "Please try again.",
-        });
+        toast.error(error instanceof Error ? error.message : "Couldn't move prompts");
       } finally {
         setIsProcessing(false);
       }
     },
-    [selectedPromptIds, toast]
+    [selectedPromptIds]
   );
 
   const handleDeleteSelected = useCallback(async () => {
@@ -215,23 +203,16 @@ export default function Prompts() {
     setIsProcessing(true);
     try {
       await Promise.all(selectedPromptIds.map((id) => deletePromptWithCache(id)));
-      toast({
-        title: "Prompts deleted",
-        description: `${selectedPromptIds.length} prompt${selectedPromptIds.length > 1 ? "s" : ""} removed.`,
-      });
+      toast.success(`${selectedPromptIds.length} prompt${selectedPromptIds.length > 1 ? "s" : ""} removed.`);
       setSelectedPromptIds([]);
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Failed to delete prompts:", error);
-      toast({
-        variant: "destructive",
-        title: "Couldn't delete prompts",
-        description: error instanceof Error ? error.message : "Please try again.",
-      });
+      toast.error(error instanceof Error ? error.message : "Couldn't delete prompts");
     } finally {
       setIsProcessing(false);
     }
-  }, [selectedPromptIds, toast]);
+  }, [selectedPromptIds]);
 
   const sidebar = viewMode === "folders" ? (
     <FolderSidebar onSelectFolder={handleFolderSelect} selectedFolder={selectedFolder} />

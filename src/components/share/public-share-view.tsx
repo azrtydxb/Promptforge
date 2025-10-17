@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Copy, Check, Lock, Calendar, Share2 } from "lucide-react";
 import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import Link from "next/link";
 
 interface ShareSettings {
@@ -46,7 +46,6 @@ export function PublicShareView({ shareData, shareId }: PublicShareViewProps) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { toast } = useToast();
 
   const handleUnlock = async () => {
     if (!password) {
@@ -80,17 +79,10 @@ export function PublicShareView({ shareData, shareId }: PublicShareViewProps) {
     try {
       await navigator.clipboard.writeText(shareData.content);
       setCopied(true);
-      toast({
-        title: "Copied!",
-        description: "Prompt content copied to clipboard"
-      });
+      toast.success("Prompt content copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
-        variant: "destructive"
-      });
+      toast.error("Failed to copy to clipboard");
     }
   };
 
@@ -111,16 +103,9 @@ export function PublicShareView({ shareData, shareId }: PublicShareViewProps) {
       // Fallback to copying URL
       try {
         await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: "Link copied!",
-          description: "Share link copied to clipboard"
-        });
+        toast.success("Share link copied to clipboard");
       } catch {
-        toast({
-          title: "Error",
-          description: "Failed to copy share link",
-          variant: "destructive"
-        });
+        toast.error("Failed to copy share link");
       }
     }
   };

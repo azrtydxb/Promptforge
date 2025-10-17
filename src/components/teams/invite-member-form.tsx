@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { inviteTeamMember } from "@/app/actions/team-members.actions";
 import { TeamRole } from "@/generated/prisma";
 import { Loader2, Mail } from "lucide-react";
@@ -23,7 +23,6 @@ interface InviteMemberFormProps {
 
 export function InviteMemberForm({ teamId }: InviteMemberFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -66,23 +65,16 @@ export function InviteMemberForm({ teamId }: InviteMemberFormProps) {
         email: formData.email.trim(),
         role: formData.role,
       });
-      
+
       if (result.success) {
-        toast({
-          title: "Invitation sent!",
-          description: `An invitation has been sent to ${formData.email}`,
-        });
+        toast.success(`An invitation has been sent to ${formData.email}`);
         
         // Redirect back to team members page
         router.push(`/teams/${teamId}/members`);
       }
     } catch (error) {
       console.error("Error inviting member:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send invitation",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to send invitation");
     } finally {
       setIsSubmitting(false);
     }

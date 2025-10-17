@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { updateTeamMemberRole, removeTeamMember } from "@/app/actions/team-members.actions";
 import { TeamRole } from "@/generated/prisma";
 // import { canPerformAction } from "@/app/actions/team.actions";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { 
   UserPlus, 
   MoreVertical, 
@@ -88,7 +88,6 @@ export function TeamMembersView({
   currentUserRole,
 }: TeamMembersViewProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null);
   
@@ -104,20 +103,13 @@ export function TeamMembersView({
         memberId,
         newRole,
       });
-      
-      toast({
-        title: "Role updated",
-        description: "Member role has been updated successfully",
-      });
+
+      toast.success("Member role has been updated successfully");
       
       router.refresh();
     } catch (error) {
       console.error("Error updating role:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update role",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to update role");
     } finally {
       setUpdatingRoleId(null);
     }
@@ -129,20 +121,13 @@ export function TeamMembersView({
         teamId: team.id,
         memberId,
       });
-      
-      toast({
-        title: "Member removed",
-        description: "Member has been removed from the team",
-      });
+
+      toast.success("Member has been removed from the team");
       
       router.refresh();
     } catch (error) {
       console.error("Error removing member:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to remove member",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to remove member");
     } finally {
       setRemovingMemberId(null);
     }

@@ -46,7 +46,7 @@ import {
   Loader2
 } from "lucide-react";
 import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 
 interface ShareLink {
@@ -70,7 +70,6 @@ export function SharePromptModal() {
   const { isOpen, onClose, type, data } = useModal();
   const isModalOpen = isOpen && type === "sharePrompt";
   const { promptData } = data;
-  const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState("create");
   const [isLoading, setIsLoading] = useState(false);
@@ -162,12 +161,9 @@ export function SharePromptModal() {
           allowEmbed
         }
       });
-      
+
       setNewShareUrl(result.shareUrl);
-      toast({
-        title: "Share link created!",
-        description: "Your prompt can now be shared with others."
-      });
+      toast.success("Your prompt can now be shared with others");
       
       // Reload share links
       await loadShareLinks();
@@ -176,11 +172,7 @@ export function SharePromptModal() {
       setPassword("");
       setMaxViews(undefined);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create share link",
-        variant: "destructive"
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to create share link");
     } finally {
       setIsLoading(false);
     }
@@ -199,17 +191,10 @@ export function SharePromptModal() {
     setIsLoading(true);
     try {
       await updateShareLink(linkId, updates);
-      toast({
-        title: "Share link updated",
-        description: "Your changes have been saved."
-      });
+      toast.success("Your changes have been saved.");
       await loadShareLinks();
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to update share link",
-        variant: "destructive"
-      });
+      toast.error("Failed to update share link");
     } finally {
       setIsLoading(false);
     }
@@ -221,18 +206,11 @@ export function SharePromptModal() {
     setIsLoading(true);
     try {
       await deleteShareLink(linkId);
-      toast({
-        title: "Share link deleted",
-        description: "The share link has been removed."
-      });
+      toast.success("The share link has been removed.");
       await loadShareLinks();
       setSelectedLink(null);
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to delete share link",
-        variant: "destructive"
-      });
+      toast.error("Failed to delete share link");
     } finally {
       setIsLoading(false);
     }
@@ -244,11 +222,7 @@ export function SharePromptModal() {
       setCopied(id);
       setTimeout(() => setCopied(null), 2000);
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
-        variant: "destructive"
-      });
+      toast.error("Failed to copy to clipboard");
     }
   };
 

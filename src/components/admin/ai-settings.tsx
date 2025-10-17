@@ -44,7 +44,7 @@ import {
   Clock
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface AISettingsItem {
   id: string;
@@ -136,7 +136,6 @@ export function AISettings() {
     embeddingModels: Array<{id: string; name: string}>;
   }>({ chatModels: [], embeddingModels: [] });
   const [loadingModels, setLoadingModels] = useState(false);
-  const { toast } = useToast();
   
   // Form states for each configuration type
   const [generalForm, setGeneralForm] = useState({
@@ -206,11 +205,7 @@ export function AISettings() {
 
       setSettings(organized);
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to fetch AI settings",
-        variant: "destructive"
-      });
+      toast.error("Failed to fetch AI settings");
     } finally {
       setLoading(false);
     }
@@ -233,29 +228,18 @@ export function AISettings() {
       } else {
         // For new settings, API key is required
         if (!formData.apiKey) {
-          toast({
-            title: "API Key Required",
-            description: "Please enter an API key to create new AI settings",
-            variant: "destructive"
-          });
+          toast.error("Please enter an API key to create new AI settings");
           setSaving(null);
           return;
         }
         await createAISettings(data as typeof data & { apiKey: string });
       }
 
-      toast({
-        title: "Success",
-        description: `${type === "general" ? "General AI" : "Embedding"} settings saved successfully`
-      });
+      toast.success(`${type === "general" ? "General AI" : "Embedding"} settings saved successfully`);
 
       await fetchSettings();
     } catch {
-      toast({
-        title: "Error",
-        description: `Failed to save ${type} settings`,
-        variant: "destructive"
-      });
+      toast.error(`Failed to save ${type} settings`);
     } finally {
       setSaving(null);
     }
@@ -264,11 +248,7 @@ export function AISettings() {
   const handleTest = async (type: "general" | "embedding") => {
     const setting = settings[type];
     if (!setting && !(type === "general" ? generalForm.apiKey : embeddingForm.apiKey)) {
-      toast({
-        title: "Error",
-        description: "Please enter an API key first",
-        variant: "destructive"
-      });
+      toast.error("Please enter an API key first");
       return;
     }
 
@@ -276,25 +256,14 @@ export function AISettings() {
     try {
       const provider = type === "general" ? generalForm.provider : embeddingForm.provider;
       const result = await testAIConnection(provider, type);
-      
+
       if (result.success) {
-        toast({
-          title: "Success",
-          description: "Connection test successful!"
-        });
+        toast.success("Connection test successful!");
       } else {
-        toast({
-          title: "Error",
-          description: result.error || "Connection test failed",
-          variant: "destructive"
-        });
+        toast.error(result.error || "Connection test failed");
       }
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to test connection",
-        variant: "destructive"
-      });
+      toast.error("Failed to test connection");
     } finally {
       setTesting(null);
     }
@@ -341,24 +310,13 @@ export function AISettings() {
         });
 
         // Show success message
-        toast({
-          title: "Models loaded",
-          description: `Found ${result.chatModels?.length || 0} chat models and ${result.embeddingModels?.length || 0} embedding models`
-        });
+        toast.success(`Found ${result.chatModels?.length || 0} chat models and ${result.embeddingModels?.length || 0} embedding models`);
       } else {
-        toast({
-          title: "Error",
-          description: 'error' in result ? result.error : "Failed to fetch models",
-          variant: "destructive"
-        });
+        toast.error('error' in result ? result.error : "Failed to fetch models");
       }
     } catch (error) {
       console.error("Error fetching models:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch available models",
-        variant: "destructive"
-      });
+      toast.error("Failed to fetch available models");
     } finally {
       setLoadingModels(false);
     }
@@ -378,24 +336,13 @@ export function AISettings() {
         });
 
         // Show success message
-        toast({
-          title: "Models loaded",
-          description: `Found ${result.chatModels?.length || 0} chat models and ${result.embeddingModels?.length || 0} embedding models`
-        });
+        toast.success(`Found ${result.chatModels?.length || 0} chat models and ${result.embeddingModels?.length || 0} embedding models`);
       } else {
-        toast({
-          title: "Error",
-          description: 'error' in result ? result.error : "Failed to fetch models",
-          variant: "destructive"
-        });
+        toast.error('error' in result ? result.error : "Failed to fetch models");
       }
     } catch (error) {
       console.error("Error fetching models from settings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch available models",
-        variant: "destructive"
-      });
+      toast.error("Failed to fetch available models");
     } finally {
       setLoadingModels(false);
     }
@@ -413,16 +360,9 @@ export function AISettings() {
     setLoadingSemanticSearch(true);
     try {
       await setSemanticSearchEnabled(checked);
-      toast({
-        title: "Success",
-        description: `Semantic search ${checked ? 'enabled' : 'disabled'} successfully`
-      });
+      toast.success(`Semantic search ${checked ? 'enabled' : 'disabled'} successfully`);
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to update semantic search setting",
-        variant: "destructive"
-      });
+      toast.error("Failed to update semantic search setting");
     } finally {
       setLoadingSemanticSearch(false);
     }
@@ -436,17 +376,10 @@ export function AISettings() {
     setResettingIndex(true);
     try {
       const result = await resetEmbeddingIndex();
-      toast({
-        title: "Success",
-        description: result.message
-      });
+      toast.success(result.message);
       await fetchEmbeddingStatus();
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to reset embedding index",
-        variant: "destructive"
-      });
+      toast.error("Failed to reset embedding index");
     } finally {
       setResettingIndex(false);
     }
@@ -456,10 +389,7 @@ export function AISettings() {
     setRegenerating(true);
     try {
       const result = await triggerEmbeddingRegeneration();
-      toast({
-        title: "Success",
-        description: result.message
-      });
+      toast.success(result.message);
       
       // Start polling for status updates
       if (statusRefreshInterval) {
@@ -467,14 +397,11 @@ export function AISettings() {
       }
       const interval = setInterval(fetchEmbeddingStatus, 2000); // Refresh every 2 seconds
       setStatusRefreshInterval(interval);
-      
+
+
       await fetchEmbeddingStatus();
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to trigger embedding regeneration",
-        variant: "destructive"
-      });
+      toast.error("Failed to trigger embedding regeneration");
     } finally {
       setRegenerating(false);
     }
@@ -638,11 +565,7 @@ export function AISettings() {
                           } else if (settings.general) {
                             fetchModelsFromSettings("general");
                           } else {
-                            toast({
-                              title: "API Key Required",
-                              description: "Please enter an API key to fetch available models",
-                              variant: "destructive"
-                            });
+                            toast.error("Please enter an API key to fetch available models");
                           }
                         }}
                         disabled={(!generalForm.apiKey && !settings.general) || loadingModels}
@@ -840,11 +763,7 @@ export function AISettings() {
                           } else if (settings.embedding) {
                             fetchModelsFromSettings("embedding");
                           } else {
-                            toast({
-                              title: "API Key Required",
-                              description: "Please enter an API key to fetch available models",
-                              variant: "destructive"
-                            });
+                            toast.error("Please enter an API key to fetch available models");
                           }
                         }}
                         disabled={(!embeddingForm.apiKey && !settings.embedding) || loadingModels}

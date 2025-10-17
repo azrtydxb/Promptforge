@@ -4,15 +4,18 @@ import userEvent from '@testing-library/user-event'
 import { CreateTeamForm } from '@/components/teams/create-team-form'
 import { createTeam } from '@/app/actions/team.actions'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 // Mock dependencies
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }))
 
-jest.mock('@/hooks/use-toast', () => ({
-  useToast: jest.fn(),
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
 }))
 
 jest.mock('@/app/actions/team.actions', () => ({
@@ -23,14 +26,12 @@ describe('CreateTeamForm Component', () => {
   const mockRouter = {
     push: jest.fn(),
     back: jest.fn(),
+    refresh: jest.fn(),
   }
-
-  const mockToast = jest.fn()
 
   beforeEach(() => {
     jest.clearAllMocks()
     ;(useRouter as jest.Mock).mockReturnValue(mockRouter)
-    ;(useToast as jest.Mock).mockReturnValue({ toast: mockToast })
   })
 
   describe('Form Rendering', () => {
@@ -171,10 +172,7 @@ describe('CreateTeamForm Component', () => {
           description: 'Team description',
         })
 
-        expect(mockToast).toHaveBeenCalledWith({
-          title: 'Team created!',
-          description: 'Your new team has been created successfully.',
-        })
+        expect(toast.success).toHaveBeenCalledWith('Your new team has been created successfully.')
 
         expect(mockRouter.push).toHaveBeenCalledWith('/teams/new-team')
       })
@@ -194,11 +192,7 @@ describe('CreateTeamForm Component', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith({
-          title: 'Error',
-          description: 'Team name already exists',
-          variant: 'destructive',
-        })
+        expect(toast.error).toHaveBeenCalledWith('Team name already exists')
       })
     })
 
@@ -215,11 +209,7 @@ describe('CreateTeamForm Component', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith({
-          title: 'Error',
-          description: 'Failed to create team',
-          variant: 'destructive',
-        })
+        expect(toast.error).toHaveBeenCalledWith('Failed to create team')
       })
     })
 

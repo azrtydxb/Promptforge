@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Pin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { pinPrompt } from "@/app/actions/prompt.actions";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface PinButtonProps {
@@ -26,7 +26,6 @@ export function PinButton({
 }: PinButtonProps) {
   const [isPinned, setIsPinned] = useState(initialIsPinned);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleTogglePin = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,25 +38,14 @@ export function PinButton({
       if (result.success) {
         const pinned = result.isPinned ?? false;
         setIsPinned(pinned);
-        toast({
-          title: pinned ? "Prompt pinned" : "Prompt unpinned",
-          description: pinned
-            ? "This prompt will appear at the top of your list"
-            : "This prompt has been unpinned",
-        });
+        toast.success(pinned
+          ? "This prompt will appear at the top of your list"
+          : "This prompt has been unpinned");
       } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to update pin status",
-          variant: "destructive",
-        });
+        toast.error(result.error || "Failed to update pin status");
       }
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to update pin status",
-        variant: "destructive",
-      });
+      toast.error("Failed to update pin status");
     } finally {
       setIsLoading(false);
     }

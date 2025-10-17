@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   getPromptVersions,
   restorePromptVersion
@@ -55,7 +55,6 @@ export function PromptHistoryTimeline({
   const [selectedVersion, setSelectedVersion] = useState<PromptVersion | null>(null);
   const [showRevertDialog, setShowRevertDialog] = useState(false);
   const [processingRevert, setProcessingRevert] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     const loadVersions = async () => {
@@ -64,18 +63,15 @@ export function PromptHistoryTimeline({
         const data = await getPromptVersions(promptId);
         setVersions(data);
       } catch {
-        toast({
-          title: "Error",
-          description: "Failed to load version history",
-          variant: "destructive"
-        });
+        toast.error("Failed to load version history");
       } finally {
         setLoading(false);
       }
     };
-    
+
+
     loadVersions();
-  }, [promptId, toast]);
+  }, [promptId]);
 
   const handleLoadVersion = (version: PromptVersion) => {
     // Load the version content into the IDE for viewing (read-only preview)
@@ -89,10 +85,7 @@ export function PromptHistoryTimeline({
       setProcessingRevert(true);
       const result = await restorePromptVersion(promptId, selectedVersion.id);
 
-      toast({
-        title: "Success",
-        description: `Reverted to ${result.restoredVersion}. Newer versions have been deleted.`
-      });
+      toast.success(`Reverted to ${result.restoredVersion}. Newer versions have been deleted.`);
 
       setShowRevertDialog(false);
       setSelectedVersion(null);
@@ -102,11 +95,7 @@ export function PromptHistoryTimeline({
       setVersions(data);
       onRestore?.();
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to revert to this version",
-        variant: "destructive"
-      });
+      toast.error("Failed to revert to this version");
     } finally {
       setProcessingRevert(false);
     }

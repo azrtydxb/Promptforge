@@ -5,7 +5,7 @@ import { TeamSwitcher } from '@/components/teams/team-switcher'
 import { getUserTeams } from '@/app/actions/team.actions'
 import { getTeamContext, setTeamContext } from '@/app/actions/team-context.actions'
 import { useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { TeamRole } from '@/generated/prisma'
 
 // Mock dependencies
@@ -13,8 +13,11 @@ jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }))
 
-jest.mock('@/hooks/use-toast', () => ({
-  useToast: jest.fn(),
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
 }))
 
 jest.mock('@/app/actions/team.actions', () => ({
@@ -31,8 +34,6 @@ describe('TeamSwitcher Component', () => {
     push: jest.fn(),
     refresh: jest.fn(),
   }
-
-  const mockToast = jest.fn()
 
   const mockTeams = [
     {
@@ -56,7 +57,6 @@ describe('TeamSwitcher Component', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     ;(useRouter as jest.Mock).mockReturnValue(mockRouter)
-    ;(useToast as jest.Mock).mockReturnValue({ toast: mockToast })
   })
 
   describe('Initial Rendering', () => {
@@ -104,11 +104,7 @@ describe('TeamSwitcher Component', () => {
       render(<TeamSwitcher />)
 
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith({
-          title: 'Error',
-          description: 'Failed to load teams',
-          variant: 'destructive',
-        })
+        expect(toast.error).toHaveBeenCalledWith('Failed to load teams')
       })
     })
   })
@@ -221,10 +217,7 @@ describe('TeamSwitcher Component', () => {
 
       expect(setTeamContext).toHaveBeenCalledWith('team-2')
       expect(mockRouter.refresh).toHaveBeenCalled()
-      expect(mockToast).toHaveBeenCalledWith({
-        title: 'Context switched',
-        description: 'Switched to team context',
-      })
+      expect(toast.success).toHaveBeenCalledWith('Switched to team context')
     })
 
     it('should switch to personal workspace', async () => {
@@ -243,10 +236,7 @@ describe('TeamSwitcher Component', () => {
 
       expect(setTeamContext).toHaveBeenCalledWith(null)
       expect(mockRouter.refresh).toHaveBeenCalled()
-      expect(mockToast).toHaveBeenCalledWith({
-        title: 'Context switched',
-        description: 'Switched to personal workspace',
-      })
+      expect(toast.success).toHaveBeenCalledWith('Switched to personal workspace')
     })
 
     it('should handle errors during team switch', async () => {
@@ -263,11 +253,7 @@ describe('TeamSwitcher Component', () => {
       await user.click(screen.getByText('Marketing Team'))
 
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith({
-          title: 'Error',
-          description: 'Failed to switch context',
-          variant: 'destructive',
-        })
+        expect(toast.error).toHaveBeenCalledWith('Failed to switch context')
       })
     })
   })

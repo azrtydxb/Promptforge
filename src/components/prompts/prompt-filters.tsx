@@ -9,7 +9,7 @@ import { getAllTags } from "@/app/actions/tag-management.actions";
 import { Download, Upload } from "lucide-react";
 import { exportPrompts, importPrompts } from "@/app/actions/prompt-export-import.actions";
 import { useRef } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface Tag {
   id: string;
@@ -46,7 +46,6 @@ export function PromptFilters({
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -113,17 +112,10 @@ export function PromptFilters({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Export successful",
-        description: `Exported ${exportData.prompts.length} prompts`,
-      });
+
+      toast.success(`Exported ${exportData.prompts.length} prompts`);
     } catch (error) {
-      toast({
-        title: "Export failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Export failed");
     } finally {
       setIsExporting(false);
     }
@@ -137,13 +129,11 @@ export function PromptFilters({
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      
+
+
       const result = await importPrompts(data, folderId);
-      
-      toast({
-        title: "Import complete",
-        description: `Imported ${result.imported} prompts, skipped ${result.skipped} duplicates`,
-      });
+
+      toast.success(`Imported ${result.imported} prompts, skipped ${result.skipped} duplicates`);
       
       if (result.errors.length > 0) {
         console.error("Import errors:", result.errors);
@@ -152,11 +142,7 @@ export function PromptFilters({
       // Refresh the prompt list
       onImportComplete?.();
     } catch (error) {
-      toast({
-        title: "Import failed",
-        description: error instanceof Error ? error.message : "Invalid file format",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Import failed");
     } finally {
       setIsImporting(false);
       // Reset file input

@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { updateTeam, deleteTeam } from "@/app/actions/team.actions";
 import { Loader2, Trash2, Calendar, Users } from "lucide-react";
 import { format } from "date-fns";
@@ -54,7 +54,6 @@ interface TeamSettingsFormProps {
 
 export function TeamSettingsForm({ team, isOwner }: TeamSettingsFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
@@ -93,15 +92,12 @@ export function TeamSettingsForm({ team, isOwner }: TeamSettingsFormProps) {
     }
     
     // Check if there are any changes
-    const hasChanges = 
-      formData.name.trim() !== team.name || 
+    const hasChanges =
+      formData.name.trim() !== team.name ||
       formData.description.trim() !== (team.description || "");
-    
+
     if (!hasChanges) {
-      toast({
-        title: "No changes",
-        description: "No changes were made to the team settings.",
-      });
+      toast("No changes were made to the team settings.");
       return;
     }
     
@@ -122,12 +118,9 @@ export function TeamSettingsForm({ team, isOwner }: TeamSettingsFormProps) {
         teamId: team.id,
         ...updates,
       });
-      
+
       if (result.success) {
-        toast({
-          title: "Settings updated",
-          description: "Your team settings have been updated successfully.",
-        });
+        toast.success("Your team settings have been updated successfully.");
         
         router.refresh();
       } else {
@@ -135,11 +128,7 @@ export function TeamSettingsForm({ team, isOwner }: TeamSettingsFormProps) {
       }
     } catch (error) {
       console.error("Error updating team:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update team settings",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to update team settings");
     } finally {
       setIsSubmitting(false);
     }
@@ -150,12 +139,9 @@ export function TeamSettingsForm({ team, isOwner }: TeamSettingsFormProps) {
     
     try {
       const result = await deleteTeam(team.id);
-      
+
       if (result.success) {
-        toast({
-          title: "Team deleted",
-          description: "The team has been permanently deleted.",
-        });
+        toast.success("The team has been permanently deleted.");
         
         // Redirect to teams page after deletion
         router.push("/teams");
@@ -165,11 +151,7 @@ export function TeamSettingsForm({ team, isOwner }: TeamSettingsFormProps) {
       }
     } catch (error) {
       console.error("Error deleting team:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete team",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to delete team");
       setIsDeleting(false);
     }
   };

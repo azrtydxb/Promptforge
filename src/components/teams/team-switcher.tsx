@@ -23,7 +23,7 @@ import {
 import { getUserTeams } from "@/app/actions/team.actions";
 import { getTeamContext, setTeamContext } from "@/app/actions/team-context.actions";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface Team {
   id: string;
@@ -45,7 +45,6 @@ interface TeamSwitcherProps {
 
 export function TeamSwitcher({ className }: TeamSwitcherProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const [teams, setTeams] = useState<Team[]>([]);
   const [currentTeamId, setCurrentTeamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,15 +61,11 @@ export function TeamSwitcher({ className }: TeamSwitcherProps) {
       setCurrentTeamId(context.teamId);
     } catch (error) {
       console.error("Error loading teams:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load teams",
-        variant: "destructive",
-      });
+      toast.error("Failed to load teams");
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     loadTeamsAndContext();
@@ -84,20 +79,13 @@ export function TeamSwitcher({ className }: TeamSwitcherProps) {
       
       // Refresh the page to reload with new context
       router.refresh();
-      
-      toast({
-        title: "Context switched",
-        description: teamId 
-          ? `Switched to team context` 
-          : "Switched to personal workspace",
-      });
+
+      toast.success(teamId
+        ? `Switched to team context`
+        : "Switched to personal workspace");
     } catch (error) {
       console.error("Error switching team:", error);
-      toast({
-        title: "Error",
-        description: "Failed to switch context",
-        variant: "destructive",
-      });
+      toast.error("Failed to switch context");
     }
   };
 

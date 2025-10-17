@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { AvatarRoot as Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { acceptTeamInvitation, declineTeamInvitation } from "@/app/actions/team-members.actions";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Building2, Clock, AlertCircle, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -46,7 +46,6 @@ export function AcceptInvitationView({
   userEmail,
 }: AcceptInvitationViewProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [action, setAction] = useState<"accept" | "decline" | null>(null);
 
@@ -57,19 +56,12 @@ export function AcceptInvitationView({
     try {
       const result = await acceptTeamInvitation(invitation.token);
       if (result.success) {
-        toast({
-          title: "Welcome to the team!",
-          description: `You've successfully joined ${invitation.team.name}`,
-        });
+        toast.success(`You've successfully joined ${invitation.team.name}`);
         router.push(`/teams/${invitation.team.id}`);
       }
     } catch (error) {
       console.error("Error accepting invitation:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to accept invitation",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to accept invitation");
       setIsProcessing(false);
       setAction(null);
     }
@@ -82,19 +74,12 @@ export function AcceptInvitationView({
     try {
       const result = await declineTeamInvitation(invitation.token);
       if (result.success) {
-        toast({
-          title: "Invitation declined",
-          description: "You've declined the team invitation",
-        });
+        toast("You've declined the team invitation");
         router.push("/dashboard");
       }
     } catch (error) {
       console.error("Error declining invitation:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to decline invitation",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to decline invitation");
       setIsProcessing(false);
       setAction(null);
     }

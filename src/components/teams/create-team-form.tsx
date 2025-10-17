@@ -6,13 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { createTeam } from "@/app/actions/team.actions";
 import { Loader2 } from "lucide-react";
 
 export function CreateTeamForm() {
   const router = useRouter();
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -56,12 +55,9 @@ export function CreateTeamForm() {
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
       });
-      
+
       if (result.success && result.team) {
-        toast({
-          title: "Team created!",
-          description: "Your new team has been created successfully.",
-        });
+        toast.success("Your new team has been created successfully.");
         
         // Small delay to ensure toast is visible and state is updated
         setTimeout(() => {
@@ -74,11 +70,7 @@ export function CreateTeamForm() {
       }
     } catch (error) {
       console.error("Error creating team:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create team",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to create team");
     } finally {
       setIsSubmitting(false);
     }
