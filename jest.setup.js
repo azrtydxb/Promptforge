@@ -46,6 +46,18 @@ jest.mock('jose')
 // Mock @panva/hkdf to avoid ESM module issues
 jest.mock('@panva/hkdf')
 
+// Mock preact and preact-render-to-string to avoid ESM module issues
+jest.mock('preact', () => ({
+  h: jest.fn(),
+  Fragment: jest.fn(),
+  options: {},
+}))
+
+jest.mock('preact-render-to-string', () => ({
+  render: jest.fn(() => ''),
+  renderToStaticMarkup: jest.fn(() => ''),
+}))
+
 // Mock environment variables
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
 process.env.NEXTAUTH_SECRET = 'test-secret'
