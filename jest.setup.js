@@ -37,6 +37,9 @@ jest.mock('next-auth/react', () => ({
 // Mock jose to avoid ESM/Browser build issues
 jest.mock('jose')
 
+// Mock @panva/hkdf to avoid ESM module issues
+jest.mock('@panva/hkdf')
+
 // Mock environment variables
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
 process.env.NEXTAUTH_SECRET = 'test-secret'
