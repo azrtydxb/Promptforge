@@ -37,7 +37,7 @@ jest.mock('next-auth/react', () => ({
   })),
   signIn: jest.fn(),
   signOut: jest.fn(),
-  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
+  SessionProvider: ({ children }) => children,
 }))
 
 // Mock jose to avoid ESM/Browser build issues
