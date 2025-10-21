@@ -34,6 +34,9 @@ jest.mock('next-auth/react', () => ({
   signOut: jest.fn(),
 }))
 
+// Mock jose to avoid ESM/Browser build issues
+jest.mock('jose')
+
 // Mock environment variables
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
 process.env.NEXTAUTH_SECRET = 'test-secret'
