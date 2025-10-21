@@ -14,6 +14,7 @@ jest.mock('@/lib/db', () => ({
   db: {
     team: {
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
     },
     teamActivity: {
       findMany: jest.fn(),
@@ -53,6 +54,7 @@ describe('Team Activity Actions', () => {
     jest.clearAllMocks()
     ;(requireAuth as jest.Mock).mockResolvedValue(mockUser)
     ;(getUserTeamRole as jest.Mock).mockResolvedValue(TeamRole.MEMBER)
+    ;(db.team.findUnique as jest.Mock).mockResolvedValue(mockTeam)
   })
 
   describe('getTeamActivity', () => {
@@ -276,7 +278,7 @@ describe('Team Activity Actions', () => {
         { id: 'activity-2', action: TeamAction.MEMBER_JOINED, user: users[1] },
       ]
 
-      ;(db.team.findFirst as jest.Mock).mockResolvedValue(mockTeam)
+      ;(db.team.findUnique as jest.Mock).mockResolvedValue(mockTeam)
       ;(db.teamActivity.groupBy as jest.Mock)
         .mockResolvedValueOnce(activityCounts)
         .mockResolvedValueOnce(activeUsers)
@@ -310,33 +312,30 @@ describe('Team Activity Actions', () => {
       })
     })
 
-    it('should work with team slug', async () => {
-      ;(db.team.findFirst as jest.Mock).mockResolvedValue(mockTeam)
+    it('should work with team id', async () => {
+      ;(db.team.findUnique as jest.Mock).mockResolvedValue(mockTeam)
       ;(db.teamActivity.groupBy as jest.Mock).mockResolvedValue([])
       ;(db.user.findMany as jest.Mock).mockResolvedValue([])
       ;(db.teamActivity.findMany as jest.Mock).mockResolvedValue([])
 
-      await getTeamActivitySummary('test-team')
+      await getTeamActivitySummary('team-123')
 
-      expect(db.team.findFirst).toHaveBeenCalledWith({
+      expect(db.team.findUnique).toHaveBeenCalledWith({
         where: {
-          OR: [
-            { id: 'test-team' },
-            { slug: 'test-team' }
-          ]
+          id: 'team-123'
         }
       })
     })
 
     it('should throw error when team not found', async () => {
-      ;(db.team.findFirst as jest.Mock).mockResolvedValue(null)
+      ;(db.team.findUnique as jest.Mock).mockResolvedValue(null)
 
       await expect(getTeamActivitySummary('nonexistent'))
         .rejects.toThrow('Team not found')
     })
 
     it('should throw error when user is not a member', async () => {
-      ;(db.team.findFirst as jest.Mock).mockResolvedValue(mockTeam)
+      ;(db.team.findUnique as jest.Mock).mockResolvedValue(mockTeam)
       ;(getUserTeamRole as jest.Mock).mockResolvedValue(null)
 
       await expect(getTeamActivitySummary('team-123'))
@@ -344,7 +343,7 @@ describe('Team Activity Actions', () => {
     })
 
     it('should handle empty activity data', async () => {
-      ;(db.team.findFirst as jest.Mock).mockResolvedValue(mockTeam)
+      ;(db.team.findUnique as jest.Mock).mockResolvedValue(mockTeam)
       ;(db.teamActivity.groupBy as jest.Mock).mockResolvedValue([])
       ;(db.user.findMany as jest.Mock).mockResolvedValue([])
       ;(db.teamActivity.findMany as jest.Mock).mockResolvedValue([])
@@ -360,7 +359,7 @@ describe('Team Activity Actions', () => {
 
     it('should handle errors', async () => {
       const error = new Error('Database error')
-      ;(db.team.findFirst as jest.Mock).mockRejectedValue(error)
+      ;(db.team.findUnique as jest.Mock).mockRejectedValue(error)
 
       await expect(getTeamActivitySummary('team-123'))
         .rejects.toThrow(error)

@@ -620,9 +620,6 @@ describe('Team Prompts Actions', () => {
           title: teamPromptWithDetails.title,
           description: teamPromptWithDetails.description,
           content: teamPromptWithDetails.content,
-          enhancedContent: teamPromptWithDetails.enhancedContent,
-          enhancementSuggestions: teamPromptWithDetails.enhancementSuggestions,
-          autoTags: teamPromptWithDetails.autoTags,
         },
       })
 

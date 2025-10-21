@@ -82,7 +82,7 @@ jobs:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/promptforge_test
       run: |
         npx prisma generate
-        npx prisma db push --skip-seed
+        npx prisma db push --skip-generate
     
     - name: Run Playwright tests
       env:

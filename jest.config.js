@@ -22,6 +22,9 @@ const customJestConfig = {
   modulePathIgnorePatterns: [
     '<rootDir>/src/generated/',
   ],
+  transformIgnorePatterns: [
+    'node_modules/(?!(jose|openid-client)/)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',

@@ -297,7 +297,7 @@ describe('Team Members Actions', () => {
       })
 
       expect(revalidatePath).toHaveBeenCalledWith('/dashboard')
-      expect(revalidatePath).toHaveBeenCalledWith(`/teams/${mockTeam.slug}`)
+      expect(revalidatePath).toHaveBeenCalledWith(`/teams/${mockTeam.id}`)
     })
 
     it('should throw error for invalid token', async () => {
