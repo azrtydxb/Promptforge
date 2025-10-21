@@ -128,18 +128,13 @@ describe('Team Actions', () => {
       expect(logger.info).toHaveBeenCalledWith('Team created', expect.any(Object))
     })
 
-    it('should generate unique slug when name conflicts exist', async () => {
-      const params = { name: 'Existing Team' }
-
-      ;(db.team.findUnique as jest.Mock)
-        .mockResolvedValueOnce({ id: 'existing-1' }) // First check: existing-team exists
-        .mockResolvedValueOnce({ id: 'existing-2' }) // Second check: existing-team-1 exists
-        .mockResolvedValueOnce(null) // Third check: existing-team-2 is available
+    it('should generate slug from team name', async () => {
+      const params = { name: 'My Awesome Team!' }
 
       ;(db.team.create as jest.Mock).mockResolvedValue({
         ...mockTeam,
         name: params.name,
-        slug: 'existing-team-2',
+        slug: 'my-awesome-team',
         members: [{
           userId: mockUser.id,
           role: TeamRole.OWNER,
@@ -150,11 +145,11 @@ describe('Team Actions', () => {
       const result = await createTeam(params)
 
       expect(result.success).toBe(true)
-      expect(db.team.findUnique).toHaveBeenCalledTimes(3)
       expect(db.team.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            slug: 'existing-team-2',
+            name: 'My Awesome Team!',
+            slug: 'my-awesome-team',
           }),
         })
       )
@@ -224,7 +219,7 @@ describe('Team Actions', () => {
         },
       })
       expect(revalidatePath).toHaveBeenCalledWith('/dashboard')
-      expect(revalidatePath).toHaveBeenCalledWith(`/teams/${mockTeam.slug}`)
+      expect(revalidatePath).toHaveBeenCalledWith(`/teams/${params.teamId}`)
     })
 
     it('should update team when user is admin', async () => {
@@ -376,8 +371,7 @@ describe('Team Actions', () => {
     }
 
     it('should get team by ID when user is a member', async () => {
-      ;(db.team.findUnique as jest.Mock)
-        .mockResolvedValueOnce(mockTeamWithDetails) // Found by ID
+      ;(db.team.findUnique as jest.Mock).mockResolvedValue(mockTeamWithDetails)
 
       const result = await getTeam('team-123')
 
@@ -401,20 +395,7 @@ describe('Team Actions', () => {
       })
     })
 
-    it('should get team by slug when ID lookup fails', async () => {
-      ;(db.team.findUnique as jest.Mock)
-        .mockResolvedValueOnce(null) // Not found by ID
-        .mockResolvedValueOnce(mockTeamWithDetails) // Found by slug
-
-      const result = await getTeam('test-team')
-
-      expect(result).toEqual(mockTeamWithDetails)
-      expect(db.team.findUnique).toHaveBeenCalledTimes(2)
-      expect(db.team.findUnique).toHaveBeenLastCalledWith({
-        where: { slug: 'test-team' },
-        include: expect.any(Object),
-      })
-    })
+    // Removed: getTeam only looks up by ID, not by slug
 
     it('should throw error when team not found', async () => {
       ;(db.team.findUnique as jest.Mock).mockResolvedValue(null)
@@ -581,35 +562,35 @@ describe('Team Actions', () => {
   })
 
   describe('canPerformAction', () => {
-    it('should correctly check role hierarchy', () => {
+    it('should correctly check role hierarchy', async () => {
       // Owner can perform all actions
-      expect(canPerformAction(TeamRole.OWNER, TeamRole.OWNER)).toBe(true)
-      expect(canPerformAction(TeamRole.OWNER, TeamRole.ADMIN)).toBe(true)
-      expect(canPerformAction(TeamRole.OWNER, TeamRole.MEMBER)).toBe(true)
-      expect(canPerformAction(TeamRole.OWNER, TeamRole.VIEWER)).toBe(true)
+      expect(await canPerformAction(TeamRole.OWNER, TeamRole.OWNER)).toBe(true)
+      expect(await canPerformAction(TeamRole.OWNER, TeamRole.ADMIN)).toBe(true)
+      expect(await canPerformAction(TeamRole.OWNER, TeamRole.MEMBER)).toBe(true)
+      expect(await canPerformAction(TeamRole.OWNER, TeamRole.VIEWER)).toBe(true)
 
       // Admin can perform admin and below actions
-      expect(canPerformAction(TeamRole.ADMIN, TeamRole.OWNER)).toBe(false)
-      expect(canPerformAction(TeamRole.ADMIN, TeamRole.ADMIN)).toBe(true)
-      expect(canPerformAction(TeamRole.ADMIN, TeamRole.MEMBER)).toBe(true)
-      expect(canPerformAction(TeamRole.ADMIN, TeamRole.VIEWER)).toBe(true)
+      expect(await canPerformAction(TeamRole.ADMIN, TeamRole.OWNER)).toBe(false)
+      expect(await canPerformAction(TeamRole.ADMIN, TeamRole.ADMIN)).toBe(true)
+      expect(await canPerformAction(TeamRole.ADMIN, TeamRole.MEMBER)).toBe(true)
+      expect(await canPerformAction(TeamRole.ADMIN, TeamRole.VIEWER)).toBe(true)
 
       // Member can perform member and viewer actions
-      expect(canPerformAction(TeamRole.MEMBER, TeamRole.OWNER)).toBe(false)
-      expect(canPerformAction(TeamRole.MEMBER, TeamRole.ADMIN)).toBe(false)
-      expect(canPerformAction(TeamRole.MEMBER, TeamRole.MEMBER)).toBe(true)
-      expect(canPerformAction(TeamRole.MEMBER, TeamRole.VIEWER)).toBe(true)
+      expect(await canPerformAction(TeamRole.MEMBER, TeamRole.OWNER)).toBe(false)
+      expect(await canPerformAction(TeamRole.MEMBER, TeamRole.ADMIN)).toBe(false)
+      expect(await canPerformAction(TeamRole.MEMBER, TeamRole.MEMBER)).toBe(true)
+      expect(await canPerformAction(TeamRole.MEMBER, TeamRole.VIEWER)).toBe(true)
 
       // Viewer can only perform viewer actions
-      expect(canPerformAction(TeamRole.VIEWER, TeamRole.OWNER)).toBe(false)
-      expect(canPerformAction(TeamRole.VIEWER, TeamRole.ADMIN)).toBe(false)
-      expect(canPerformAction(TeamRole.VIEWER, TeamRole.MEMBER)).toBe(false)
-      expect(canPerformAction(TeamRole.VIEWER, TeamRole.VIEWER)).toBe(true)
+      expect(await canPerformAction(TeamRole.VIEWER, TeamRole.OWNER)).toBe(false)
+      expect(await canPerformAction(TeamRole.VIEWER, TeamRole.ADMIN)).toBe(false)
+      expect(await canPerformAction(TeamRole.VIEWER, TeamRole.MEMBER)).toBe(false)
+      expect(await canPerformAction(TeamRole.VIEWER, TeamRole.VIEWER)).toBe(true)
     })
 
-    it('should return false for null role', () => {
-      expect(canPerformAction(null, TeamRole.VIEWER)).toBe(false)
-      expect(canPerformAction(null, TeamRole.OWNER)).toBe(false)
+    it('should return false for null role', async () => {
+      expect(await canPerformAction(null, TeamRole.VIEWER)).toBe(false)
+      expect(await canPerformAction(null, TeamRole.OWNER)).toBe(false)
     })
   })
 })
