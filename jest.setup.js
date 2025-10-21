@@ -24,7 +24,12 @@ jest.mock('next/navigation', () => ({
   },
 }))
 
-// Mock Next Auth
+// Mock Next Auth core module to avoid ESM dependency chain
+jest.mock('next-auth', () => ({
+  default: jest.fn(),
+}))
+
+// Mock Next Auth React hooks
 jest.mock('next-auth/react', () => ({
   useSession: jest.fn(() => ({
     data: null,
@@ -32,6 +37,7 @@ jest.mock('next-auth/react', () => ({
   })),
   signIn: jest.fn(),
   signOut: jest.fn(),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
 // Mock jose to avoid ESM/Browser build issues
