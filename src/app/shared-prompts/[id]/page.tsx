@@ -14,5 +14,5 @@ export default async function SharedPromptPage({
     notFound();
   }
 
-  return <SharedPromptDetail sharedPrompt={result.prompt} />;
+  return <SharedPromptDetail sharedPrompt={result.prompt as unknown as Parameters<typeof SharedPromptDetail>[0]['sharedPrompt']} />;
 }

@@ -351,7 +351,7 @@ export async function addPromptToCollection(
     return { success: true };
   } catch (_error) {
     logger.error("Failed to add prompt to collection", {
-      error,
+     _error,
       collectionId,
       sharedPromptId,
     });
@@ -401,7 +401,7 @@ export async function removePromptFromCollection(
     return { success: true };
   } catch (_error) {
     logger.error("Failed to remove prompt from collection", {
-      error,
+     _error,
       collectionId,
       sharedPromptId,
     });

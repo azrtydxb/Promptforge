@@ -92,22 +92,29 @@ const getDashboardData = cache(async (userId: string) => {
     count
   }));
 
-  // Process folder data
+  // Process folder data - FIX: Fetch all folders at once instead of N+1 queries
+  const folderIds = promptsWithFolders
+    .filter(g => g.folderId)
+    .map(g => g.folderId!);
+
+  const folders = await db.folder.findMany({
+    where: { id: { in: folderIds } },
+    select: { id: true, name: true }
+  });
+
+  const folderMap = new Map(folders.map(f => [f.id, f.name]));
   const folderCounts = new Map<string, number>();
   let unassignedCount = 0;
-  
+
   for (const group of promptsWithFolders) {
     if (group.folderId) {
-      const folder = await db.folder.findUnique({
-        where: { id: group.folderId },
-        select: { name: true }
-      });
-      folderCounts.set(folder?.name || 'Unknown', group._count.id);
+      const folderName = folderMap.get(group.folderId) || 'Unknown';
+      folderCounts.set(folderName, group._count.id);
     } else {
       unassignedCount = group._count.id;
     }
   }
-  
+
   if (unassignedCount > 0) {
     folderCounts.set('Unassigned', unassignedCount);
   }
@@ -162,72 +169,55 @@ const getDashboardData = cache(async (userId: string) => {
     createdAt: prompt.createdAt.toISOString()
   }));
 
-  // Get recently used prompts
-  const recentlyUsedPrompts = await db.prompt.findMany({
-    where: {
-      userId,
-      NOT: {
-        lastUsedAt: null,
-      },
-    },
-    include: {
-      tags: true,
-      _count: {
-        select: {
-          likes: true,
+  // FIX: Get ALL prompt stats in ONE query instead of 4 separate queries
+  const [recentlyUsedPrompts, allPromptsWithCounts] = await Promise.all([
+    db.prompt.findMany({
+      where: {
+        userId,
+        NOT: {
+          lastUsedAt: null,
         },
       },
-    },
-    orderBy: {
-      lastUsedAt: 'desc',
-    },
-    take: 5,
-  });
-
-  // Get prompts with like counts
-  const promptsWithLikes = await db.prompt.findMany({
-    where: { userId },
-    include: {
-      _count: {
-        select: { likes: true }
+      include: {
+        tags: true,
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+      orderBy: {
+        lastUsedAt: 'desc',
+      },
+      take: 5,
+    }),
+    // Single query to get all counts at once
+    db.prompt.findMany({
+      where: { userId },
+      include: {
+        _count: {
+          select: {
+            likes: true,
+            versions: true,
+            favorites: true
+          }
+        }
       }
-    }
-  });
-  
-  // Sort by likes manually
-  const mostLikedPrompts = promptsWithLikes
+    })
+  ]);
+
+  // Sort and filter for each category from the single query result
+  const mostLikedPrompts = allPromptsWithCounts
     .sort((a, b) => b._count.likes - a._count.likes)
     .slice(0, 5)
     .filter(p => p._count.likes > 0);
 
-  // Get prompts with version counts
-  const promptsWithVersions = await db.prompt.findMany({
-    where: { userId },
-    include: {
-      _count: {
-        select: { versions: true }
-      }
-    }
-  });
-  
-  // Sort by versions manually
-  const mostVersionedPrompts = promptsWithVersions
+  const mostVersionedPrompts = allPromptsWithCounts
     .sort((a, b) => b._count.versions - a._count.versions)
     .slice(0, 5)
     .filter(p => p._count.versions > 0);
 
-  // Get prompts with favorite counts
-  const promptsWithFavorites = await db.prompt.findMany({
-    where: { userId },
-    include: {
-      _count: {
-        select: { favorites: true }
-      }
-    }
-  });
-  
-  // Sort by favorites manually
-  const mostFavoritedPrompts = promptsWithFavorites
+  const mostFavoritedPrompts = allPromptsWithCounts
     .sort((a, b) => b._count.favorites - a._count.favorites)
     .slice(0, 5)
     .filter(p => p._count.favorites > 0);

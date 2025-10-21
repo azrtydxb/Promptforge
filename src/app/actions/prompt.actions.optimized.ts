@@ -30,7 +30,6 @@ export async function getPromptsByFolder(folderId?: string) {
           select: {
             id: true,
             name: true,
-            color: true,
           }
         },
         _count: {
@@ -100,7 +99,6 @@ export async function getAllPrompts() {
           select: {
             id: true,
             name: true,
-            color: true,
           }
         },
         _count: {
@@ -156,9 +154,11 @@ export const createPrompt = withActionValidation(
     const user = await requireAuth();
 
     {
+      const { tags, ...promptData } = data;
+
       const prompt = await db.prompt.create({
         data: {
-          ...data,
+          ...promptData,
           userId: user.id,
         },
         select: {
@@ -172,14 +172,13 @@ export const createPrompt = withActionValidation(
             select: {
               id: true,
               name: true,
-              color: true,
             }
           }
         }
       });
 
       // Invalidate caches
-      await cacheInvalidationV2.prompt.create(prompt.id, user.id, data.tags);
+      await cacheInvalidationV2.prompt.create(prompt.id, user.id, tags);
 
       revalidatePath('/prompts');
       revalidatePath('/folders');
@@ -225,7 +224,6 @@ export const updatePrompt = withActionValidation(
             select: {
               id: true,
               name: true,
-              color: true,
             }
           }
         }
@@ -365,7 +363,6 @@ export async function getPromptDetails(promptId: string) {
           select: {
             id: true,
             name: true,
-            color: true,
           }
         },
         _count: {

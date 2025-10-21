@@ -285,7 +285,7 @@ export class CacheWarmer {
       await Promise.all([
         cacheService.set(cacheKeys.userProfile(userId), user, cacheTTL.userProfile),
         cacheService.set(cacheKeys.userPrompts(userId), userPrompts, cacheTTL.userStats),
-        cacheService.set(cacheKeys.userStats(userId), (userStats as any[])[0], cacheTTL.userStats)
+        cacheService.set(cacheKeys.userStats(userId), (userStats as unknown[])[0], cacheTTL.userStats)
       ]);
       
       logger.info(`User cache warmed for user: ${userId}`);
@@ -339,16 +339,24 @@ export class CacheHierarchy {
   }
   
   // Smart cache preloading based on access patterns
-  static async preloadRelatedData(key: string, data: any) {
+  static async preloadRelatedData(key: string, data: unknown) {
     // Example: If caching a prompt, also cache related prompts by same author
-    if (key.startsWith('prompt:') && data.authorId) {
-      const authorPromptsKey = `author:${data.authorId}:prompts`;
+    // Type guard to check if data is an object with authorId property
+    if (
+      key.startsWith('prompt:') &&
+      typeof data === 'object' &&
+      data !== null &&
+      'authorId' in data &&
+      typeof (data as { authorId: unknown }).authorId === 'string'
+    ) {
+      const typedData = data as { authorId: string };
+      const authorPromptsKey = `author:${typedData.authorId}:prompts`;
       const cached = await cacheService.get(authorPromptsKey);
       if (!cached) {
         // Cache author's other prompts
         const authorPrompts = await db.sharedPrompt.findMany({
-          where: { 
-            authorId: data.authorId,
+          where: {
+            authorId: typedData.authorId,
             isPublished: true,
             status: 'APPROVED'
           },

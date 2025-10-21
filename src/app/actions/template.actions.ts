@@ -36,7 +36,7 @@ export async function getPromptTemplates(options?: {
 
     return templates;
   } catch (_error) {
-    logger.error("Error fetching templates", error);
+    logger.error("Error fetching templates", _error);
     throw _error;
   }
 }
@@ -58,7 +58,7 @@ export async function getTemplateById(templateId: string) {
 
     return template;
   } catch (_error) {
-    logger.error("Error fetching template", error);
+    logger.error("Error fetching template", _error);
     throw _error;
   }
 }
@@ -88,7 +88,7 @@ export async function createTemplate(data: {
 
     return template;
   } catch (_error) {
-    logger.error("Error creating template", error);
+    logger.error("Error creating template", _error);
     throw _error;
   }
 }
@@ -129,7 +129,7 @@ export async function updateTemplate(
 
     return updated;
   } catch (_error) {
-    logger.error("Error updating template", error);
+    logger.error("Error updating template", _error);
     throw _error;
   }
 }
@@ -156,7 +156,7 @@ export async function deleteTemplate(templateId: string) {
 
     return { success: true };
   } catch (_error) {
-    logger.error("Error deleting template", error);
+    logger.error("Error deleting template", _error);
     throw _error;
   }
 }
@@ -197,7 +197,7 @@ export async function createPromptFromTemplate(templateId: string) {
 
     return prompt.id;
   } catch (_error) {
-    logger.error("Error using template", error);
+    logger.error("Error using template", _error);
     throw _error;
   }
 }
@@ -235,7 +235,7 @@ export async function rateTemplate(templateId: string, rating: number) {
 
     return { success: true };
   } catch (_error) {
-    logger.error("Error rating template", error);
+    logger.error("Error rating template", _error);
     throw _error;
   }
 }

@@ -81,7 +81,7 @@ export async function createTeamPrompt(params: CreateTeamPromptParams) {
     
     return { success: true, prompt };
   } catch (_error) {
-    logger.error("Error creating team prompt", error);
+    logger.error("Error creating team prompt", _error);
     throw _error;
   }
 }
@@ -172,7 +172,7 @@ export async function updateTeamPrompt(params: UpdateTeamPromptParams) {
     
     return { success: true, prompt: updatedPrompt };
   } catch (_error) {
-    logger.error("Error updating team prompt", error);
+    logger.error("Error updating team prompt", _error);
     throw _error;
   }
 }
@@ -226,7 +226,7 @@ export async function deleteTeamPrompt(promptId: string) {
     
     return { success: true };
   } catch (_error) {
-    logger.error("Error deleting team prompt", error);
+    logger.error("Error deleting team prompt", _error);
     throw _error;
   }
 }
@@ -282,7 +282,7 @@ export async function archiveTeamPrompt(promptId: string) {
     
     return { success: true, prompt: updatedPrompt };
   } catch (_error) {
-    logger.error("Error archiving team prompt", error);
+    logger.error("Error archiving team prompt", _error);
     throw _error;
   }
 }
@@ -351,7 +351,7 @@ export async function getTeamPrompts(params: GetTeamPromptsParams) {
     
     return prompts;
   } catch (_error) {
-    logger.error("Error getting team prompts", error);
+    logger.error("Error getting team prompts", _error);
     throw _error;
   }
 }
@@ -402,7 +402,7 @@ export async function getTeamPrompt(promptId: string) {
     
     return prompt;
   } catch (_error) {
-    logger.error("Error getting team prompt", error);
+    logger.error("Error getting team prompt", _error);
     throw _error;
   }
 }
@@ -436,7 +436,7 @@ export async function pinTeamPrompt(promptId: string) {
     
     return { success: true, prompt: updatedPrompt };
   } catch (_error) {
-    logger.error("Error pinning team prompt", error);
+    logger.error("Error pinning team prompt", _error);
     throw _error;
   }
 }
@@ -493,7 +493,7 @@ export async function copyTeamPromptToPersonal(promptId: string) {
     
     return { success: true, prompt: personalPrompt };
   } catch (_error) {
-    logger.error("Error copying team prompt", error);
+    logger.error("Error copying team prompt", _error);
     throw _error;
   }
 }

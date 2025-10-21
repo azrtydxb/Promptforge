@@ -149,7 +149,7 @@ export async function createShareLink({
       shareUrl: `${process.env.NEXT_PUBLIC_APP_URL}/share/${shareId}`
     };
   } catch (_error) {
-    logger.error("Error creating share link", error);
+    logger.error("Error creating share link", _error);
     throw _error;
   }
 }
@@ -187,7 +187,7 @@ export async function getUserShareLinks() {
       isExpired: link.expiresAt ? new Date() > link.expiresAt : false
     }));
   } catch (_error) {
-    logger.error("Error fetching user share links", error);
+    logger.error("Error fetching user share links", _error);
     throw _error;
   }
 }
@@ -241,7 +241,7 @@ export async function getShareLink(shareId: string) {
       settings: shareLink.settings as ShareSettings
     };
   } catch (_error) {
-    logger.error("Error fetching share link", error);
+    logger.error("Error fetching share link", _error);
     return null;
   }
 }
@@ -279,7 +279,7 @@ export async function validateShareAccess(shareId: string, password?: string) {
     
     return { valid: true };
   } catch (_error) {
-    logger.error("Error validating share access", error);
+    logger.error("Error validating share access", _error);
     return { valid: false, reason: "error" };
   }
 }
@@ -318,7 +318,7 @@ export async function recordShareView(shareId: string) {
     
     logger.info("Share view recorded", { shareId });
   } catch (_error) {
-    logger.error("Error recording share view", error);
+    logger.error("Error recording share view", _error);
   }
 }
 
@@ -390,7 +390,7 @@ export async function updateShareLink(
     revalidatePath("/prompts");
     return { success: true, shareLink: updated };
   } catch (_error) {
-    logger.error("Error updating share link", error);
+    logger.error("Error updating share link", _error);
     throw _error;
   }
 }
@@ -420,7 +420,7 @@ export async function deleteShareLink(shareLinkId: string) {
     revalidatePath("/prompts");
     return { success: true };
   } catch (_error) {
-    logger.error("Error deleting share link", error);
+    logger.error("Error deleting share link", _error);
     throw _error;
   }
 }
@@ -485,7 +485,7 @@ export async function getShareLinkAnalytics(shareLinkId: string) {
       shareLink
     };
   } catch (_error) {
-    logger.error("Error fetching share link analytics", error);
+    logger.error("Error fetching share link analytics", _error);
     throw _error;
   }
 }

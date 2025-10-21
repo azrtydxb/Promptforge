@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { getSharedPromptsCached as getSharedPrompts } from '@/app/actions/shared-prompts.actions.cached';
 import { getAvailableSharedPromptTags } from '@/app/actions/shared-prompts.actions';
-import { SharedPromptsClient } from './shared-prompts-client';
+import { SharedPromptsClient, type SharedPrompt } from './shared-prompts-client';
 import { SharedPromptsFilters } from '@/components/marketplace/marketplace-filters-server';
 import { ResizablePanels } from '@/components/ui/resizable-panels';
 import { LoadingStates } from '@/components/ui/loading-state';
@@ -67,7 +67,7 @@ export default async function SharedPromptsPage({ searchParams }: PageProps) {
             }
           >
             <SharedPromptsClient
-              initialPrompts={promptsResult.success && promptsResult.prompts ? promptsResult.prompts : []}
+              initialPrompts={promptsResult.success && promptsResult.prompts ? (promptsResult.prompts as unknown as SharedPrompt[]) : []}
               initialPagination={promptsResult.success && promptsResult.pagination ? promptsResult.pagination : null}
               initialError={!promptsResult.success ? (promptsResult.error || 'Failed to load prompts') : null}
               searchQuery={searchQuery}

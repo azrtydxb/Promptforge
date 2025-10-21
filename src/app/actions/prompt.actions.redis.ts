@@ -1,7 +1,7 @@
 "use server";
 
 import { requireAuth } from "@/lib/auth";
-import { cacheAside, cacheTTL, cacheKeys, cacheService } from '@/lib/redis';
+import { cacheAside, cacheKeys, cacheService } from '@/lib/redis';
 import { logger } from '@/lib/logger';
 import {
   getAllPrompts as getAllPromptsDB,

@@ -69,7 +69,7 @@ export async function getUsers(page = 1, limit = 20, search?: string) {
       },
     };
   } catch (_error) {
-    logger.error("Error fetching users", error);
+    logger.error("Error fetching users", _error);
     throw new Error("Failed to fetch users");
   }
 }
@@ -203,7 +203,7 @@ export async function getUserStats() {
       newUsersThisMonth,
     };
   } catch (_error) {
-    logger.error("Error fetching user stats", error);
+    logger.error("Error fetching user stats", _error);
     throw new Error("Failed to fetch user statistics");
   }
 }

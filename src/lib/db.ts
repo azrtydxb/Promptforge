@@ -1,4 +1,4 @@
-import { PrismaClient } from '@/generated/prisma'
+import { PrismaClient, Prisma } from '@/generated/prisma'
 import { logger } from '@/lib/logger'
 
 declare global {
@@ -8,8 +8,12 @@ declare global {
 // Enhanced database configuration
 // Note: Connection pooling is configured via DATABASE_URL query parameters
 // Example: postgresql://user:pass@host:5432/db?connection_limit=10&pool_timeout=20&connect_timeout=10
-const prismaConfig = {
-  log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+const prismaConfig: Prisma.PrismaClientOptions = {
+  log: process.env.NODE_ENV === 'development' ? [
+    { emit: 'event', level: 'query' },
+    { emit: 'stdout', level: 'error' },
+    { emit: 'stdout', level: 'warn' },
+  ] as Prisma.LogDefinition[] : ['error'],
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
@@ -20,6 +24,15 @@ const prismaConfig = {
 export const db =
   global.prisma ||
   new PrismaClient(prismaConfig)
+
+// Log query performance in development
+if (process.env.NODE_ENV === 'development') {
+  db.$on('query' as never, (e: { query: string; duration: number }) => {
+    if (e.duration > 100) { // Only log queries taking > 100ms
+      logger.warn(`Slow query (${e.duration}ms):`, { query: e.query.substring(0, 200) })
+    }
+  })
+}
 
 // Database health check
 export async function checkDatabaseHealth(): Promise<boolean> {

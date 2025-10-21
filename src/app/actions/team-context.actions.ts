@@ -42,7 +42,7 @@ export async function setTeamContext(teamId: string | null) {
     
     return { success: true, teamId };
   } catch (_error) {
-    logger.error("Error setting team context", error);
+    logger.error("Error setting team context", _error);
     throw _error;
   }
 }
@@ -78,7 +78,7 @@ export async function getTeamContext(): Promise<TeamContext> {
       teamSlug: team?.slug || null,
     };
   } catch (_error) {
-    logger.error("Error getting team context", error);
+    logger.error("Error getting team context", _error);
     return { teamId: null, teamSlug: null };
   }
 }
@@ -92,7 +92,7 @@ export async function clearTeamContext() {
     
     return { success: true };
   } catch (_error) {
-    logger.error("Error clearing team context", error);
+    logger.error("Error clearing team context", _error);
     throw _error;
   }
 }

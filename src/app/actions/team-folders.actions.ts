@@ -63,7 +63,7 @@ export async function createTeamFolder(params: CreateTeamFolderParams) {
     
     return { success: true, folder };
   } catch (_error) {
-    logger.error("Error creating team folder", error);
+    logger.error("Error creating team folder", _error);
     throw _error;
   }
 }
@@ -138,7 +138,7 @@ export async function updateTeamFolder(params: UpdateTeamFolderParams) {
     
     return { success: true, folder: updatedFolder };
   } catch (_error) {
-    logger.error("Error updating team folder", error);
+    logger.error("Error updating team folder", _error);
     throw _error;
   }
 }
@@ -199,7 +199,7 @@ export async function deleteTeamFolder(folderId: string) {
     
     return { success: true };
   } catch (_error) {
-    logger.error("Error deleting team folder", error);
+    logger.error("Error deleting team folder", _error);
     throw _error;
   }
 }
@@ -231,7 +231,7 @@ export async function getTeamFolders(teamId: string) {
     
     return folders;
   } catch (_error) {
-    logger.error("Error getting team folders", error);
+    logger.error("Error getting team folders", _error);
     throw _error;
   }
 }
@@ -283,7 +283,7 @@ export async function createTeamTag(params: CreateTeamTagParams) {
     
     return { success: true, tag };
   } catch (_error) {
-    logger.error("Error creating team tag", error);
+    logger.error("Error creating team tag", _error);
     throw _error;
   }
 }
@@ -336,7 +336,7 @@ export async function updateTeamTag(tagId: string, updates: { name?: string; des
     
     return { success: true, tag: updatedTag };
   } catch (_error) {
-    logger.error("Error updating team tag", error);
+    logger.error("Error updating team tag", _error);
     throw _error;
   }
 }
@@ -391,7 +391,7 @@ export async function deleteTeamTag(tagId: string) {
     
     return { success: true };
   } catch (_error) {
-    logger.error("Error deleting team tag", error);
+    logger.error("Error deleting team tag", _error);
     throw _error;
   }
 }
@@ -421,7 +421,7 @@ export async function getTeamTags(teamId: string) {
     
     return tags;
   } catch (_error) {
-    logger.error("Error getting team tags", error);
+    logger.error("Error getting team tags", _error);
     throw _error;
   }
 }

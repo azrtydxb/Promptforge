@@ -6,7 +6,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime in v4)
       retry: 3,
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
       refetchOnWindowFocus: false,
@@ -31,26 +31,26 @@ export function createOptimizedQuery<T>(
   queryFn: () => Promise<T>,
   options: {
     staleTime?: number;
-    cacheTime?: number;
+    gcTime?: number;
     enableRedisCache?: boolean;
     redisTTL?: number;
     refetchInterval?: number;
   } = {}
 ) {
-  const { 
-    enableRedisCache = false, 
-    redisTTL = 300, 
+  const {
+    enableRedisCache = false,
+    redisTTL = 300,
     staleTime,
-    cacheTime,
+    gcTime,
     refetchInterval
   } = options;
-  
+
   return {
     queryKey,
     queryFn: async () => {
       if (enableRedisCache) {
         const cacheKey = queryKey.join(':');
-        
+
         try {
           // Try Redis first
           const cached = await cacheService.get<T>(cacheKey);
@@ -61,11 +61,11 @@ export function createOptimizedQuery<T>(
         } catch (error) {
           logger.warn('Redis cache fetch failed', { error, cacheKey });
         }
-        
+
         // Fetch from server
         try {
           const data = await queryFn();
-          
+
           // Store in Redis
           try {
             await cacheService.set(cacheKey, data, redisTTL);
@@ -73,18 +73,18 @@ export function createOptimizedQuery<T>(
           } catch (error) {
             logger.warn('Redis cache set failed', { error, cacheKey });
           }
-          
+
           return data;
         } catch (error) {
           logger.error('Query fetch failed', { error, queryKey });
           throw error;
         }
       }
-      
+
       return queryFn();
     },
     staleTime: staleTime || 5 * 60 * 1000,
-    cacheTime: cacheTime || 10 * 60 * 1000,
+    gcTime: gcTime || 10 * 60 * 1000,
     refetchInterval,
   };
 }
@@ -108,6 +108,11 @@ export function invalidateAndRefetch(queryKey: string[]) {
   return queryClient.invalidateQueries({ queryKey });
 }
 
+// Type for optimistic update context
+interface OptimisticContext<T> {
+  previousData?: T;
+}
+
 // Optimistic update helper
 export function createOptimisticUpdate<T>(
   queryKey: string[],
@@ -115,22 +120,22 @@ export function createOptimisticUpdate<T>(
   rollbackFn: (oldData: T | undefined) => T
 ) {
   return {
-    onMutate: async (newData: T) => {
+    onMutate: async (_newData: T): Promise<OptimisticContext<T>> => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey });
-      
+
       // Snapshot the previous value
       const previousData = queryClient.getQueryData<T>(queryKey);
-      
+
       // Optimistically update to the new value
       queryClient.setQueryData<T>(queryKey, updateFn(previousData));
-      
+
       // Return a context object with the snapshotted value
       return { previousData };
     },
-    onError: (err: any, newData: T, context: any) => {
+    onError: (err: unknown, _newData: T, context?: OptimisticContext<T>) => {
       // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousData) {
+      if (context?.previousData !== undefined) {
         queryClient.setQueryData<T>(queryKey, rollbackFn(context.previousData));
       }
     },
@@ -151,7 +156,7 @@ export function createInfiniteQuery<T>(
   }>,
   options: {
     staleTime?: number;
-    cacheTime?: number;
+    gcTime?: number;
     enableRedisCache?: boolean;
     redisTTL?: number;
   } = {}
@@ -159,9 +164,9 @@ export function createInfiniteQuery<T>(
   return {
     queryKey,
     queryFn: fetchFn,
-    getNextPageParam: (lastPage: any) => lastPage.nextPage,
+    getNextPageParam: (lastPage: unknown) => (lastPage as { nextPage?: number }).nextPage,
     staleTime: options.staleTime || 5 * 60 * 1000,
-    cacheTime: options.cacheTime || 10 * 60 * 1000,
+    gcTime: options.gcTime || 10 * 60 * 1000,
   };
 }
 
@@ -215,39 +220,39 @@ export const queryConfigs = {
   // User data - changes infrequently
   user: {
     staleTime: 15 * 60 * 1000, // 15 minutes
-    cacheTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
     enableRedisCache: true,
     redisTTL: 1800, // 30 minutes
   },
-  
+
   // Prompts - changes moderately
   prompts: {
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 15 * 60 * 1000, // 15 minutes
+    gcTime: 15 * 60 * 1000, // 15 minutes
     enableRedisCache: true,
     redisTTL: 600, // 10 minutes
   },
-  
+
   // Search results - change frequently
   search: {
     staleTime: 2 * 60 * 1000, // 2 minutes
-    cacheTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
     enableRedisCache: true,
     redisTTL: 300, // 5 minutes
   },
-  
+
   // Analytics - can be stale
   analytics: {
     staleTime: 30 * 60 * 1000, // 30 minutes
-    cacheTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 60 * 60 * 1000, // 1 hour
     enableRedisCache: true,
     redisTTL: 3600, // 1 hour
   },
-  
+
   // Real-time data - no caching
   realtime: {
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     enableRedisCache: false,
     refetchInterval: 30 * 1000, // 30 seconds
   },

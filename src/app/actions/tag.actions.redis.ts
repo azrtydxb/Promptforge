@@ -195,6 +195,6 @@ export async function warmTagCachesRedis() {
 
     logger.info('Tag caches warmed');
   } catch (_error) {
-    logger.error('Failed to warm tag caches', error);
+    logger.error('Failed to warm tag caches', _error);
   }
 }

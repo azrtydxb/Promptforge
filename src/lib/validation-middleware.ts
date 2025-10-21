@@ -96,7 +96,7 @@ export function validateQueryParams<T>(
     const params = Object.fromEntries(searchParams.entries());
     
     // Convert string parameters to appropriate types
-    const convertedParams: Record<string, any> = {};
+    const convertedParams: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(params)) {
       if (value === 'true') convertedParams[key] = true;
       else if (value === 'false') convertedParams[key] = false;

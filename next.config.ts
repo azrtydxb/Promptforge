@@ -76,8 +76,8 @@ const nextConfig: NextConfig = {
     // Enable webVitalsAttribution
     webVitalsAttribution: ['CLS', 'LCP'],
 
-    // Enable optimizeCss
-    optimizeCss: true,
+    // Enable optimizeCss - disabled due to critters dependency issue
+    optimizeCss: false,
 
     // Enable worker threads for compilation
     workerThreads: false, // Disable for now due to compatibility issues

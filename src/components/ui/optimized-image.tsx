@@ -16,7 +16,7 @@ export function OptimizedImage({
   className,
   wrapperClassName,
   enableBlur = true,
-  lowQualitySize = 20,
+  lowQualitySize: _lowQualitySize = 20,
   priority = false,
   ...props
 }: OptimizedImageProps) {
@@ -155,15 +155,17 @@ export function OptimizedAvatar({
   }
 
   return (
-    <OptimizedImage
-      src={src}
-      alt={alt}
-      width={size}
-      height={size}
-      className={cn('rounded-full object-cover', className)}
-      onError={() => setHasError(true)}
-      priority={size < 100} // Prioritize small avatars
-    />
+    <div className="relative" style={{ width: size, height: size }}>
+      <Image
+        src={src}
+        alt={alt}
+        width={size}
+        height={size}
+        className={cn('rounded-full object-cover', className)}
+        onError={() => setHasError(true)}
+        priority={size < 100} // Prioritize small avatars
+      />
+    </div>
   );
 }
 
@@ -268,7 +270,7 @@ export function OptimizedBackgroundImage({
 // Image preloader utility
 export function preloadImage(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    const img = new window.Image();
     img.onload = () => resolve();
     img.onerror = reject;
     img.src = src;

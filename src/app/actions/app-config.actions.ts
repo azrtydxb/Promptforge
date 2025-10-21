@@ -54,7 +54,7 @@ export async function getConfig(key: string): Promise<AppConfigValue | null> {
 
     return value;
   } catch (_error) {
-    logger.error(`Failed to get config for key ${key}`, error);
+    logger.error(`Failed to get config for key ${key}`, _error);
     return null;
   }
 }
@@ -87,7 +87,7 @@ export async function getConfigsByCategory(category: ConfigCategory): Promise<Re
 
     return configMap;
   } catch (_error) {
-    logger.error(`Failed to get configs for category ${category}`, error);
+    logger.error(`Failed to get configs for category ${category}`, _error);
     return {};
   }
 }
@@ -112,7 +112,7 @@ export async function getBadgeConfigs(): Promise<Record<string, BadgeConfig>> {
 
     return badgeConfigs;
   } catch (_error) {
-    logger.error('Failed to get badge configs', error);
+    logger.error('Failed to get badge configs', _error);
     return {};
   }
 }
@@ -152,7 +152,7 @@ export async function setConfig(
 
     return true;
   } catch (_error) {
-    logger.error(`Failed to set config ${key}`, error);
+    logger.error(`Failed to set config ${key}`, _error);
     return false;
   }
 }
@@ -181,7 +181,7 @@ export async function deleteConfig(key: string): Promise<boolean> {
 
     return true;
   } catch (_error) {
-    logger.error(`Failed to delete config ${key}`, error);
+    logger.error(`Failed to delete config ${key}`, _error);
     return false;
   }
 }
@@ -201,7 +201,7 @@ export async function invalidateConfigCache(key: string, category?: ConfigCatego
 
     logger.info(`Invalidated config cache for key: ${key}`);
   } catch (_error) {
-    logger.error(`Failed to invalidate config cache for ${key}`, error);
+    logger.error(`Failed to invalidate config cache for ${key}`, _error);
   }
 }
 
@@ -219,7 +219,7 @@ export async function getAllConfigs() {
 
     return configs;
   } catch (_error) {
-    logger.error('Failed to get all configs', error);
+    logger.error('Failed to get all configs', _error);
     return [];
   }
 }

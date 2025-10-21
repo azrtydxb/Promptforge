@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useTransition } from "react";
+import { useState, useEffect, useCallback, useTransition, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { FolderSidebar } from "@/components/folders/folder-sidebar";
 import { TagSidebar } from "@/components/tags/tag-sidebar";
@@ -98,6 +98,14 @@ export function PromptsClientWrapper({
   const [moveOptions, setMoveOptions] = useState<MoveFolderOption[]>([]);
   const [isLoadingFolders, setIsLoadingFolders] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Track if this is the initial render to avoid passing stale initialPrompts
+  const isInitialRender = useRef(true);
+
+  // Mark as no longer initial render after mount
+  useEffect(() => {
+    isInitialRender.current = false;
+  }, []);
 
   // Update URL when filters change
   const updateURL = useCallback((updates: Record<string, string | string[] | null>) => {
@@ -380,7 +388,7 @@ export function PromptsClientWrapper({
             selectedPromptIds={selectedPromptIds}
             onToggleSelect={handleTogglePromptSelection}
             onPromptsLoaded={handlePromptsLoaded}
-            prompts={initialPrompts}
+            prompts={isInitialRender.current ? initialPrompts : undefined}
             {...promptListProps}
           />
         </div>

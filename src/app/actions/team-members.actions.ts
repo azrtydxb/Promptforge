@@ -117,7 +117,7 @@ export async function inviteTeamMember(params: InviteMemberParams) {
     
     return { success: true, invitation };
   } catch (_error) {
-    logger.error("Error inviting team member", error);
+    logger.error("Error inviting team member", _error);
     throw _error;
   }
 }
@@ -198,7 +198,7 @@ export async function acceptTeamInvitation(token: string) {
     
     return { success: true, team: invitation.team };
   } catch (_error) {
-    logger.error("Error accepting team invitation", error);
+    logger.error("Error accepting team invitation", _error);
     throw _error;
   }
 }
@@ -241,7 +241,7 @@ export async function declineTeamInvitation(token: string) {
     
     return { success: true };
   } catch (_error) {
-    logger.error("Error declining team invitation", error);
+    logger.error("Error declining team invitation", _error);
     throw _error;
   }
 }
@@ -323,7 +323,7 @@ export async function updateTeamMemberRole(params: UpdateMemberRoleParams) {
     
     return { success: true, member: updatedMember };
   } catch (_error) {
-    logger.error("Error updating team member role", error);
+    logger.error("Error updating team member role", _error);
     throw _error;
   }
 }
@@ -401,7 +401,7 @@ export async function removeTeamMember(params: RemoveMemberParams) {
     
     return { success: true };
   } catch (_error) {
-    logger.error("Error removing team member", error);
+    logger.error("Error removing team member", _error);
     throw _error;
   }
 }
@@ -440,7 +440,7 @@ export async function getTeamMembers(teamId: string) {
     
     return members;
   } catch (_error) {
-    logger.error("Error getting team members", error);
+    logger.error("Error getting team members", _error);
     throw _error;
   }
 }
@@ -476,7 +476,7 @@ export async function getTeamInvitations(teamId: string) {
     
     return invitations;
   } catch (_error) {
-    logger.error("Error getting team invitations", error);
+    logger.error("Error getting team invitations", _error);
     throw _error;
   }
 }

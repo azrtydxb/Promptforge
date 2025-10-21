@@ -49,7 +49,7 @@ export async function togglePromptFavorite(promptId: string) {
       return { favorited: true };
     }
   } catch (_error) {
-    logger.error("Error toggling prompt favorite:", error);
+    logger.error("Error toggling prompt favorite:", _error);
     throw _error;
   }
 }
@@ -90,7 +90,7 @@ export async function getFavoritePrompts() {
 
     return prompts;
   } catch (_error) {
-    logger.error("Error fetching favorite prompts:", error);
+    logger.error("Error fetching favorite prompts:", _error);
     throw _error;
   }
 }
@@ -110,7 +110,7 @@ export async function checkPromptFavorite(promptId: string) {
 
     return { isFavorited: !!favorite };
   } catch (_error) {
-    logger.error("Error checking prompt favorite:", error);
+    logger.error("Error checking prompt favorite:", _error);
     return { isFavorited: false };
   }
 }
@@ -125,7 +125,7 @@ export async function getFavoriteCount(promptId: string) {
 
     return count;
   } catch (_error) {
-    logger.error("Error getting favorite count:", error);
+    logger.error("Error getting favorite count:", _error);
     return 0;
   }
 }
@@ -179,7 +179,7 @@ export async function getMostFavoritedPrompts(limit: number = 10) {
       isFavorited: favoriteSet.has(prompt.id),
     }));
   } catch (_error) {
-    logger.error("Error fetching most favorited prompts:", error);
+    logger.error("Error fetching most favorited prompts:", _error);
     throw _error;
   }
 }

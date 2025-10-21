@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { NetworkErrorFallback } from '@/components/error-boundary/error-fallbacks';
 
-interface SharedPrompt {
+export interface SharedPrompt {
   id: string;
   promptId: string;
   title: string;
@@ -88,7 +88,7 @@ export function SharedPromptsClient({
         });
 
         if (result.success && result.prompts && result.pagination) {
-          setPrompts(prev => [...prev, ...result.prompts]);
+          setPrompts(prev => [...prev, ...(result.prompts as unknown as SharedPrompt[])]);
           setPagination(result.pagination);
           setError(null);
         } else {
@@ -133,7 +133,7 @@ export function SharedPromptsClient({
         });
 
         if (result.success && result.prompts && result.pagination) {
-          setPrompts(result.prompts);
+          setPrompts(result.prompts as unknown as SharedPrompt[]);
           setPagination(result.pagination);
           setError(null);
         } else {

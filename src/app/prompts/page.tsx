@@ -1,12 +1,9 @@
-import { Suspense } from 'react';
 import { requireAuth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { getFoldersRedis as getFolders } from '@/app/actions/folder.actions.redis';
 import { getPromptsByFolderRedis as getPromptsByFolder, getAllPromptsRedis as getAllPrompts } from '@/app/actions/prompt.actions.redis';
 import { getTagsWithPrompts } from '@/app/actions/tag-management.actions';
 import { PromptsClientWrapper } from './prompts-client-wrapper';
-import { LoadingStates } from '@/components/ui/loading-state';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { PromptGridItem } from '@/components/prompts/prompt-grid';
 
 interface PageProps {
@@ -74,26 +71,3 @@ export default async function PromptsPage({ searchParams }: PageProps) {
   );
 }
 
-function LoadingPageSkeleton() {
-  return (
-    <div className="flex h-full">
-      {/* Sidebar skeleton */}
-      <div className="w-[280px] border-r p-4">
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="h-6 w-2/3" />
-          <Skeleton className="h-6 w-3/4" />
-        </div>
-      </div>
-
-      {/* Main content skeleton */}
-      <div className="flex-1 p-4">
-        <div className="mb-4">
-          <Skeleton className="h-10 w-full max-w-md" />
-        </div>
-        <LoadingStates.CardGrid count={6} />
-      </div>
-    </div>
-  );
-}
