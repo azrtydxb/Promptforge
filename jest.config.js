@@ -12,8 +12,6 @@ const customJestConfig = {
   moduleNameMapper: {
     // Handle module aliases (this will be automatically configured for you soon)
     '^@/(.*)$': '<rootDir>/src/$1',
-    // Force jose to use Node.js build instead of browser build
-    '^jose$': 'jose/dist/node/cjs/index.js',
   },
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
