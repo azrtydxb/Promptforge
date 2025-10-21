@@ -12,20 +12,23 @@ describe('Button Component', () => {
   it('should apply default variant and size', () => {
     render(<Button>Default Button</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-primary')
+    expect(button).toHaveClass('bg-gradient-to-r')
+    expect(button).toHaveClass('from-blue-600')
     expect(button).toHaveClass('h-10')
   })
 
   it('should apply custom variant', () => {
     render(<Button variant="destructive">Delete</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-destructive')
+    expect(button).toHaveClass('bg-gradient-to-r')
+    expect(button).toHaveClass('from-red-600')
   })
 
   it('should apply custom size', () => {
     render(<Button size="sm">Small Button</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('h-9')
+    expect(button).toHaveClass('h-8')
+    expect(button).toHaveClass('px-3')
   })
 
   it('should apply custom className', () => {
@@ -89,13 +92,14 @@ describe('Button Component', () => {
       render(<Button variant="primary">Primary</Button>)
       const button = screen.getByRole('button')
       expect(button).toHaveClass('bg-gradient-to-r')
-      expect(button).toHaveClass('from-accent-gradient-start')
+      expect(button).toHaveClass('from-blue-600')
+      expect(button).toHaveClass('to-purple-600')
     })
 
     it('should render outline variant', () => {
       render(<Button variant="outline">Outline</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('border')
+      expect(button).toHaveClass('border-2')
       expect(button).toHaveClass('border-input')
     })
 
@@ -108,7 +112,7 @@ describe('Button Component', () => {
     it('should render link variant', () => {
       render(<Button variant="link">Link</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('text-primary')
+      expect(button).toHaveClass('text-[hsl(var(--primary))]')
       expect(button).toHaveClass('underline-offset-4')
     })
   })
@@ -124,7 +128,7 @@ describe('Button Component', () => {
     it('should render large size correctly', () => {
       render(<Button size="lg">Large Button</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('h-11')
+      expect(button).toHaveClass('h-12')
       expect(button).toHaveClass('px-8')
     })
   })
