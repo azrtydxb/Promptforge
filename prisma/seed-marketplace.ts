@@ -1,4 +1,4 @@
-import { PrismaClient } from '../src/generated/prisma';
+import { PrismaClient, Tag } from '../src/generated/prisma';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -52,7 +52,7 @@ async function main() {
           content: promptData.prompt,
           userId: user.id,
           tags: {
-            connect: tags.map((tag) => ({ id: tag.id })),
+            connect: tags.map((tag: Tag) => ({ id: tag.id })),
           },
         },
       });

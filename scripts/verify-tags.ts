@@ -1,4 +1,4 @@
-import { PrismaClient } from '../src/generated/prisma'
+import { PrismaClient, Tag } from '../src/generated/prisma'
 
 const prisma = new PrismaClient()
 
@@ -31,7 +31,7 @@ async function verifyTags() {
       console.log(`📂 ${category}:`)
       
       for (const tagName of categoryTags) {
-        const tag = tags.find(t => t.name === tagName)
+        const tag = tags.find((t: Tag) => t.name === tagName)
         if (tag) {
           console.log(`  ✅ ${tag.name} - ${tag.description}`)
         } else {
@@ -43,11 +43,11 @@ async function verifyTags() {
     
     // Show any extra tags not in our categories
     const expectedTags = Object.values(categories).flat()
-    const extraTags = tags.filter(tag => !expectedTags.includes(tag.name))
-    
+    const extraTags = tags.filter((tag: Tag) => !expectedTags.includes(tag.name))
+
     if (extraTags.length > 0) {
       console.log('📋 Additional tags:')
-      extraTags.forEach(tag => {
+      extraTags.forEach((tag: Tag) => {
         console.log(`  📌 ${tag.name} - ${tag.description}`)
       })
     }
