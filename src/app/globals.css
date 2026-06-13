@@ -50,6 +50,26 @@
   --color-business-surface: var(--sp-business-surface);
   --color-business-border: var(--sp-business-border);
   --color-star: var(--sp-star);
+
+  /* shadcn/ui semantic colors — required so Button/Input/Dialog/etc. compile under v4.
+     primary + ring map to the Structured Pro indigo; the rest reuse the existing HSL vars. */
+  --color-primary: var(--sp-accent-500);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: var(--sp-accent-500);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
 }
 
 @layer utilities {

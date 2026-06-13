@@ -153,7 +153,7 @@ export function PromptFilters({
   };
 
   return (
-    <div className="space-y-3 p-4 bg-white border border-border rounded-lg shadow-[var(--box-shadow)]">
+    <div className="space-y-3 rounded-[11px] border border-line-200 bg-surface-card p-3">
       {/* Main horizontal bar with search inputs and buttons */}
       <div className="flex items-center gap-4">
         {/* Search Input */}
