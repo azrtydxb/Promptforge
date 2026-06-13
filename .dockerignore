@@ -73,6 +73,7 @@ docker-compose*.yml
 # Scripts (if not needed at runtime)
 scripts/
 
-# Prisma migrations (only keep schema in final image)
+# Prisma migrations (only keep schema in final image).
+# seed.ts is kept in the build context so the :migrate image (builder stage) can run it;
+# the distroless runtime image copies only schema.prisma, so seed.ts is never shipped.
 prisma/migrations/
-prisma/seed.ts
