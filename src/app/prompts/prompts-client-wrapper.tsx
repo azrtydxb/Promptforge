@@ -2,14 +2,8 @@
 
 import { useState, useEffect, useCallback, useTransition, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { FolderSidebar } from "@/components/folders/folder-sidebar";
-import { TagSidebar } from "@/components/tags/tag-sidebar";
 import { PromptList } from "@/components/prompts/prompt-list";
-import { PromptFilters } from "@/components/prompts/prompt-filters";
-import { ResizablePanels } from "@/components/ui/resizable-panels";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Folder, Tag, FileText, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, Plus, Upload, Trash2, FolderInput, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +16,8 @@ import {
   movePromptWithCache,
   deletePromptWithCache,
 } from "@/app/actions/prompt.actions.cached";
+import { importPrompts } from "@/app/actions/prompt-export-import.actions";
+import { cn } from "@/lib/utils";
 import type { PromptGridItem } from "@/components/prompts/prompt-grid";
 
 interface PromptsClientWrapperProps {
@@ -35,31 +31,10 @@ interface PromptsClientWrapperProps {
   initialSelectedTagIds: string[];
 }
 
-interface SelectedFolder {
-  id: string | null;
-  name: string;
-}
+type FolderTreeNode = { id: string; name: string; children?: FolderTreeNode[] };
+interface MoveFolderOption { id: string | null; label: string; }
 
-interface SelectedTag {
-  id: string | null;
-  name: string;
-}
-
-type FolderTreeNode = {
-  id: string;
-  name: string;
-  children?: FolderTreeNode[];
-};
-
-interface MoveFolderOption {
-  id: string | null;
-  label: string;
-}
-
-function flattenFolderTree(
-  nodes: FolderTreeNode[],
-  depth = 0
-): MoveFolderOption[] {
+function flattenFolderTree(nodes: FolderTreeNode[], depth = 0): MoveFolderOption[] {
   const indent = depth > 0 ? `${"  ".repeat(depth)}- ` : "";
   return nodes.flatMap((node) => [
     { id: node.id, label: `${indent}${node.name}` },
@@ -67,335 +42,254 @@ function flattenFolderTree(
   ]);
 }
 
+const SORTS = ["Recently used", "Recently updated", "Most used", "A–Z"];
+
 export function PromptsClientWrapper({
   initialPrompts,
   folders,
-  tags,
-  initialViewMode,
   initialFolderId,
-  initialTagId,
   initialSearchQuery,
-  initialSelectedTagIds
+  initialSelectedTagIds,
 }: PromptsClientWrapperProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const [viewMode, setViewMode] = useState<'folders' | 'tags'>(initialViewMode);
-  const [selectedFolder, setSelectedFolder] = useState<SelectedFolder>({
-    id: initialFolderId,
-    name: initialFolderId ? folders.find(f => f.id === initialFolderId)?.name || 'Default' : 'Default',
-  });
-  const [selectedTag, setSelectedTag] = useState<SelectedTag>({
-    id: initialTagId,
-    name: initialTagId ? tags.find(t => t.id === initialTagId)?.name || 'All Prompts' : 'All Prompts',
-  });
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(initialFolderId);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(initialSelectedTagIds);
+  const [selectedTagIds] = useState<string[]>(initialSelectedTagIds);
+  const [sort, setSort] = useState(SORTS[0]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedPromptIds, setSelectedPromptIds] = useState<string[]>([]);
   const [moveOptions, setMoveOptions] = useState<MoveFolderOption[]>([]);
-  const [isLoadingFolders, setIsLoadingFolders] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Track if this is the initial render to avoid passing stale initialPrompts
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isInitialRender = useRef(true);
 
-  // Mark as no longer initial render after mount
-  useEffect(() => {
-    isInitialRender.current = false;
-  }, []);
+  useEffect(() => { isInitialRender.current = false; }, []);
 
-  // Update URL when filters change
-  const updateURL = useCallback((updates: Record<string, string | string[] | null>) => {
+  const updateURL = useCallback((updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams);
-
     Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === '') {
-        params.delete(key);
-      } else if (Array.isArray(value)) {
-        if (value.length > 0) {
-          params.set(key, value.join(','));
-        } else {
-          params.delete(key);
-        }
-      } else {
-        params.set(key, value);
-      }
+      if (!value) params.delete(key);
+      else params.set(key, value);
     });
-
-    const queryString = params.toString();
-    const newURL = queryString ? `${pathname}?${queryString}` : pathname;
-
-    startTransition(() => {
-      router.push(newURL);
-    });
+    const qs = params.toString();
+    startTransition(() => router.push(qs ? `${pathname}?${qs}` : pathname));
   }, [pathname, searchParams, router]);
 
-  const handleViewModeChange = useCallback((mode: 'folders' | 'tags') => {
-    setViewMode(mode);
-    localStorage.setItem("promptsViewMode", mode);
-    updateURL({ view: mode });
-  }, [updateURL]);
-
-  const handleFolderSelect = useCallback((folderId: string, folderName: string) => {
-    const newFolder = {
-      id: folderId || null,
-      name: folderName || "Default",
-    };
-    setSelectedFolder(newFolder);
-    localStorage.setItem("selectedFolder", JSON.stringify(newFolder));
-    updateURL({ folderId: folderId || null, tagId: null });
-  }, [updateURL]);
-
-  const handleTagSelect = useCallback((tagId: string | null, tagName: string) => {
-    const newTag = {
-      id: tagId,
-      name: tagName,
-    };
-    setSelectedTag(newTag);
-    localStorage.setItem("selectedTag", JSON.stringify(newTag));
-    updateURL({ tagId: tagId, folderId: null });
-  }, [updateURL]);
-
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query);
-    updateURL({ search: query || null });
-  }, [updateURL]);
-
-  const handleTagsChange = useCallback((tagIds: string[]) => {
-    setSelectedTagIds(tagIds);
-    updateURL({ tags: tagIds });
-  }, [updateURL]);
-
-  const handleImportComplete = useCallback(() => {
-    setRefreshKey((prev) => prev + 1);
-  }, []);
-
-  // Reset selection when view or folder context changes
-  useEffect(() => {
+  const selectFolder = useCallback((id: string | null) => {
+    setSelectedFolderId(id);
     setSelectedPromptIds([]);
-  }, [viewMode, selectedFolder.id]);
+    updateURL({ folderId: id, tagId: null });
+  }, [updateURL]);
 
-  const handleTogglePromptSelection = useCallback((promptId: string) => {
+  const onSearch = useCallback((q: string) => {
+    setSearchQuery(q);
+    updateURL({ search: q || null });
+  }, [updateURL]);
+
+  const toggleSelect = useCallback((promptId: string) => {
     setSelectedPromptIds((prev) =>
-      prev.includes(promptId)
-        ? prev.filter((id) => id !== promptId)
-        : [...prev, promptId]
+      prev.includes(promptId) ? prev.filter((id) => id !== promptId) : [...prev, promptId]
     );
   }, []);
 
-  const handlePromptsLoaded = useCallback((prompts: PromptGridItem[]) => {
+  const onPromptsLoaded = useCallback((prompts: PromptGridItem[]) => {
     if (!selectedPromptIds.length) return;
-    const promptSet = new Set(prompts.map((prompt) => prompt.id));
-    setSelectedPromptIds((prev) => prev.filter((id) => promptSet.has(id)));
+    const set = new Set(prompts.map((p) => p.id));
+    setSelectedPromptIds((prev) => prev.filter((id) => set.has(id)));
   }, [selectedPromptIds.length]);
 
   const loadMoveFolders = useCallback(async () => {
     try {
-      setIsLoadingFolders(true);
-      const folders = await getFolders();
-      const flat = [
-        { id: null, label: "No folder (root)" },
-        ...flattenFolderTree(folders as FolderTreeNode[]),
-      ];
-      setMoveOptions(flat);
-    } catch (error) {
-      console.error("Failed to load folders:", error);
+      const f = await getFolders();
+      setMoveOptions([{ id: null, label: "No folder (root)" }, ...flattenFolderTree(f as FolderTreeNode[])]);
+    } catch {
       toast.error("Couldn't load folders");
-    } finally {
-      setIsLoadingFolders(false);
     }
   }, []);
 
-  const handleMoveSelected = useCallback(
-    async (targetFolderId: string | null, label: string) => {
-      if (!selectedPromptIds.length) return;
-      setIsProcessing(true);
-      try {
-        await Promise.all(
-          selectedPromptIds.map((promptId, index) =>
-            movePromptWithCache(promptId, targetFolderId, index)
-          )
-        );
-        toast.success(`Moved to ${label}.`);
-        setSelectedPromptIds([]);
-        setRefreshKey((prev) => prev + 1);
-      } catch (error) {
-        console.error("Failed to move prompts:", error);
-        toast.error(error instanceof Error ? error.message : "Couldn't move prompts");
-      } finally {
-        setIsProcessing(false);
-      }
-    },
-    [selectedPromptIds]
-  );
-
-  const handleDeleteSelected = useCallback(async () => {
+  const moveSelected = useCallback(async (targetFolderId: string | null, label: string) => {
     if (!selectedPromptIds.length) return;
-    const confirmed = window.confirm(
-      selectedPromptIds.length === 1
-        ? "Delete the selected prompt?"
-        : `Delete the ${selectedPromptIds.length} selected prompts?`
-    );
-    if (!confirmed) return;
-
     setIsProcessing(true);
     try {
-      await Promise.all(selectedPromptIds.map((id) => deletePromptWithCache(id)));
-      toast.success(`${selectedPromptIds.length} prompt${selectedPromptIds.length > 1 ? "s" : ""} removed.`);
+      await Promise.all(selectedPromptIds.map((id, i) => movePromptWithCache(id, targetFolderId, i)));
+      toast.success(`Moved to ${label}.`);
       setSelectedPromptIds([]);
-      setRefreshKey((prev) => prev + 1);
-    } catch (error) {
-      console.error("Failed to delete prompts:", error);
-      toast.error(error instanceof Error ? error.message : "Couldn't delete prompts");
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't move prompts");
     } finally {
       setIsProcessing(false);
     }
   }, [selectedPromptIds]);
 
-  const sidebar = viewMode === "folders" ? (
-    <FolderSidebar onSelectFolder={handleFolderSelect} selectedFolder={selectedFolder} initialFolders={folders} />
-  ) : (
-    <TagSidebar onSelectTag={handleTagSelect} selectedTag={selectedTag} />
-  );
+  const deleteSelected = useCallback(async () => {
+    if (!selectedPromptIds.length) return;
+    if (!window.confirm(`Delete ${selectedPromptIds.length} prompt(s)?`)) return;
+    setIsProcessing(true);
+    try {
+      await Promise.all(selectedPromptIds.map((id) => deletePromptWithCache(id)));
+      toast.success(`${selectedPromptIds.length} removed.`);
+      setSelectedPromptIds([]);
+      setRefreshKey((k) => k + 1);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't delete");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [selectedPromptIds]);
 
-  const promptListProps = viewMode === "folders"
-    ? {
-        folderId: selectedFolder.id || undefined,
-        searchQuery,
-        selectedTagIds,
-      }
-    : {
-        tagId: selectedTag.id || undefined,
-        searchQuery,
-        selectedTagIds: selectedTag.id ? [selectedTag.id] : [],
-      };
+  const onImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      const result = await importPrompts(data, selectedFolderId || undefined);
+      toast.success(`Imported ${result.imported}, skipped ${result.skipped}`);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Import failed");
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }, [selectedFolderId]);
 
+  const topFolders = folders.slice(0, 5);
   const hasSelection = selectedPromptIds.length > 0;
 
   return (
-    <ResizablePanels
-      leftPanel={sidebar}
-      rightPanel={
-        <div className="pb-4 px-4 overflow-x-hidden">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 pt-4">
-            <h1 className="sr-only">Prompts Management</h1>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 max-w-full">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">View by:</span>
-                <Tabs value={viewMode} onValueChange={(value) => handleViewModeChange(value as 'folders' | 'tags')}>
-                  <TabsList>
-                    <TabsTrigger value="folders" className="flex items-center gap-1 sm:gap-2">
-                      <Folder className="h-4 w-4" />
-                      <span className="hidden sm:inline">Folders</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="tags" className="flex items-center gap-1 sm:gap-2">
-                      <Tag className="h-4 w-4" />
-                      <span className="hidden sm:inline">Tags</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-              <span className="font-medium text-sm sm:text-base truncate max-w-full">
-                {viewMode === "folders" ? (
-                  <>Selected: <span className="text-[#546ee5] font-semibold">{selectedFolder.name}</span></>
-                ) : (
-                  <>Selected: <span className="text-[#546ee5] font-semibold">{selectedTag.name}</span></>
-                )}
-              </span>
-            </div>
+    <div className="space-y-4">
+      {/* Page header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-baseline gap-2.5">
+          <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">My Prompts</h1>
+          <span className="text-[12.5px] tabular-nums text-ink-400">
+            {initialPrompts.length} total
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 rounded-[7px] border border-line-200 bg-surface-card px-3 py-2 text-[12.5px] font-[550] text-ink-700 hover:bg-surface-muted"
+          >
+            <Upload className="h-3.5 w-3.5" /> Import
+          </button>
+          <input ref={fileInputRef} type="file" accept=".json" onChange={onImport} className="hidden" />
+          <button
+            onClick={() => router.push(`/prompts/new${selectedFolderId ? `?folderId=${selectedFolderId}` : ""}`)}
+            className="flex items-center gap-1.5 rounded-[7px] bg-accent-500 px-3 py-2 text-[12.5px] font-[550] text-white shadow-[0_1px_2px_rgba(94,106,210,0.35)] hover:bg-[#4F5AC4]"
+          >
+            <Plus className="h-4 w-4" /> New prompt
+          </button>
+        </div>
+      </div>
 
-            {viewMode === "folders" && (
-              <div className="flex items-center gap-2">
-                {hasSelection && (
-                  <span className="text-sm text-muted-foreground">
-                    {selectedPromptIds.length} selected
-                  </span>
-                )}
-                <DropdownMenu
-                  onOpenChange={(open) => {
-                    if (open) {
-                      void loadMoveFolders();
-                    }
-                  }}
-                >
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      disabled={!hasSelection || isProcessing}
-                      className="flex items-center gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Move
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="max-h-64 overflow-y-auto border border-border shadow-lg bg-[hsl(var(--popover))] text-popover-foreground"
-                  >
-                    {isLoadingFolders ? (
-                      <DropdownMenuItem disabled>Loading folders...</DropdownMenuItem>
-                    ) : (
-                      moveOptions.map((option) => (
-                        <DropdownMenuItem
-                          key={option.id ?? "root"}
-                          onClick={() => handleMoveSelected(option.id, option.label)}
-                        >
-                          {option.label}
-                        </DropdownMenuItem>
-                      ))
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button
-                  variant="destructive"
-                  onClick={handleDeleteSelected}
-                  disabled={!hasSelection || isProcessing}
-                  className="flex items-center gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <div className="mb-6">
-            <PromptFilters
-              onSearchChange={handleSearchChange}
-              onTagsChange={handleTagsChange}
-              searchValue={searchQuery}
-              selectedTagIds={selectedTagIds}
-              onNewPrompt={() => {
-                if (viewMode === "folders") {
-                  router.push(`/prompts/new?folderId=${selectedFolder.id || ""}`);
-                } else {
-                  const url = selectedTag.id
-                    ? `/prompts/new?tags=${encodeURIComponent(selectedTag.name)}`
-                    : "/prompts/new";
-                  router.push(url);
-                }
-              }}
-              folderId={selectedFolder.id || undefined}
-              onImportComplete={handleImportComplete}
-            />
-          </div>
-
-          <PromptList
-            key={`${viewMode}-${selectedFolder.id ?? "root"}-${refreshKey}`}
-            selectedPromptIds={selectedPromptIds}
-            onToggleSelect={handleTogglePromptSelection}
-            onPromptsLoaded={handlePromptsLoaded}
-            prompts={isInitialRender.current ? initialPrompts : undefined}
-            {...promptListProps}
+      {/* Toolbar: search + filter pills + sort */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+          <input
+            value={searchQuery}
+            onChange={(e) => onSearch(e.target.value)}
+            placeholder={`Search ${initialPrompts.length} prompts…`}
+            className="h-9 w-full rounded-[7px] border border-line-200 bg-surface-muted pl-9 pr-3 text-[13px] text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
           />
         </div>
-      }
-      defaultLeftWidth={280}
-      minLeftWidth={200}
-      maxLeftWidth={500}
-    />
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <FilterPill active={selectedFolderId === null} onClick={() => selectFolder(null)}>
+            All
+          </FilterPill>
+          {topFolders.map((f) => (
+            <FilterPill key={f.id} active={selectedFolderId === f.id} onClick={() => selectFolder(f.id)}>
+              {f.name}
+            </FilterPill>
+          ))}
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger className="ml-auto flex items-center gap-1.5 rounded-[7px] border border-line-200 bg-surface-card px-3 py-2 text-[12px] font-[500] text-ink-600 hover:bg-surface-muted">
+            Sort: {sort} <ChevronDown className="h-3.5 w-3.5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {SORTS.map((s) => (
+              <DropdownMenuItem key={s} onClick={() => setSort(s)}>{s}</DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Bulk selection bar */}
+      {hasSelection && (
+        <div className="flex items-center gap-2 rounded-[9px] border border-accent-border bg-accent-100 px-3 py-2">
+          <span className="text-[12.5px] font-[550] text-accent-700">
+            {selectedPromptIds.length} selected
+          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <DropdownMenu onOpenChange={(o) => o && loadMoveFolders()}>
+              <DropdownMenuTrigger
+                disabled={isProcessing}
+                className="flex items-center gap-1.5 rounded-[7px] border border-line-200 bg-surface-card px-2.5 py-1.5 text-[12px] font-[550] text-ink-700 hover:bg-surface-muted"
+              >
+                <FolderInput className="h-3.5 w-3.5" /> Move
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="max-h-64 overflow-y-auto">
+                {moveOptions.map((o) => (
+                  <DropdownMenuItem key={o.id ?? "root"} onClick={() => moveSelected(o.id, o.label)}>
+                    {o.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button
+              onClick={deleteSelected}
+              disabled={isProcessing}
+              className="flex items-center gap-1.5 rounded-[7px] border border-danger-surface bg-surface-card px-2.5 py-1.5 text-[12px] font-[550] text-danger hover:bg-danger-surface"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Delete
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Grid */}
+      <PromptList
+        key={`${selectedFolderId ?? "root"}-${refreshKey}`}
+        selectedPromptIds={selectedPromptIds}
+        onToggleSelect={toggleSelect}
+        onPromptsLoaded={onPromptsLoaded}
+        prompts={isInitialRender.current ? initialPrompts : undefined}
+        folderId={selectedFolderId || undefined}
+        searchQuery={searchQuery}
+        selectedTagIds={selectedTagIds}
+      />
+    </div>
+  );
+}
+
+function FilterPill({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "rounded-full px-3 py-1.5 text-[12px] font-[500] transition-colors",
+        active
+          ? "bg-accent-500 text-white"
+          : "border border-line-200 bg-surface-card text-ink-600 hover:bg-surface-muted"
+      )}
+    >
+      {children}
+    </button>
   );
 }
