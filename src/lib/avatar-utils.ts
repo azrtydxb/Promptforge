@@ -6,6 +6,13 @@ import crypto from 'crypto';
 
 export type AvatarType = 'INITIALS' | 'GRAVATAR' | 'UPLOAD';
 
+/** Structured Pro: soft indigo fill for other users' initials avatars. */
+export const OTHER_AVATAR_BG = '#DFE2F6';
+export const OTHER_AVATAR_FG = '#3F49B8';
+/** Structured Pro: indigo gradient for the current user's avatar. */
+export const CURRENT_USER_AVATAR_GRADIENT = 'linear-gradient(135deg,#5E6AD2,#8B93E0)';
+export const CURRENT_USER_AVATAR_FG = '#FFFFFF';
+
 /**
  * Generates a Gravatar URL for the given email
  */

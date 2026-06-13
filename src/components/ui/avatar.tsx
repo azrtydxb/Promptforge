@@ -2,7 +2,14 @@
 
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import { getAvatarUrl, getDisplayInitials, getInitialsBackgroundColor } from '@/lib/avatar-utils';
+import {
+  getAvatarUrl,
+  getDisplayInitials,
+  OTHER_AVATAR_BG,
+  OTHER_AVATAR_FG,
+  CURRENT_USER_AVATAR_GRADIENT,
+  CURRENT_USER_AVATAR_FG,
+} from '@/lib/avatar-utils';
 import { useState } from 'react';
 
 export interface AvatarUser {
@@ -20,6 +27,7 @@ interface AvatarProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   className?: string;
   fallbackClassName?: string;
+  isCurrentUser?: boolean;
 }
 
 const sizeClasses = {
@@ -38,14 +46,17 @@ const sizePx = {
   '2xl': 80,
 };
 
-export function Avatar({ user, size = 'md', className, fallbackClassName }: AvatarProps) {
+export function Avatar({ user, size = 'md', className, fallbackClassName, isCurrentUser = false }: AvatarProps) {
   const [imageError, setImageError] = useState(false);
   const avatarUrl = getAvatarUrl(user, sizePx[size]);
   const initials = getDisplayInitials(user);
-  const backgroundColor = getInitialsBackgroundColor(user.id);
 
   const shouldShowImage = avatarUrl && !imageError;
   const shouldShowInitials = !shouldShowImage;
+
+  const fallbackStyle = isCurrentUser
+    ? { background: CURRENT_USER_AVATAR_GRADIENT, color: CURRENT_USER_AVATAR_FG }
+    : { backgroundColor: OTHER_AVATAR_BG, color: OTHER_AVATAR_FG };
 
   return (
     <div
@@ -64,17 +75,18 @@ export function Avatar({ user, size = 'md', className, fallbackClassName }: Avat
           onError={() => setImageError(true)}
         />
       )}
-      
+
       {shouldShowInitials && (
-        <div
+        <span
+          data-avatar
+          style={fallbackStyle}
           className={cn(
-            'w-full h-full flex items-center justify-center text-white font-medium',
+            'flex h-full w-full items-center justify-center font-semibold select-none',
             fallbackClassName
           )}
-          style={{ backgroundColor }}
         >
           {initials}
-        </div>
+        </span>
       )}
     </div>
   );
