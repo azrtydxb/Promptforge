@@ -79,32 +79,9 @@ export function EmptyState({
 
   const sizes = sizeClasses[size];
 
-  // Get gradient classes based on type - using full strings for Tailwind JIT
-  const getGlowClass = () => {
-    switch (type) {
-      case "noData": return "bg-gradient-to-r from-blue-500 to-purple-600";
-      case "noResults": return "bg-gradient-to-r from-purple-500 to-pink-600";
-      case "noFolders": return "bg-gradient-to-r from-emerald-500 to-teal-600";
-      case "noTags": return "bg-gradient-to-r from-amber-500 to-orange-600";
-      case "notFound": return "bg-gradient-to-r from-rose-500 to-red-600";
-      case "error": return "bg-gradient-to-r from-red-500 to-orange-600";
-      case "offline": return "bg-gradient-to-r from-gray-500 to-slate-600";
-      default: return "bg-gradient-to-r from-blue-500 to-purple-600";
-    }
-  };
-
-  const getIconBgClass = () => {
-    switch (type) {
-      case "noData": return "bg-gradient-to-br from-blue-500 to-purple-600";
-      case "noResults": return "bg-gradient-to-br from-purple-500 to-pink-600";
-      case "noFolders": return "bg-gradient-to-br from-emerald-500 to-teal-600";
-      case "noTags": return "bg-gradient-to-br from-amber-500 to-orange-600";
-      case "notFound": return "bg-gradient-to-br from-rose-500 to-red-600";
-      case "error": return "bg-gradient-to-br from-red-500 to-orange-600";
-      case "offline": return "bg-gradient-to-br from-gray-500 to-slate-600";
-      default: return "bg-gradient-to-br from-blue-500 to-purple-600";
-    }
-  };
+  // Structured Pro: calm accent tile (no per-type gradients).
+  const getGlowClass = () => "bg-accent-400";
+  const getIconBgClass = () => "bg-accent-100";
 
   return (
     <div
@@ -125,14 +102,13 @@ export function EmptyState({
 
         {/* Icon container */}
         <div className={cn(
-          "relative rounded-full p-5 shadow-lg",
+          "relative rounded-full p-5",
           getIconBgClass(),
-          "animate-in fade-in zoom-in duration-500",
-          "hover:scale-110 transition-transform duration-300"
+          "animate-in fade-in zoom-in duration-500"
         )}>
           <Icon className={cn(
             sizes.icon,
-            "text-white"
+            "text-accent-500"
           )} />
         </div>
       </div>
@@ -161,16 +137,12 @@ export function EmptyState({
           "animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300"
         )}>
           {actions.map((action, index) => {
-            const isDefaultVariant = action.variant === "default" || action.variant === "primary" || !action.variant;
             return (
               <Button
                 key={index}
                 variant={action.variant === "primary" ? "default" : action.variant}
                 onClick={action.onClick}
-                className={cn(
-                  sizes.button,
-                  isDefaultVariant && "bg-gradient-to-r from-[#6379c3] to-[#546ee5] hover:from-[#546ee5] hover:to-[#6379c3] text-white border-0"
-                )}
+                className={cn(sizes.button)}
               >
                 {action.label}
               </Button>
