@@ -1,176 +1,165 @@
 "use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import * as React from "react"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
-  Home,
+  LayoutDashboard,
   FileText,
-  Tag,
-  Zap,
-  Shield,
   Heart,
-  Layout,
-  Share2,
-  UsersRound,
-} from "lucide-react"
-import { useSidebar } from "@/components/providers/sidebar-provider"
-import { cn } from "@/lib/utils"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
+  LayoutTemplate,
+  Store,
+  Users,
+  Tag,
+  Shield,
+  ArrowUpRight,
+} from "lucide-react";
+import { Avatar, type AvatarUser } from "@/components/ui/avatar";
+import type { Plan } from "@/lib/plan";
+import { cn } from "@/lib/utils";
 
-interface SidebarClientProps {
-  isAdmin?: boolean;
+interface NavItem {
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  count?: number;
+  /** Minimum plan required to see this item. */
+  requiresTeam?: boolean;
 }
 
-const getNavigationItems = (isAdmin: boolean) => [
-  {
-    href: "/dashboard",
-    icon: Home,
-    label: "Dashboard",
-    description: "Overview and analytics"
-  },
-  {
-    href: "/prompts",
-    icon: FileText,
-    label: "My Prompts",
-    description: "Manage your prompts"
-  },
-  {
-    href: "/favorites",
-    icon: Heart,
-    label: "Favorites",
-    description: "Your favorite prompts"
-  },
-  {
-    href: "/templates",
-    icon: Layout,
-    label: "Templates",
-    description: "Pre-built prompt templates"
-  },
-  {
-    href: "/shared-prompts",
-    icon: Share2,
-    label: "Shared Prompts",
-    description: "Collaborative workspace"
-  },
-  {
-    href: "/teams",
-    icon: UsersRound,
-    label: "Teams",
-    description: "Manage your teams"
-  },
-  {
-    href: "/tags",
-    icon: Tag,
-    label: "Tags",
-    description: "Organize by categories"
-  },
-  ...(isAdmin ? [{
-    href: "/admin",
-    icon: Shield,
-    label: "Admin",
-    description: "Admin dashboard"
-  }] : [])
-]
+export interface SidebarClientProps {
+  user: AvatarUser;
+  userName: string;
+  isAdmin: boolean;
+  plan: Plan;
+  roleLabel: string;
+  counts: { prompts: number; favorites: number };
+}
 
-export function SidebarClient({ isAdmin = false }: SidebarClientProps) {
-  const pathname = usePathname()
-  const navigationItems = getNavigationItems(isAdmin)
-  const { isCollapsed, setIsCollapsed } = useSidebar()
+export function SidebarClient({
+  user,
+  userName,
+  isAdmin,
+  plan,
+  roleLabel,
+  counts,
+}: SidebarClientProps) {
+  const pathname = usePathname();
 
-  // Set sidebar to expanded on mount
-  React.useEffect(() => {
-    setIsCollapsed(false)
-  }, [setIsCollapsed])
+  const items: NavItem[] = [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { href: "/prompts", icon: FileText, label: "My Prompts", count: counts.prompts },
+    { href: "/favorites", icon: Heart, label: "Favorites", count: counts.favorites },
+    { href: "/templates", icon: LayoutTemplate, label: "Templates" },
+    { href: "/shared-prompts", icon: Store, label: "Prompt Market" },
+    { href: "/teams", icon: Users, label: "Teams", requiresTeam: true },
+    { href: "/tags", icon: Tag, label: "Tags" },
+  ];
+
+  const visible = items.filter((i) => !(i.requiresTeam && plan === "FREE"));
 
   return (
     <aside
-      className={cn(
-        "fixed left-0 top-0 bottom-0 hidden border-r border-border bg-[hsl(var(--menu-bg))] md:block overflow-hidden z-30 transition-all duration-300",
-        isCollapsed ? "w-[70px]" : "w-[260px]"
-      )}
+      className="fixed left-0 top-0 bottom-0 z-30 hidden w-[216px] flex-col bg-rail-bg md:flex"
       aria-label="Main navigation"
-      role="navigation"
     >
-      <div className="flex h-full max-h-screen flex-col">
-        {/* Logo Section */}
-        <div className="flex h-[var(--topbar-height)] items-center px-4 bg-[hsl(var(--menu-bg))]">
+      {/* Logo header */}
+      <div className="flex h-[54px] flex-shrink-0 items-center gap-2.5 border-b border-rail-border px-3.5">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
+          <span className="flex h-[23px] w-[23px] items-center justify-center rounded-[6px] bg-accent-500">
+            <span className="block h-[9px] w-[9px] rotate-45 rounded-[1.5px] bg-white" />
+          </span>
+          <span className="text-[13.5px] font-[640] tracking-tight text-[#EEF0F3]">
+            Promptforge
+          </span>
+        </Link>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 space-y-px overflow-y-auto p-2.5">
+        {visible.map((item) => {
+          const Icon = item.icon;
+          const active =
+            pathname === item.href || pathname.startsWith(item.href + "/");
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-2.5 rounded-[6px] px-2.5 py-[7px] text-[12.5px] transition-colors",
+                active
+                  ? "bg-accent-500 font-[550] text-white"
+                  : "text-rail-text hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <Icon className="h-[15px] w-[15px] flex-shrink-0" />
+              <span className="flex-1 truncate">{item.label}</span>
+              {typeof item.count === "number" && (
+                <span
+                  className={cn(
+                    "tabular-nums text-[11px]",
+                    active ? "text-[#CDD2F5]" : "text-rail-text-dim"
+                  )}
+                >
+                  {item.count}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+
+        {isAdmin && (
+          <>
+            <div className="my-2 border-t border-rail-border" />
+            <Link
+              href="/admin"
+              aria-current={
+                pathname === "/admin" || pathname.startsWith("/admin/")
+                  ? "page"
+                  : undefined
+              }
+              className={cn(
+                "flex items-center gap-2.5 rounded-[6px] px-2.5 py-[7px] text-[12.5px] transition-colors",
+                pathname === "/admin" || pathname.startsWith("/admin/")
+                  ? "bg-accent-500 font-[550] text-white"
+                  : "text-rail-text hover:bg-white/5 hover:text-white"
+              )}
+            >
+              <Shield className="h-[15px] w-[15px] flex-shrink-0" />
+              <span className="flex-1 truncate">Admin</span>
+            </Link>
+          </>
+        )}
+      </nav>
+
+      {/* Upgrade promo (free users) */}
+      {plan === "FREE" && (
+        <div className="px-2.5 pb-2.5">
           <Link
-            href="/dashboard"
-            className="flex items-center gap-3 font-semibold group transition-all duration-200"
+            href="/teams"
+            className="block rounded-[10px] bg-gradient-to-br from-accent-500 to-accent-400 p-3 text-white transition-opacity hover:opacity-95"
           >
-            <div className="p-2 rounded bg-[hsl(var(--primary))] shadow-sm group-hover:shadow-md transition-all duration-200 flex-shrink-0">
-              <Zap className="h-5 w-5 text-white" aria-hidden="true" />
+            <div className="flex items-center justify-between">
+              <span className="text-[12.5px] font-[600]">Upgrade to Teams</span>
+              <ArrowUpRight className="h-3.5 w-3.5" />
             </div>
-            <span className={cn(
-              "text-lg font-semibold text-white transition-all duration-300 overflow-hidden whitespace-nowrap",
-              isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-            )}>
-              PromptForge
-            </span>
+            <p className="mt-1 text-[11px] leading-snug text-white/80">
+              Share prompts, add seats &amp; roles.
+            </p>
           </Link>
         </div>
-        
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto">
-          <nav className="px-4 py-6">
-            {navigationItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-              const Icon = item.icon
+      )}
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group relative mb-1",
-                    isActive
-                      ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-white shadow-md border-l-4 border-l-primary'
-                      : 'text-[hsl(var(--menu-item-color))] hover:text-white hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:shadow-sm hover:border-l-4 hover:border-l-primary/50'
-                  )}
-                  title={isCollapsed ? item.label : undefined}
-                >
-                  <div className={cn(
-                    "p-1.5 rounded-md transition-all duration-200",
-                    isActive
-                      ? 'bg-gradient-to-br from-blue-500 to-purple-600 shadow-md'
-                      : 'bg-white/5 group-hover:bg-gradient-to-br group-hover:from-blue-500/80 group-hover:to-purple-600/80'
-                  )}>
-                    <Icon className="h-4 w-4 text-white flex-shrink-0" />
-                  </div>
-                  <span className={cn(
-                    "font-medium transition-all duration-300 overflow-hidden whitespace-nowrap",
-                    isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100",
-                    isActive && "font-semibold"
-                  )}>
-                    {item.label}
-                  </span>
-
-                  {/* Subtle glow effect for active item */}
-                  {isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent rounded-lg opacity-50 pointer-events-none" />
-                  )}
-                </Link>
-              )
-            })}
-          </nav>
-        </div>
-
-        {/* Theme Toggle at bottom */}
-        <div className="border-t border-border/50 p-4">
-          <div className={cn(
-            "flex items-center gap-3",
-            isCollapsed ? "justify-center" : "justify-start"
-          )}>
-            <ThemeToggle />
-            {!isCollapsed && (
-              <span className="text-sm text-[hsl(var(--menu-item-color))] transition-opacity duration-300">
-                Theme
-              </span>
-            )}
+      {/* Footer */}
+      <div className="flex items-center gap-2.5 border-t border-rail-border px-3.5 py-3">
+        <Avatar user={user} isCurrentUser size="sm" />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[12.5px] font-[550] text-[#EEF0F3]">
+            {userName}
           </div>
+          <div className="truncate text-[11px] text-rail-text-dim">{roleLabel}</div>
         </div>
       </div>
     </aside>
-  )
+  );
 }

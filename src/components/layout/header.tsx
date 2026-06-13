@@ -1,90 +1,78 @@
 "use client";
 
-import Link from "next/link"
+import Link from "next/link";
 import {
+  LayoutDashboard,
   FileText,
-  Home,
-  Menu,
+  Heart,
+  LayoutTemplate,
+  Store,
   Tag,
-  Zap,
-  Star,
-} from "lucide-react"
+  Menu,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { AuthUserButton } from "../auth/user-button"
-import { TeamSwitcher } from "@/components/teams/team-switcher"
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AuthUserButton } from "../auth/user-button";
+import { TeamSwitcher } from "@/components/teams/team-switcher";
+
+const mobileNav = [
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/prompts", icon: FileText, label: "My Prompts" },
+  { href: "/favorites", icon: Heart, label: "Favorites" },
+  { href: "/templates", icon: LayoutTemplate, label: "Templates" },
+  { href: "/shared-prompts", icon: Store, label: "Prompt Market" },
+  { href: "/tags", icon: Tag, label: "Tags" },
+];
 
 export function Header() {
   return (
-    <header className="flex h-[var(--topbar-height)] items-center gap-4 border-b bg-background px-6 shadow-sm sticky top-0 z-50" role="banner">
+    <header
+      className="sticky top-0 z-40 flex h-[54px] items-center gap-3.5 border-b border-line-200 bg-surface-card px-5"
+      role="banner"
+    >
       {/* Mobile menu */}
       <Sheet>
         <SheetTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
-            className="shrink-0 md:hidden text-foreground hover:text-[hsl(var(--primary))] transition-colors duration-200"
+            className="shrink-0 text-ink-600 md:hidden"
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="flex flex-col shadow-2xl">
-          <nav id="main-navigation" className="grid gap-2 text-lg font-medium" role="navigation" aria-label="Main navigation">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 text-lg font-semibold text-[hsl(var(--accent))] hover:text-[hsl(var(--accent))] transition-colors duration-200"
-            >
-              <div className="p-1 rounded-md bg-[hsl(var(--primary))]/20">
-                <Zap className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <span>PromptForge</span>
-            </Link>
-            <div className="my-4 h-px bg-gradient-to-r from-transparent via-dell-gray-300 to-transparent" />
-            
-            <Link
-              href="/dashboard"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-[hsl(var(--primary))]/10 transition-all duration-200"
-            >
-              <Home className="h-5 w-5" aria-hidden="true" />
-              Dashboard
-            </Link>
-            <Link
-              href="/prompts"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-[hsl(var(--primary))]/10 transition-all duration-200"
-            >
-              <FileText className="h-5 w-5" aria-hidden="true" />
-              Prompts
-            </Link>
-            <Link
-              href="/favorites"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-[hsl(var(--primary))]/10 transition-all duration-200"
-            >
-              <Star className="h-5 w-5" aria-hidden="true" />
-              Favorites
-            </Link>
-            <Link
-              href="/tags"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-[hsl(var(--accent))] hover:bg-[hsl(var(--primary))]/10 transition-all duration-200"
-            >
-              <Tag className="h-5 w-5" aria-hidden="true" />
-              Tags
-            </Link>
+        <SheetContent side="left" className="flex flex-col">
+          <nav
+            id="main-navigation"
+            className="grid gap-1 pt-4"
+            aria-label="Main navigation"
+          >
+            {mobileNav.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-3 rounded-md px-3 py-2 text-[13px] text-ink-700 transition-colors hover:bg-surface-muted"
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </SheetContent>
       </Sheet>
 
-
-      {/* Center - Team Switcher */}
-      <div className="flex-1 flex justify-center">
+      <div className="flex-1">
         <TeamSwitcher className="max-w-xs" />
       </div>
 
-      {/* Right side items */}
       <div className="flex items-center justify-end gap-3">
         <AuthUserButton />
       </div>
     </header>
-  )
+  );
 }
