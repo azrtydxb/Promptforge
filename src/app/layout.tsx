@@ -51,15 +51,16 @@ export default function RootLayout({
         <GlobalErrorBoundary>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="light"
+            forcedTheme="light"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <AuthProvider>
               <ModalProvider />
               {children}
               <Toaster
-                theme="system"
+                theme="light"
                 toastOptions={{
                   style: {
                     background: 'hsl(var(--card))',

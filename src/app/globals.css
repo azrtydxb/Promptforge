@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Tailwind v4 does NOT auto-load tailwind.config.ts — without this directive the theme
+   (Structured Pro colors + Inter/JetBrains fontFamily) is never compiled into utilities.
+   Path is relative to this CSS file (src/app/globals.css → repo root). */
+@config "../../tailwind.config.ts";
+
 @layer utilities {
   /* Professional Animations */
   @keyframes fade-in {
