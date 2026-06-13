@@ -9,10 +9,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends openssl curl ca-certificates bash libatomic1 && \
     rm -rf /var/lib/apt/lists/*
 
-# Install pnpm
-ENV PNPM_HOME="/root/.local/share/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN curl -fsSL https://get.pnpm.io/install.sh | ENV="/.bashrc" SHELL="$(which bash)" bash -
+# Install pnpm via corepack (bundled with Node) — reliable, no PATH / native-lib issues.
+# Pinned to pnpm 9.x to match pnpm-lock.yaml (lockfileVersion 9.0).
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
