@@ -1,9 +1,56 @@
 @import "tailwindcss";
 
-/* Tailwind v4 does NOT auto-load tailwind.config.ts — without this directive the theme
-   (Structured Pro colors + Inter/JetBrains fontFamily) is never compiled into utilities.
-   Path is relative to this CSS file (src/app/globals.css → repo root). */
-@config "../../tailwind.config.ts";
+/* Tailwind v4 does NOT auto-load tailwind.config.ts (and the legacy v3 plugins in it break
+   v4's @config bridge — "variants is not a function"). So the Structured Pro design tokens
+   are declared here as a v4-native @theme so they actually compile into utilities
+   (bg-accent-500, text-ink-900, bg-rail-bg, font-sans = Inter, etc.). Values reference the
+   --sp-* custom properties defined in :root below (single source of truth). */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --color-accent: var(--sp-accent-500);
+  --color-accent-100: var(--sp-accent-100);
+  --color-accent-150: var(--sp-accent-150);
+  --color-accent-200: var(--sp-accent-200);
+  --color-accent-300: var(--sp-accent-300);
+  --color-accent-400: var(--sp-accent-400);
+  --color-accent-500: var(--sp-accent-500);
+  --color-accent-700: var(--sp-accent-700);
+  --color-accent-border: var(--sp-accent-border);
+  --color-accent-foreground: #ffffff;
+
+  --color-ink-900: var(--sp-ink-900);
+  --color-ink-700: var(--sp-ink-700);
+  --color-ink-600: var(--sp-ink-600);
+  --color-ink-400: var(--sp-ink-400);
+  --color-ink-300: var(--sp-ink-300);
+
+  --color-line-200: var(--sp-line-200);
+  --color-line-150: var(--sp-line-150);
+  --color-line-100: var(--sp-line-100);
+
+  --color-surface-sunken: var(--sp-surface-sunken);
+  --color-surface-app: var(--sp-surface-app);
+  --color-surface-muted: var(--sp-surface-muted);
+  --color-surface-card: var(--sp-surface-card);
+
+  --color-rail-bg: var(--sp-rail-bg);
+  --color-rail-border: var(--sp-rail-border);
+  --color-rail-text: var(--sp-rail-text);
+  --color-rail-text-dim: var(--sp-rail-text-dim);
+
+  --color-success: var(--sp-success);
+  --color-success-surface: var(--sp-success-surface);
+  --color-warning: var(--sp-warning);
+  --color-warning-surface: var(--sp-warning-surface);
+  --color-danger: var(--sp-danger);
+  --color-danger-surface: var(--sp-danger-surface);
+  --color-business: var(--sp-business);
+  --color-business-surface: var(--sp-business-surface);
+  --color-business-border: var(--sp-business-border);
+  --color-star: var(--sp-star);
+}
 
 @layer utilities {
   /* Professional Animations */
