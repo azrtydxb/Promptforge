@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install OpenSSL for Prisma, curl for pnpm, ca-certificates, and clean up
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends openssl curl ca-certificates && \
+    apt-get install -y --no-install-recommends openssl curl ca-certificates libatomic1 && \
     rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
