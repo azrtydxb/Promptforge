@@ -27,8 +27,14 @@ COPY . .
 # Generate Prisma Client
 RUN pnpm prisma generate
 
-# Build Next.js (standalone mode already configured)
+# Build Next.js (standalone mode already configured).
+# A placeholder DATABASE_URL is set ONLY for the build: Next.js constructs the Prisma
+# client while collecting page data, and the client constructor requires a connection
+# string to be present. No queries run at build time (dynamic routes). The real
+# DATABASE_URL is injected at runtime from Secrets Manager via the ECS task definition.
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public"
+ENV NEXTAUTH_SECRET="build-time-placeholder-not-used-at-runtime"
 RUN pnpm build
 
 # Clean build artifacts
