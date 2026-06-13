@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Trash2, Tag as TagIcon } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, Tag as TagIcon } from "lucide-react";
 import { useModal, type TagData } from "@/hooks/use-modal-store";
-import { sectionSpacing } from "@/lib/styles";
 
 interface Tag {
   id: string;
@@ -22,6 +18,15 @@ interface TagsManagementProps {
   initialTags: Tag[];
 }
 
+// Deterministic pill color per tag (Structured Pro palette).
+const PILL_COLORS = [
+  { bg: "#EEF0FB", fg: "#3F49B8" },
+  { bg: "#E8F4EE", fg: "#3A9D6E" },
+  { bg: "#FBF2E6", fg: "#D98C3F" },
+  { bg: "#F1ECFB", fg: "#7A5CD0" },
+  { bg: "#F0D6D8", fg: "#CD5B62" },
+];
+
 export function TagsManagement({ initialTags }: TagsManagementProps) {
   const [tags, setTags] = useState(initialTags);
   const { onOpen } = useModal();
@@ -29,10 +34,13 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
   const handleCreateTag = () => {
     onOpen("createTag", {
       onSuccess: (newTag?: TagData | void) => {
-        if (newTag && typeof newTag === 'object') {
-          setTags(prev => [...prev, { ...newTag, createdAt: new Date(), _count: { prompts: 0 } }]);
+        if (newTag && typeof newTag === "object") {
+          setTags((prev) => [
+            ...prev,
+            { ...newTag, createdAt: new Date(), _count: { prompts: 0 } },
+          ]);
         }
-      }
+      },
     });
   };
 
@@ -40,125 +48,128 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
     onOpen("editTag", {
       tag,
       onSuccess: (updatedTag?: TagData | void) => {
-        if (updatedTag && typeof updatedTag === 'object') {
-          setTags(prev => prev.map(t => t.id === updatedTag.id ? { ...t, ...updatedTag } : t));
+        if (updatedTag && typeof updatedTag === "object") {
+          setTags((prev) =>
+            prev.map((t) => (t.id === updatedTag.id ? { ...t, ...updatedTag } : t))
+          );
         }
-      }
+      },
     });
   };
 
   const handleDeleteTag = (tag: Tag) => {
     onOpen("deleteTag", {
       tag,
-      onSuccess: () => {
-        setTags(prev => prev.filter(t => t.id !== tag.id));
-      }
+      onSuccess: () => setTags((prev) => prev.filter((t) => t.id !== tag.id)),
     });
   };
 
   return (
-    <div className={sectionSpacing("pt-4")}>
+    <div className="space-y-4 pt-1">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Your Tags</h2>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">Tags</h1>
+          <p className="text-[12.5px] text-ink-400">
             {tags.length} tag{tags.length !== 1 ? "s" : ""} total
           </p>
         </div>
-        <Button onClick={handleCreateTag} className="flex items-center gap-2">
+        <button
+          onClick={handleCreateTag}
+          className="flex items-center gap-1.5 rounded-[7px] bg-accent-500 px-3 py-2 text-[12.5px] font-[550] text-white shadow-[0_1px_2px_rgba(94,106,210,0.35)] hover:bg-[#4F5AC4]"
+        >
           <Plus className="h-4 w-4" />
-          Create Tag
-        </Button>
+          New tag
+        </button>
       </div>
 
       {tags.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <TagIcon className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No tags yet</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              Create your first tag to start organizing your prompts.
-            </p>
-            <Button onClick={handleCreateTag}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Tag
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col items-center justify-center rounded-[11px] border border-line-200 bg-surface-card py-16">
+          <TagIcon className="mb-3 h-9 w-9 text-ink-300" />
+          <h3 className="text-[14px] font-[620] text-ink-900">No tags yet</h3>
+          <p className="mb-4 mt-1 text-[12.5px] text-ink-400">
+            Create your first tag to organize your prompts.
+          </p>
+          <button
+            onClick={handleCreateTag}
+            className="flex items-center gap-1.5 rounded-[7px] bg-accent-500 px-3 py-2 text-[12.5px] font-[550] text-white"
+          >
+            <Plus className="h-4 w-4" /> New tag
+          </button>
+        </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {tags.map((tag, index) => {
-            // Cycle through gradient colors for visual variety - using full class strings for Tailwind JIT
-            const getIconBgClass = () => {
-              switch (index % 5) {
-                case 0: return "bg-gradient-to-br from-blue-500 to-purple-600";
-                case 1: return "bg-gradient-to-br from-purple-500 to-pink-600";
-                case 2: return "bg-gradient-to-br from-emerald-500 to-teal-600";
-                case 3: return "bg-gradient-to-br from-amber-500 to-orange-600";
-                case 4: return "bg-gradient-to-br from-rose-500 to-red-600";
-                default: return "bg-gradient-to-br from-blue-500 to-purple-600";
-              }
-            };
-
-            const getHoverLineClass = () => {
-              switch (index % 5) {
-                case 0: return "bg-gradient-to-r from-blue-500 to-purple-600";
-                case 1: return "bg-gradient-to-r from-purple-500 to-pink-600";
-                case 2: return "bg-gradient-to-r from-emerald-500 to-teal-600";
-                case 3: return "bg-gradient-to-r from-amber-500 to-orange-600";
-                case 4: return "bg-gradient-to-r from-rose-500 to-red-600";
-                default: return "bg-gradient-to-r from-blue-500 to-purple-600";
-              }
-            };
-
-            return (
-              <Card
-                key={tag.id}
-                className="relative group cursor-pointer border border-border/50 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
-                onClick={() => handleEditTag(tag)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={`p-2 rounded-lg shadow-md ${getIconBgClass()}`}>
-                      <TagIcon className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteTag(tag);
-                        }}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <h3 className="font-semibold text-sm mb-1 truncate">{tag.name}</h3>
-                    {tag.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{tag.description}</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs">
-                    <Badge variant="secondary" className="px-2 py-0.5 font-medium">
-                      {tag._count.prompts} prompt{tag._count.prompts !== 1 ? 's' : ''}
-                    </Badge>
-                    <span className="text-muted-foreground">
-                      {new Date(tag.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
-
-                  {/* Hover indicator line */}
-                  <div className={`absolute bottom-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg ${getHoverLineClass()}`} />
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="overflow-hidden rounded-[11px] border border-line-200 bg-surface-card">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-line-150 text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400">
+                <th className="w-10 px-4 py-2.5">
+                  <input type="checkbox" className="rounded-[4px] border-line-200" aria-label="Select all" />
+                </th>
+                <th className="px-2 py-2.5 text-left font-[600]">Tag</th>
+                <th className="px-2 py-2.5 text-right font-[600]">Prompts</th>
+                <th className="px-2 py-2.5 text-right font-[600]">Shared</th>
+                <th className="px-2 py-2.5 text-right font-[600]">Created</th>
+                <th className="w-12 px-4 py-2.5"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {tags.map((tag, i) => {
+                const c = PILL_COLORS[i % PILL_COLORS.length];
+                return (
+                  <tr
+                    key={tag.id}
+                    className="group border-t border-line-100 hover:bg-surface-muted/60"
+                  >
+                    <td className="px-4 py-2.5">
+                      <input
+                        type="checkbox"
+                        className="rounded-[4px] border-line-200"
+                        aria-label={`Select ${tag.name}`}
+                      />
+                    </td>
+                    <td className="px-2 py-2.5">
+                      <button onClick={() => handleEditTag(tag)} className="inline-flex">
+                        <span
+                          className="rounded-full px-2.5 py-0.5 text-[11px] font-[550]"
+                          style={{ background: c.bg, color: c.fg }}
+                        >
+                          {tag.name}
+                        </span>
+                      </button>
+                    </td>
+                    <td className="px-2 py-2.5 text-right text-[12.5px] tabular-nums text-ink-700">
+                      {tag._count.prompts}
+                    </td>
+                    <td className="px-2 py-2.5 text-right text-[12.5px] tabular-nums text-ink-400">
+                      —
+                    </td>
+                    <td className="px-2 py-2.5 text-right text-[12px] tabular-nums text-ink-400">
+                      {new Date(tag.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          onClick={() => handleDeleteTag(tag)}
+                          aria-label="Delete tag"
+                          className="flex h-7 w-7 items-center justify-center rounded-[6px] text-ink-400 hover:bg-danger-surface hover:text-danger"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          aria-label="More"
+                          className="flex h-7 w-7 items-center justify-center rounded-[6px] text-ink-400 hover:bg-surface-muted hover:text-ink-700"
+                        >
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

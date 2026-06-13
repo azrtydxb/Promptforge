@@ -5,19 +5,15 @@ import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { LoadingButton } from "@/components/ui/loading-button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Zap, Mail, Lock, ArrowRight } from "lucide-react"
+import { Mail, Lock, ArrowRight } from "lucide-react"
 
 export default function SignInPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
+  const [formData, setFormData] = useState({ email: "", password: "" })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,130 +30,144 @@ export default function SignInPage() {
       if (result?.error) {
         setError("Invalid email or password")
       } else {
-        // Wait for session to be updated
         await getSession()
         router.push("/dashboard")
         router.refresh()
       }
     } catch {
-      setError("An error occurred. Please try again.")
+      setError("Something went wrong. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }))
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative bg-gradient-to-b from-[#6379c3] to-[#546ee5]">
-      
-      <div className="w-full max-w-md relative z-10">
-        {/* Logo/Brand Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-white dark:bg-card shadow-[0_2px_0_rgba(0,0,0,0.045)] dark:shadow-none">
-              <Zap className="h-8 w-8 text-[#6379c3]" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white tracking-wide">PromptForge</h1>
-              <p className="text-white/80 text-sm">Craft Your Perfect Prompts</p>
-            </div>
+    <div className="flex min-h-screen bg-surface-card">
+      {/* Brand panel */}
+      <div className="relative hidden w-[46%] flex-col justify-between overflow-hidden bg-[#15171D] p-12 lg:flex">
+        <div
+          className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full opacity-40 blur-3xl"
+          style={{ background: "radial-gradient(circle, #5E6AD2 0%, transparent 70%)" }}
+        />
+        <div
+          className="pointer-events-none absolute -bottom-32 right-0 h-96 w-96 rounded-full opacity-30 blur-3xl"
+          style={{ background: "radial-gradient(circle, #7C87E8 0%, transparent 70%)" }}
+        />
+
+        <div className="relative flex items-center gap-2.5">
+          <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-accent-500">
+            <span className="block h-3 w-3 rotate-45 rounded-[2px] bg-white" />
+          </span>
+          <span className="text-[15px] font-[640] text-[#EEF0F3]">Promptforge</span>
+        </div>
+
+        <div className="relative">
+          <h1 className="max-w-md text-[30px] font-[680] leading-[1.12] tracking-[-0.025em] text-white">
+            Your team&apos;s prompt library, versioned and shared.
+          </h1>
+          <p className="mt-4 max-w-sm text-[13px] leading-relaxed text-rail-text">
+            Create, organize, and version your prompts — then share them privately with your
+            team or publish to the Prompt Market.
+          </p>
+          <div className="mt-10 flex gap-10">
+            {[
+              ["12k+", "shared prompts"],
+              ["3.4k", "teams"],
+              ["99.9%", "uptime"],
+            ].map(([n, l]) => (
+              <div key={l}>
+                <div className="text-[22px] font-[680] tabular-nums text-white">{n}</div>
+                <div className="text-[11px] text-rail-text-dim">{l}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Login Card */}
-        <Card className="bg-white/95 dark:bg-card backdrop-blur-sm border-white/20 dark:border-border shadow-2xl dark:shadow-none">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl text-center text-gray-800 font-semibold">
-              Welcome Back
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700 font-medium">
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    disabled={isLoading}
-                    data-testid="email-input"
-                    className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]/20 shadow-sm"
-                  />
-                </div>
+        <div className="relative text-[11px] text-rail-text-dim">
+          © 2026 Promptforge
+        </div>
+      </div>
+
+      {/* Form panel */}
+      <div className="flex flex-1 items-center justify-center px-6 py-12">
+        <div className="w-full max-w-[360px]">
+          <h2 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">Welcome back</h2>
+          <p className="mt-1 text-[13px] text-ink-600">Sign in to your Promptforge workspace.</p>
+
+          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-[12px] font-[550] text-ink-700">
+                Email Address
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="you@company.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  disabled={isLoading}
+                  data-testid="email-input"
+                  className="h-10 border-line-200 bg-surface-muted pl-9 text-[13px] text-ink-900 placeholder:text-ink-300 focus-visible:ring-accent-500/30"
+                />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700 font-medium">
-                  Password
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    disabled={isLoading}
-                    data-testid="password-input"
-                    className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground focus:border-[hsl(var(--primary))] focus:ring-[hsl(var(--primary))]/20 shadow-sm"
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <div className="bg-[hsl(var(--destructive))]/10 border border-[hsl(var(--destructive))]/20 text-[hsl(var(--destructive))] px-4 py-3 rounded-lg text-sm text-center shadow-sm" data-testid="error-message">
-                  {error}
-                </div>
-              )}
-
-              <LoadingButton
-                type="submit"
-                data-testid="submit-button"
-                className="w-full bg-[#6379c3] hover:bg-[#546ee5] text-white shadow-lg hover:shadow-xl active:scale-[0.98] transition-all duration-200 font-medium py-3 group"
-                loading={isLoading}
-                loadingText="Signing In..."
-              >
-                Sign In
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </LoadingButton>
-            </form>
-
-            <div className="text-center text-sm text-muted-foreground">
-              New to PromptForge?
             </div>
 
-            <div className="text-center">
-              <Link 
-                href="/sign-up" 
-                className="inline-flex items-center gap-2 text-[#6379c3] hover:text-[#546ee5] transition-colors duration-200 font-medium group"
-              >
-                Create an account
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-[12px] font-[550] text-ink-700">
+                Password
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  disabled={isLoading}
+                  data-testid="password-input"
+                  className="h-10 border-line-200 bg-surface-muted pl-9 text-[13px] text-ink-900 placeholder:text-ink-300 focus-visible:ring-accent-500/30"
+                />
+              </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Footer */}
-        <div className="text-center mt-8 text-white/70 text-sm">
-          <p>© 2024 PromptForge. Empowering creative workflows.</p>
+            {error && (
+              <div
+                className="rounded-[8px] border border-danger-surface bg-danger-surface px-3 py-2 text-[12px] text-danger"
+                data-testid="error-message"
+              >
+                {error}
+              </div>
+            )}
+
+            <LoadingButton
+              type="submit"
+              data-testid="submit-button"
+              className="group h-10 w-full bg-accent-500 text-[12.5px] font-[550] text-white shadow-[0_1px_2px_rgba(94,106,210,0.35)] hover:bg-[#4F5AC4]"
+              loading={isLoading}
+              loadingText="Signing in…"
+            >
+              Sign in
+              <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </LoadingButton>
+          </form>
+
+          <p className="mt-6 text-center text-[12.5px] text-ink-600">
+            New to Promptforge?{" "}
+            <Link href="/sign-up" className="font-[550] text-accent-700 hover:text-accent-500">
+              Create an account
+            </Link>
+          </p>
         </div>
       </div>
     </div>
