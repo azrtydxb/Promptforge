@@ -32,8 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={cn("antialiased", inter.variable, jetbrainsMono.variable, "font-sans")}>
+    <html lang="en" suppressHydrationWarning className={cn(inter.variable, jetbrainsMono.variable)}>
+      <body className={cn("antialiased", "font-sans")}>
         <NextTopLoader
           color="#546ee5"
           height={3}
