@@ -46,3 +46,26 @@ describe('Structured Pro design tokens', () => {
     expect(css).toMatch(re);
   });
 });
+
+import config from '../../../tailwind.config';
+
+describe('Tailwind exposes Structured Pro tokens', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const colors = (config.theme as any).extend.colors as Record<string, unknown>;
+
+  it('maps the accent ramp', () => {
+    expect(colors.accent).toMatchObject({
+      500: 'var(--sp-accent-500)',
+      700: 'var(--sp-accent-700)',
+      100: 'var(--sp-accent-100)',
+    });
+  });
+
+  it('maps ink, line, surface, rail and semantic groups', () => {
+    expect(colors.ink).toMatchObject({ 900: 'var(--sp-ink-900)' });
+    expect(colors.line).toMatchObject({ 200: 'var(--sp-line-200)' });
+    expect(colors.surface).toMatchObject({ card: 'var(--sp-surface-card)' });
+    expect(colors.rail).toMatchObject({ bg: 'var(--sp-rail-bg)' });
+    expect(colors.business).toMatchObject({ DEFAULT: 'var(--sp-business)' });
+  });
+});
