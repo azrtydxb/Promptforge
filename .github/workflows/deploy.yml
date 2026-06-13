@@ -40,7 +40,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
+      - name: Build and push (runtime)
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -53,6 +53,21 @@ jobs:
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Builder stage as a separate :migrate image — has pnpm + prisma CLI + tsx + seed
+      # scripts, used by a one-off Fargate task to run `prisma db push` + seed against RDS.
+      - name: Build and push (migrate/builder)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: builder
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:migrate
+          cache-from: type=gha
 
       - name: Image summary
         run: |
