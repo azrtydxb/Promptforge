@@ -136,7 +136,7 @@ export function SidebarClient({
       {plan === "FREE" && (
         <div className="px-2.5 pb-2.5">
           <Link
-            href="/teams"
+            href="/plans"
             className="block rounded-[10px] bg-gradient-to-br from-accent-500 to-accent-400 p-3 text-white transition-opacity hover:opacity-95"
           >
             <div className="flex items-center justify-between">
