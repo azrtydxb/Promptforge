@@ -109,8 +109,8 @@ export const PromptList = ({
         setPrompts(initialPrompts);
         onPromptsLoaded?.(initialPrompts as PromptGridItem[]);
       } else {
-        // Get unassigned prompts (folderId is null)
-        const fetchedPrompts = await getPromptsByFolder();
+        // "All" (no folder selected) — show every prompt, not just unassigned.
+        const fetchedPrompts = await getAllPrompts();
         setPrompts(fetchedPrompts as PromptWithTags[]);
         onPromptsLoaded?.(fetchedPrompts as PromptGridItem[]);
       }

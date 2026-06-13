@@ -19,6 +19,7 @@ interface BasePromptData {
 interface PersonalPromptData extends BasePromptData {
   createdAt: Date;
   updatedAt: Date;
+  usageCount?: number;
   lastUsedAt?: Date | null;
   favoritedAt?: Date | null;
   isFavorited?: boolean;
@@ -201,7 +202,7 @@ export function UnifiedPromptCardClean({
           )}
           {variant === "personal" && (
             <span className="tabular-nums">
-              {((data as PersonalPromptData)._count?.likes ?? 0)} uses
+              {((data as PersonalPromptData).usageCount ?? 0)} uses
             </span>
           )}
         </div>

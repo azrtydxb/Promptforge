@@ -49,7 +49,7 @@ export default async function PromptsPage({ searchParams }: PageProps) {
 
   // Fetch prompts based on view mode
   const initialPrompts = await (viewMode === 'folders'
-    ? (folderId ? getPromptsByFolder(folderId) : getPromptsByFolder())
+    ? (folderId ? getPromptsByFolder(folderId) : getAllPrompts())
     : (tagId ? getPromptsForTag(tagId, tagsData) : getAllPrompts()));
 
   // Serialize folders to remove Date objects and make them client-safe
