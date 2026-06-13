@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Nunito } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ModalProvider } from "@/components/providers/modal-provider";
@@ -11,21 +11,15 @@ import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
-const nunito = Nunito({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-nunito",
-});
-
-// Use system monospace font to avoid Turbopack font loading issues
-const systemMono = {
   variable: "--font-jetbrains-mono",
-  className: "font-mono",
-};
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Prompt Manager",
@@ -39,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("antialiased", inter.className, nunito.variable, systemMono.variable)}>
+      <body className={cn("antialiased", inter.variable, jetbrainsMono.variable, "font-sans")}>
         <NextTopLoader
           color="#546ee5"
           height={3}

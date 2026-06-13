@@ -236,7 +236,8 @@ const config: Config = {
         '2xs': ['0.625rem', { lineHeight: '0.75rem' }],
       },
       fontFamily: {
-        mono: ["var(--font-jetbrains-mono)"],
+        sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       keyframes: {
         "accordion-down": {
