@@ -89,32 +89,6 @@ export function getDisplayInitials(user: {
   return 'U';
 }
 
-/**
- * Gets a consistent background color for initials based on user ID or email
- */
-export function getInitialsBackgroundColor(userId: string): string {
-  const colors = [
-    '#007DB8', // Dell Blue (primary)
-    '#E74C3C', // Red
-    '#3498DB', // Blue
-    '#2ECC71', // Green
-    '#9B59B6', // Purple
-    '#F39C12', // Orange
-    '#1ABC9C', // Teal
-    '#34495E', // Dark Gray
-    '#E67E22', // Dark Orange
-    '#8E44AD', // Dark Purple
-  ];
-  
-  // Use a simple hash to determine color index
-  let hash = 0;
-  for (let i = 0; i < userId.length; i++) {
-    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  
-  const index = Math.abs(hash) % colors.length;
-  return colors[index];
-}
 
 /**
  * Validates if an uploaded file is a valid image

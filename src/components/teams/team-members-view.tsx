@@ -195,7 +195,7 @@ export function TeamMembersView({
                   return (
                     <div key={member.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Avatar 
+                        <Avatar
                           user={{
                             id: member.user.id,
                             name: member.user.name,
@@ -206,6 +206,7 @@ export function TeamMembersView({
                             gravatarEmail: member.user.email
                           }}
                           size="md"
+                          isCurrentUser={isSelf}
                         />
                         <div>
                           <p className="font-medium">

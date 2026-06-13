@@ -79,6 +79,8 @@ export function Avatar({ user, size = 'md', className, fallbackClassName, isCurr
       {shouldShowInitials && (
         <span
           data-avatar
+          role="img"
+          aria-label={user.name || user.username || 'User avatar'}
           style={fallbackStyle}
           className={cn(
             'flex h-full w-full items-center justify-center font-semibold select-none',
