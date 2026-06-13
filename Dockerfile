@@ -4,9 +4,9 @@
 FROM node:20-slim AS builder
 WORKDIR /app
 
-# Install OpenSSL for Prisma, curl for pnpm, ca-certificates, and clean up
+# Install OpenSSL for Prisma, curl + bash for the pnpm install script, ca-certificates
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends openssl curl ca-certificates && \
+    apt-get install -y --no-install-recommends openssl curl ca-certificates bash && \
     rm -rf /var/lib/apt/lists/*
 
 # Install pnpm
