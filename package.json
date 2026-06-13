@@ -19,6 +19,7 @@
     "test:all": "npm run test && npm run test:e2e",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed-marketplace": "tsx prisma/seed-marketplace.ts",
+    "db:seed-mockup": "tsx prisma/seed-mockup.ts",
     "scrape:prompts": "tsx scripts/scrape-prompts.ts",
     "db:verify": "tsx scripts/verify-tags.ts",
     "make-admin": "tsx scripts/make-admin.ts",

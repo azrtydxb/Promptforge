@@ -170,6 +170,9 @@ model Prompt {
   // Marketplace publishing
   sharedPrompt        SharedPrompt?
   order               Int?
+  usageCount          Int               @default(0) // real "uses" counter (incremented on copy/run)
+  averageRating       Float?            @default(0) // personal prompt rating (detail/dashboard)
+  ratingCount         Int               @default(0)
   lastUsedAt          DateTime? // Track when prompt was last accessed/used
   pinnedAt            DateTime? // Track when prompt was pinned
   templateId          String?
@@ -199,6 +202,7 @@ model SharedPrompt {
   title           String
   description     String?
   content         String
+  category        String?            @default("Writing") // Prompt Market category badge
   isPublished     Boolean            @default(false)
   visibility      String             @default("PUBLIC")
   status          String             @default("PENDING")
