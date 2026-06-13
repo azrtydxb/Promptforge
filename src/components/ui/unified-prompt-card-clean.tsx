@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Heart, ArrowRight, Hash } from "lucide-react";
+import { Heart, ArrowRight, Eye, FileText, LayoutTemplate, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { togglePromptLike } from "@/app/actions/likes-comments.actions";
@@ -80,6 +78,12 @@ interface UnifiedPromptCardProps {
   disableLink?: boolean;
 }
 
+const VARIANT_ICON = {
+  personal: FileText,
+  template: LayoutTemplate,
+  shared: Store,
+};
+
 export function UnifiedPromptCardClean({
   variant,
   data,
@@ -91,202 +95,148 @@ export function UnifiedPromptCardClean({
 }: UnifiedPromptCardProps) {
   const [isLiking, setIsLiking] = useState(false);
 
-  // Type guards
   const isTemplate = (d: BasePromptData): d is TemplatePromptData => variant === "template";
   const isShared = (d: BasePromptData): d is SharedPromptData => variant === "shared";
 
-  // Get unified data
   const title = isTemplate(data) ? data.name : data.title;
   const tags = isShared(data) ? data.prompt?.tags : data.tags;
-
-  // Handlers
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (variant === "personal" && onPromptClick) {
-      const target = e.target as HTMLElement;
-      if (target.closest('button') || target.closest('[role="button"]')) {
-        e.preventDefault();
-        return;
-      }
-      onPromptClick(data.id);
-    }
-  };
+  const Icon = VARIANT_ICON[variant];
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
     if (!isShared(data) || isLiking) return;
-    
     setIsLiking(true);
     const newIsLiked = !data.isLiked;
-    
     try {
-      // Use promptId for shared prompts, not the sharedPrompt id
       const result = await togglePromptLike(data.promptId);
-      if (result.success && onLikeToggle) {
-        onLikeToggle(data.id, newIsLiked);
-      }
+      if (result.success && onLikeToggle) onLikeToggle(data.id, newIsLiked);
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error("Error toggling like:", error);
     } finally {
       setIsLiking(false);
     }
   };
 
-  // Card wrapper
-  const CardWrapper = ({ children }: { children: React.ReactNode }) => {
-    if (variant === "personal") {
-      if (disableLink) {
-        return (
-          <div
-            className="h-full"
-            role={onPromptClick ? "button" : undefined}
-            tabIndex={onPromptClick ? 0 : undefined}
-            onClick={(event) => {
-              if (!onPromptClick) return;
-              event.preventDefault();
-              onPromptClick(data.id);
-            }}
-            onKeyDown={(event) => {
-              if (!onPromptClick) return;
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onPromptClick(data.id);
-              }
-            }}
-          >
-            {children}
-          </div>
-        );
-      }
-      return (
-        <Link
-          href={`/prompts/${data.id}`}
-          onClick={handleCardClick}
-          className="block h-full"
-        >
-          {children}
-        </Link>
-      );
-    }
-    return <div className="h-full">{children}</div>;
-  };
+  const actionLabel =
+    variant === "personal" ? "Open" : variant === "template" ? "Use" : "Copy";
 
   return (
-    <CardWrapper>
-      <Card
-        className={cn(
-          "group rounded-lg border bg-card hover:shadow-lg transition-all duration-200 h-full flex flex-col min-h-[240px] cursor-pointer hover:border-[#546ee5]/30",
-          className
+    <div
+      className={cn(
+        "group flex h-full min-h-[200px] flex-col rounded-[11px] border border-line-200 bg-surface-card p-4 transition-shadow hover:shadow-[0_12px_32px_-12px_rgba(27,29,34,0.22)]",
+        className
+      )}
+    >
+      {/* Header: icon tile + badge */}
+      <div className="mb-2.5 flex items-start justify-between">
+        <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-accent-100">
+          <Icon className="h-[17px] w-[17px] text-accent-500" />
+        </span>
+        {isTemplate(data) && data.category && (
+          <span className="rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-[550] text-accent-700">
+            {data.category}
+          </span>
         )}
+      </div>
+
+      {/* Title */}
+      <Link
+        href={variant === "shared" ? `/shared-prompts/${data.id}` : `/prompts/${data.id}`}
+        onClick={(e) => {
+          if (variant === "personal" && onPromptClick) {
+            e.preventDefault();
+            onPromptClick(data.id);
+          }
+        }}
+        className="text-[14px] font-[620] leading-snug tracking-[-0.01em] text-ink-900 hover:text-accent-700"
       >
-        <CardHeader className="pb-3">
-          <div className="space-y-1">
-            <CardTitle className="text-base font-bold text-foreground line-clamp-2 min-h-[3rem] leading-snug break-words">
-              {title}
-            </CardTitle>
-            
-            {/* Tags display */}
-            {((tags && tags.length > 0) || (isTemplate(data) && data.category)) && (
-              <div className="flex items-start gap-1 mt-2">
-                <Hash className="h-3 w-3 text-muted-foreground flex-shrink-0 mt-0.5" />
-                <div className="flex flex-wrap gap-1 text-xs">
-                  {isTemplate(data) && data.category && (
-                    <span className="text-xs text-muted-foreground">
-                      {data.category}
-                    </span>
-                  )}
-                  {tags && tags.slice(0, 3).map((tag, index) => (
-                    <span key={tag.id} className="text-xs text-muted-foreground">
-                      {index === 0 && isTemplate(data) && data.category ? ", " : ""}
-                      {tag.name}
-                      {index < Math.min(tags.length - 1, 2) && ", "}
-                    </span>
-                  ))}
-                  {tags && tags.length > 3 && (
-                    <span className="text-xs text-muted-foreground">
-                      +{tags.length - 3}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        
-        <CardContent className="flex-1 flex flex-col space-y-3">
-          {/* Description */}
-          {data.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2 flex-1 leading-relaxed">
-              {data.description}
-            </p>
-          )}
-          
-          {/* Variables for templates only */}
-          {isTemplate(data) && data.variables && data.variables.length > 0 && (
-            <div className="text-xs text-muted-foreground">
-              <span className="font-medium">Variables:</span> {data.variables.slice(0, 3).join(", ")}
-              {data.variables.length > 3 && ` +${data.variables.length - 3}`}
-            </div>
-          )}
-          
-          {/* Bottom section with consistent layout */}
-          <div className="flex items-center justify-between mt-auto pt-3 border-t">
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              {/* Only show likes for shared prompts */}
-              {variant === "shared" && isShared(data) && (
-                <button
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all cursor-pointer"
-                  onClick={handleLike}
-                  disabled={isLiking}
-                  type="button"
-                >
-                  <Heart className={cn(
-                    "h-3.5 w-3.5 transition-colors",
-                    data.isLiked ? "fill-[hsl(var(--destructive))] text-[hsl(var(--destructive))]" : "hover:text-[hsl(var(--destructive))]"
-                  )} />
-                  <span>{data.likeCount}</span>
-                </button>
-              )}
-              
-              {/* Author for shared/template */}
-              {isTemplate(data) && data.author && (
-                <span className="text-xs text-muted-foreground">
-                  {data.author.username || 'Anonymous'}
-                </span>
-              )}
-              {isShared(data) && (
-                <span className="text-xs text-muted-foreground">
-                  {data.author.username || data.author.name || 'Anonymous'}
-                </span>
-              )}
-            </div>
-            
-            {/* Action button */}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 px-3 text-xs hover:text-[hsl(var(--primary))] group-hover:text-[hsl(var(--primary))]"
-              onClick={(e) => {
-                if (variant === "template" && isTemplate(data)) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onUseTemplate?.(data);
-                } else if (variant === "shared") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  window.location.href = `/shared-prompts/${data.id}`;
-                }
-              }}
+        <span className="line-clamp-2">{title}</span>
+      </Link>
+
+      {/* Description */}
+      {data.description && (
+        <p className="mt-1.5 line-clamp-2 flex-1 text-[12px] leading-[1.5] text-ink-600">
+          {data.description}
+        </p>
+      )}
+
+      {/* Tags */}
+      {tags && tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1">
+          {tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag.id}
+              className="rounded-full bg-[#F1F2F5] px-2 py-0.5 text-[10px] font-[550] text-ink-600"
             >
-              {variant === "personal" && "Open"}
-              {variant === "template" && "Use Template"}
-              {variant === "shared" && "View"}
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </CardWrapper>
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="mt-3 flex items-center justify-between border-t border-[#F0F1F4] pt-[11px]">
+        <div className="flex items-center gap-2.5 text-[11px] text-ink-400">
+          {isShared(data) && (
+            <>
+              <span className="flex items-center gap-1 tabular-nums">
+                <Eye className="h-3 w-3" /> {data.viewCount}
+              </span>
+              <button
+                type="button"
+                onClick={handleLike}
+                disabled={isLiking}
+                className="flex items-center gap-1 tabular-nums hover:text-danger"
+              >
+                <Heart
+                  className={cn("h-3 w-3", data.isLiked && "fill-danger text-danger")}
+                />
+                {data.likeCount}
+              </button>
+            </>
+          )}
+          {isTemplate(data) && (
+            <span className="tabular-nums">Used {data.usageCount ?? 0} times</span>
+          )}
+          {variant === "personal" && (
+            <span className="tabular-nums">
+              {((data as PersonalPromptData)._count?.likes ?? 0)} uses
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {variant === "personal" && (
+            <Link
+              href={`/prompts/${data.id}`}
+              aria-label="Preview"
+              className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-line-200 text-ink-600 hover:border-accent-500 hover:text-accent-700"
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              if (variant === "template" && isTemplate(data)) {
+                e.preventDefault();
+                e.stopPropagation();
+                onUseTemplate?.(data);
+              } else if (variant === "shared") {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/shared-prompts/${data.id}`;
+              } else if (variant === "personal") {
+                window.location.href = `/prompts/${data.id}`;
+              }
+            }}
+            className="flex items-center gap-1 text-[12px] font-[550] text-accent-700 hover:text-accent-500"
+          >
+            {actionLabel} <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
