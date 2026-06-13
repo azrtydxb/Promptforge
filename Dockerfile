@@ -29,6 +29,11 @@ RUN pnpm prisma generate
 
 # Build Next.js (standalone mode already configured)
 ENV NEXT_TELEMETRY_DISABLED=1
+# Build-only placeholders so route modules that construct PrismaClient / read env
+# at build-time ("collect page data") don't fail. Real values come from ECS secrets.
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+ENV NEXTAUTH_SECRET="build-placeholder"
+ENV NEXTAUTH_URL="http://localhost:3000"
 RUN pnpm build
 
 # Clean build artifacts
