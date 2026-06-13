@@ -2,24 +2,10 @@
 
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  FileText,
-  Star,
-  History,
-  Heart,
-  Calendar,
-  ArrowRight,
-  Clock,
-  Hash,
-  Pin,
-} from "lucide-react";
+import { FileText, ArrowRight, Eye, Pin } from "lucide-react";
 import { FavoriteButton } from "./favorite-button";
 import { PinButton } from "./pin-button";
 import { cn } from "@/lib/utils";
-import { dellCard, dellButton } from "@/lib/styles";
 
 interface PromptCardProps {
   prompt: {
@@ -47,147 +33,106 @@ interface PromptCardProps {
   onPromptClick?: (promptId: string) => void;
 }
 
-export function PromptCard({ 
-  prompt, 
+export function PromptCard({
+  prompt,
   showFavoriteButton = true,
   onPromptClick,
   isFavorited = false,
-  className 
+  className,
 }: PromptCardProps) {
-  const getTimeDisplay = () => {
-    if (prompt.lastUsedAt) {
-      return {
-        icon: Clock,
-        text: `Used ${formatDistanceToNow(new Date(prompt.lastUsedAt))} ago`,
-      };
-    }
-    return {
-      icon: Calendar,
-      text: `Created ${formatDistanceToNow(new Date(prompt.createdAt))} ago`,
-    };
-  };
-
-  const timeDisplay = getTimeDisplay();
-
-  const handleCardClick = () => {
-    if (onPromptClick) {
-      onPromptClick(prompt.id);
-    }
-  };
+  const uses = prompt._count?.likes ?? 0;
+  const versions = prompt._count?.versions ?? 0;
+  const meta =
+    [uses > 0 ? `${uses} uses` : null, versions > 0 ? `v${versions}` : null]
+      .filter(Boolean)
+      .join(" · ") ||
+    `Created ${formatDistanceToNow(new Date(prompt.createdAt))} ago`;
 
   return (
-    <Link 
-      href={`/prompts/${prompt.id}`}
-      onClick={handleCardClick}
-      className="block"
+    <div
+      className={cn(
+        "group flex flex-col rounded-[11px] border bg-surface-card p-4 transition-shadow hover:shadow-[0_12px_32px_-12px_rgba(27,29,34,0.22)]",
+        prompt.isPinned ? "border-accent-500/40" : "border-line-200",
+        className
+      )}
     >
-      <Card
-        className={cn(
-          dellCard('interactive'),
-          "bg-card",
-          prompt.isPinned ? "border-[#546ee5]/40 bg-gradient-to-br from-[#6379c3]/5 to-[#546ee5]/5" : "",
-          className
-        )}
-      >
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-[#6379c3]/20 to-[#546ee5]/20 group-hover:from-[#6379c3]/30 group-hover:to-[#546ee5]/30 transition-all">
-              <FileText className="h-5 w-5 text-[#546ee5]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-semibold text-foreground line-clamp-1">{prompt.title}</CardTitle>
-              {prompt.tags && prompt.tags.length > 0 && (
-                <div className="flex items-center gap-1 mt-1">
-                  <Hash className="h-3 w-3 text-muted-foreground" />
-                  {prompt.tags.slice(0, 2).map((tag) => (
-                    <Badge key={tag.id} variant="secondary" className="text-xs">
-                      {tag.name}
-                    </Badge>
-                  ))}
-                  {prompt.tags.length > 2 && (
-                    <span className="text-xs text-muted-foreground">
-                      +{prompt.tags.length - 2}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            {prompt.isPinned && (
-              <Badge variant="secondary" className="text-xs">
-                <Pin className="h-3 w-3 mr-1" />
-                Pinned
-              </Badge>
-            )}
-            <div onClick={(e) => e.stopPropagation()}>
-              <PinButton
-                promptId={prompt.id}
-                isPinned={prompt.isPinned || false}
-                size="sm"
-                variant="ghost"
-              />
-            </div>
-            {showFavoriteButton && (
-              <div onClick={(e) => e.stopPropagation()}>
-                <FavoriteButton
-                  promptId={prompt.id}
-                  isFavorited={isFavorited || prompt.isFavorited || false}
-                  favoriteCount={prompt._count?.favorites}
-                  size="sm"
-                  variant="ghost"
-                  showCount={false}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {prompt.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {prompt.description}
-          </p>
-        )}
-
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            {prompt._count?.likes !== undefined && prompt._count.likes > 0 && (
-              <div className="flex items-center gap-1">
-                <Heart className="h-3 w-3" />
-                <span>{prompt._count.likes}</span>
-              </div>
-            )}
-            {prompt._count?.versions !== undefined && prompt._count.versions > 0 && (
-              <div className="flex items-center gap-1">
-                <History className="h-3 w-3" />
-                <span>{prompt._count.versions} versions</span>
-              </div>
-            )}
-            {prompt._count?.favorites !== undefined && prompt._count.favorites > 0 && (
-              <div className="flex items-center gap-1">
-                <Star className="h-3 w-3" />
-                <span>{prompt._count.favorites}</span>
-              </div>
-            )}
-          </div>
-          <Button
+      {/* Header */}
+      <div className="mb-2.5 flex items-start justify-between">
+        <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-accent-100">
+          <FileText className="h-[17px] w-[17px] text-accent-500" />
+        </span>
+        <div className="flex items-center gap-1">
+          {prompt.isPinned && (
+            <span className="flex items-center gap-1 rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-[550] text-accent-700">
+              <Pin className="h-3 w-3" /> Pinned
+            </span>
+          )}
+          <PinButton
+            promptId={prompt.id}
+            isPinned={prompt.isPinned || false}
             size="sm"
             variant="ghost"
-            className={dellButton('ghost', "group-hover:bg-primary group-hover:text-primary-foreground")}
-          >
-            Open
-            <ArrowRight className="h-3 w-3 ml-1" />
-          </Button>
+          />
+          {showFavoriteButton && (
+            <FavoriteButton
+              promptId={prompt.id}
+              isFavorited={isFavorited || prompt.isFavorited || false}
+              favoriteCount={prompt._count?.favorites}
+              size="sm"
+              variant="ghost"
+              showCount={false}
+            />
+          )}
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
-          <timeDisplay.icon className="h-3 w-3" />
-          <span>{timeDisplay.text}</span>
+      {/* Title + description */}
+      <Link
+        href={`/prompts/${prompt.id}`}
+        onClick={() => onPromptClick?.(prompt.id)}
+        className="text-[14px] font-[620] leading-snug tracking-[-0.01em] text-ink-900 hover:text-accent-700"
+      >
+        <span className="line-clamp-1">{prompt.title}</span>
+      </Link>
+      {prompt.description && (
+        <p className="mt-1.5 line-clamp-2 flex-1 text-[12px] leading-[1.5] text-ink-600">
+          {prompt.description}
+        </p>
+      )}
+
+      {/* Tags */}
+      {prompt.tags && prompt.tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1">
+          {prompt.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag.id}
+              className="rounded-full bg-[#F1F2F5] px-2 py-0.5 text-[10px] font-[550] text-ink-600"
+            >
+              {tag.name}
+            </span>
+          ))}
         </div>
-      </CardContent>
-      </Card>
-    </Link>
+      )}
+
+      {/* Footer */}
+      <div className="mt-3 flex items-center justify-between border-t border-[#F0F1F4] pt-[11px]">
+        <span className="text-[11px] tabular-nums text-ink-400">{meta}</span>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/prompts/${prompt.id}`}
+            aria-label="Preview"
+            className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-line-200 text-ink-600 transition-colors hover:border-accent-500 hover:text-accent-700"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </Link>
+          <Link
+            href={`/prompts/${prompt.id}`}
+            className="flex items-center gap-1 text-[12px] font-[550] text-accent-700 hover:text-accent-500"
+          >
+            Open <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }

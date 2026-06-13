@@ -1,25 +1,17 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Star, FileText, Folder, Tag, BarChart3, Heart, History } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import {
-  BarChart,
-  Bar,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   LineChart,
-  Line
+  Line,
 } from "recharts";
 import { SectionErrorBoundary } from "@/components/error-boundary";
 import { MinimalErrorFallback } from "@/components/error-boundary/error-fallbacks";
-import { useTheme } from "next-themes";
-import { TrendingSection } from "./trending-section";
 
 interface DashboardData {
   totalPrompts: number;
@@ -39,481 +31,239 @@ interface DashboardData {
     tags: Array<{ id: string; name: string }>;
     _count: { likes: number };
   }>;
-  mostLikedPrompts?: Array<{
-    id: string;
-    title: string;
-    _count: { likes: number };
-  }>;
-  mostVersionedPrompts?: Array<{
-    id: string;
-    title: string;
-    _count: { versions: number };
-  }>;
-  mostFavoritedPrompts?: Array<{
-    id: string;
-    title: string;
-    _count: { favorites: number };
-  }>;
+  mostLikedPrompts?: Array<{ id: string; title: string; _count: { likes: number } }>;
+  mostVersionedPrompts?: Array<{ id: string; title: string; _count: { versions: number } }>;
+  mostFavoritedPrompts?: Array<{ id: string; title: string; _count: { favorites: number } }>;
 }
 
 interface DashboardAnalyticsProps {
   data: DashboardData;
 }
 
-// Professional color palette for charts - using the Hyper blue gradient
-const COLORS = [
-  '#6379c3', // Primary gradient start
-  '#546ee5', // Primary gradient end
-  '#7a8fd3', // Lighter variant
-  '#9aa9e1', // Even lighter
-  '#bac4ee'  // Very light
-];
+// Structured Pro indigo donut palette.
+const DONUT_COLORS = ["#5E6AD2", "#8B93E0", "#C2C8F0", "#DFE2F6", "#EEF0FB"];
 
-const getChartColors = (theme: string | undefined) => ({
-  grid: theme === 'dark' ? '#36404d' : '#e7ebf0',
-  text: theme === 'dark' ? '#a1acb8' : '#6c757d',
-  tooltip: {
-    bg: theme === 'dark' ? '#313a46' : '#ffffff',
-    border: theme === 'dark' ? '#36404d' : '#e7ebf0'
-  }
-});
+function fmt(n: number) {
+  return n.toLocaleString();
+}
+
+function Metric({
+  label,
+  value,
+  caption,
+}: {
+  label: string;
+  value: string | number;
+  caption: string;
+}) {
+  return (
+    <div className="flex-1 px-[18px] py-4">
+      <div className="text-[10px] font-[600] uppercase tracking-[0.06em] text-ink-400">
+        {label}
+      </div>
+      <div className="mt-1.5 text-[24px] font-[680] leading-none tracking-[-0.03em] tabular-nums text-ink-900">
+        {value}
+      </div>
+      <div className="mt-1 text-[11px] text-ink-400">{caption}</div>
+    </div>
+  );
+}
 
 export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
-  const { theme } = useTheme();
-  const chartColors = getChartColors(theme);
-  
+  const topPrompts = (data.recentlyUsedPrompts ?? []).slice(0, 6);
+  const folderTotal = data.promptsByFolder.reduce((s, f) => s + f.count, 0) || 1;
+
   return (
-    <div className="space-y-6">
-      {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Total Prompts Card */}
-        <Card className="group relative overflow-hidden border-l-4 border-l-blue-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br from-blue-50/30 to-transparent dark:from-blue-950/10">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-            <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">TOTAL PROMPTS</CardTitle>
-            <div className="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
-              <FileText className="h-5 w-5 text-white" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{data.totalPrompts}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Active prompt templates
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Folders Card */}
-        <Card className="group relative overflow-hidden border-l-4 border-l-purple-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br from-purple-50/30 to-transparent dark:from-purple-950/10">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-            <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">FOLDERS</CardTitle>
-            <div className="p-2.5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 shadow-md">
-              <Folder className="h-5 w-5 text-white" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{data.totalFolders}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Organization structures
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Tags Card */}
-        <Card className="group relative overflow-hidden border-l-4 border-l-emerald-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br from-emerald-50/30 to-transparent dark:from-emerald-950/10">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-            <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">TAGS</CardTitle>
-            <div className="p-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-md">
-              <Tag className="h-5 w-5 text-white" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{data.totalTags}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Unique categories
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Versions Card */}
-        <Card className="group relative overflow-hidden border-l-4 border-l-amber-500 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 bg-gradient-to-br from-amber-50/30 to-transparent dark:from-amber-950/10">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
-            <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">VERSIONS</CardTitle>
-            <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-md">
-              <BarChart3 className="h-5 w-5 text-white" />
-            </div>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">{data.totalVersions}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Total revisions
-            </p>
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      {/* Page heading + segmented range (visual) */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">Dashboard</h1>
+        <div className="flex items-center rounded-[7px] border border-line-200 bg-surface-muted p-0.5">
+          {["7d", "30d", "90d"].map((r, i) => (
+            <span
+              key={r}
+              className={
+                i === 1
+                  ? "rounded-[5px] bg-surface-card px-2.5 py-1 text-[11.5px] font-[550] text-ink-900 shadow-[0_1px_1px_rgba(0,0,0,0.04)]"
+                  : "px-2.5 py-1 text-[11.5px] text-ink-400"
+              }
+            >
+              {r}
+            </span>
+          ))}
+        </div>
       </div>
 
-      {/* All Charts in Single Horizontal Row */}
-      <div className="grid gap-3 grid-cols-1 lg:grid-cols-4">
-        {/* Trends */}
-        <Card className="border border-border/50 hover:border-blue-500/50 hover:shadow-md transition-all duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 animate-pulse" />
-              Trends
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
+      {/* Unified KPI bar */}
+      <div className="flex flex-wrap items-stretch divide-x divide-line-150 overflow-hidden rounded-[11px] border border-line-200 bg-surface-card">
+        <Metric label="Total prompts" value={fmt(data.totalPrompts)} caption="Active prompt templates" />
+        <Metric label="Folders" value={fmt(data.totalFolders)} caption="Organization structures" />
+        <Metric label="Tags" value={fmt(data.totalTags)} caption="Unique categories" />
+        <Metric label="Versions" value={fmt(data.totalVersions)} caption="Total revisions" />
+        <div className="hidden min-w-[200px] flex-[1.4] flex-col justify-center px-[18px] py-4 lg:flex">
+          <div className="text-[10px] font-[600] uppercase tracking-[0.06em] text-ink-400">
+            Growth
+          </div>
+          <div className="mt-1 h-[44px]">
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data.promptGrowth}>
-                  <defs>
-                    <linearGradient id="colorPrompts" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                  <XAxis
-                    dataKey="date"
-                    stroke={chartColors.text}
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    stroke={chartColors.text}
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                    width={25}
-                    tickFormatter={(value) => `${value}`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: chartColors.tooltip.bg,
-                      border: `1px solid ${chartColors.tooltip.border}`,
-                      borderRadius: '6px'
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="prompts"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    name="New Prompts"
-                    fill="url(#colorPrompts)"
-                    animationDuration={750}
-                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
                   <Line
                     type="monotone"
                     dataKey="cumulative"
-                    stroke="#8b5cf6"
-                    strokeWidth={3}
-                    strokeDasharray="5 5"
-                    name="Total Prompts"
-                    fill="url(#colorCumulative)"
-                    animationDuration={750}
-                    dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
+                    stroke="#5E6AD2"
+                    strokeWidth={2}
+                    dot={false}
+                    isAnimationActive={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </SectionErrorBoundary>
-          </CardContent>
-        </Card>
-
-        {/* Folders */}
-        <Card className="border border-border/50 hover:border-purple-500/50 hover:shadow-md transition-all duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse" />
-              Folders
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <defs>
-                    <linearGradient id="pieGradient1" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" />
-                      <stop offset="100%" stopColor="#8b5cf6" />
-                    </linearGradient>
-                    <linearGradient id="pieGradient2" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#8b5cf6" />
-                      <stop offset="100%" stopColor="#a855f7" />
-                    </linearGradient>
-                  </defs>
-                  <Pie
-                    data={data.promptsByFolder}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={false}
-                    outerRadius={70}
-                    fill="#6379c3"
-                    dataKey="count"
-                    animationDuration={750}
-                  >
-                    {data.promptsByFolder.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value, name) => [`${value} prompts`, name]} />
-                </PieChart>
-              </ResponsiveContainer>
-            </SectionErrorBoundary>
-          </CardContent>
-        </Card>
-
-        {/* Activity */}
-        <Card className="border border-border/50 hover:border-emerald-500/50 hover:shadow-md transition-all duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 animate-pulse" />
-              Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={data.promptsByMonth}>
-                  <defs>
-                    <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" />
-                      <stop offset="100%" stopColor="#14b8a6" />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
-                  <XAxis
-                    dataKey="month"
-                    stroke={chartColors.text}
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    stroke={chartColors.text}
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                    width={25}
-                    tickFormatter={(value) => `${value}`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: chartColors.tooltip.bg,
-                      border: `1px solid ${chartColors.tooltip.border}`,
-                      borderRadius: '6px'
-                    }}
-                  />
-                  <Bar
-                    dataKey="count"
-                    fill="url(#colorActivity)"
-                    radius={[8, 8, 0, 0]}
-                    animationDuration={750}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </SectionErrorBoundary>
-          </CardContent>
-        </Card>
-
-        {/* Tags */}
-        <Card className="border border-border/50 hover:border-amber-500/50 hover:shadow-md transition-all duration-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 animate-pulse" />
-              Tags
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <div className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1">
-              {data.topTags.map((tag, index) => (
-                <div key={tag.name} className="flex items-center group hover:bg-muted/50 rounded-md p-1.5 -mx-1.5 transition-colors">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mr-2 shadow-sm">
-                    <span className="text-xs font-bold text-white">{index + 1}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-semibold leading-none truncate pr-2">{tag.name}</p>
-                      <p className="text-xs text-foreground/70 font-bold whitespace-nowrap">{tag.count}</p>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 transition-all duration-500 group-hover:scale-x-105"
-                        style={{
-                          width: `${(tag.count / Math.max(...data.topTags.map(t => t.count))) * 100}%`
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Recently Used Prompts */}
-      {data.recentlyUsedPrompts && data.recentlyUsedPrompts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-semibold">Recently Used</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.recentlyUsedPrompts.map((prompt) => (
-                <div key={prompt.id} className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <a href={`/prompts/${prompt.id}`} className="text-sm font-medium text-foreground hover:text-[#546ee5] transition-colors">
-                      {prompt.title}
-                    </a>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-xs text-muted-foreground">
-                        Last used: {prompt.lastUsedAt ? new Date(prompt.lastUsedAt).toLocaleDateString() : 'Never'}
-                      </p>
-                      {prompt.tags.length > 0 && (
-                        <div className="flex gap-1">
-                          {prompt.tags.slice(0, 2).map((tag, idx) => (
-                            <span key={idx} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                              {tag.name}
-                            </span>
+      {/* Two-column: table + right rail */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+        {/* Top prompts table */}
+        <div className="rounded-[11px] border border-line-200 bg-surface-card">
+          <div className="flex items-center justify-between border-b border-line-150 px-[18px] py-3.5">
+            <h2 className="text-[13px] font-[620] tracking-[-0.01em] text-ink-900">
+              Top prompts this week
+            </h2>
+            <Link
+              href="/prompts"
+              className="flex items-center gap-1 text-[11.5px] font-[550] text-accent-700 hover:text-accent-500"
+            >
+              View all <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+          {topPrompts.length === 0 ? (
+            <div className="px-[18px] py-10 text-center text-[12.5px] text-ink-400">
+              No prompt activity yet. Create a prompt to see it here.
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400">
+                  <th className="px-[18px] py-2 text-left font-[600]">Prompt</th>
+                  <th className="px-2 py-2 text-left font-[600]">Tags</th>
+                  <th className="px-2 py-2 text-right font-[600]">Likes</th>
+                  <th className="px-[18px] py-2 text-right font-[600]">Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topPrompts.map((p) => (
+                  <tr key={p.id} className="border-t border-line-100">
+                    <td className="px-[18px] py-2.5">
+                      <Link
+                        href={`/prompts/${p.id}`}
+                        className="text-[12.5px] font-[550] text-ink-900 hover:text-accent-700"
+                      >
+                        {p.title}
+                      </Link>
+                    </td>
+                    <td className="px-2 py-2.5">
+                      <div className="flex gap-1">
+                        {p.tags.slice(0, 2).map((t) => (
+                          <span
+                            key={t.id}
+                            className="rounded-full bg-[#F1F2F5] px-2 py-0.5 text-[10px] font-[550] text-ink-600"
+                          >
+                            {t.name}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2.5 text-right text-[12.5px] tabular-nums text-ink-600">
+                      {p._count.likes}
+                    </td>
+                    <td className="px-[18px] py-2.5 text-right text-[12px] tabular-nums text-ink-400">
+                      {p.lastUsedAt
+                        ? new Date(p.lastUsedAt).toLocaleDateString()
+                        : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Right rail */}
+        <div className="space-y-4">
+          {/* By folder donut */}
+          <div className="rounded-[11px] border border-line-200 bg-surface-card p-[18px]">
+            <h2 className="mb-3 text-[13px] font-[620] tracking-[-0.01em] text-ink-900">By folder</h2>
+            {data.promptsByFolder.length === 0 ? (
+              <p className="text-[12px] text-ink-400">No folders yet.</p>
+            ) : (
+              <div className="flex items-center gap-4">
+                <div className="h-[110px] w-[110px] flex-shrink-0">
+                  <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={data.promptsByFolder}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={34}
+                          outerRadius={52}
+                          paddingAngle={2}
+                          dataKey="count"
+                          stroke="none"
+                          isAnimationActive={false}
+                        >
+                          {data.promptsByFolder.map((_, i) => (
+                            <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
                           ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Heart className="h-3 w-3" />
-                    <span>{prompt._count.likes}</span>
-                  </div>
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </SectionErrorBoundary>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Enhanced Statistics Section */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Most Liked Prompts */}
-        {data.mostLikedPrompts && data.mostLikedPrompts.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-semibold">Most Popular Prompts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {data.mostLikedPrompts.map((prompt, index) => (
-                  <div key={prompt.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium text-foreground hover:text-[#546ee5] transition-colors">
-                        {prompt.title}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Heart className="h-3 w-3 text-red-500 fill-current" />
-                      <span className="text-sm">{prompt._count.likes}</span>
-                    </div>
-                  </div>
-                ))}
+                <ul className="flex-1 space-y-1.5">
+                  {data.promptsByFolder.slice(0, 5).map((f, i) => (
+                    <li key={f.name} className="flex items-center gap-2 text-[11.5px]">
+                      <span
+                        className="h-2 w-2 rounded-[2px]"
+                        style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                      />
+                      <span className="flex-1 truncate text-ink-600">{f.name}</span>
+                      <span className="tabular-nums text-ink-400">
+                        {Math.round((f.count / folderTotal) * 100)}%
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            )}
+          </div>
 
-        {/* Most Versioned Prompts */}
-        {data.mostVersionedPrompts && data.mostVersionedPrompts.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-semibold">Most Edited Prompts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {data.mostVersionedPrompts.map((prompt, index) => (
-                  <div key={prompt.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium text-foreground hover:text-[#546ee5] transition-colors">
-                        {prompt.title}
-                      </a>
+          {/* Recent activity */}
+          <div className="rounded-[11px] border border-line-200 bg-surface-card p-[18px]">
+            <h2 className="mb-3 text-[13px] font-[620] tracking-[-0.01em] text-ink-900">
+              Recent activity
+            </h2>
+            {data.recentActivity.length === 0 ? (
+              <p className="text-[12px] text-ink-400">No recent activity.</p>
+            ) : (
+              <ul className="space-y-3">
+                {data.recentActivity.slice(0, 6).map((a) => (
+                  <li key={a.id} className="flex gap-2.5">
+                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent-500" />
+                    <div className="min-w-0">
+                      <p className="truncate text-[12px] font-[500] text-ink-700">{a.title}</p>
+                      <p className="text-[11px] text-ink-400">
+                        {a.type} · {new Date(a.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <History className="h-3 w-3 text-[#546ee5]" />
-                      <span className="text-sm">{prompt._count.versions} versions</span>
-                    </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Most Favorited Prompts */}
-        {data.mostFavoritedPrompts && data.mostFavoritedPrompts.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-semibold">Most Favorited Prompts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {data.mostFavoritedPrompts.map((prompt, index) => (
-                  <div key={prompt.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">#{index + 1}</span>
-                      <a href={`/prompts/${prompt.id}`} className="text-sm font-medium text-foreground hover:text-[#546ee5] transition-colors">
-                        {prompt.title}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                      <span className="text-sm">{prompt._count.favorites}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Recent Activity and Trending Side by Side */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-semibold">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-4">
-                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#6379c3] to-[#546ee5]" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {activity.type} • {new Date(activity.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Trending Section */}
-        <TrendingSection />
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
