@@ -1,8 +1,8 @@
-import { Suspense } from 'react';
 import { getSharedPromptsCached as getSharedPrompts } from '@/app/actions/shared-prompts.actions.cached';
 import { getAvailableSharedPromptTags } from '@/app/actions/shared-prompts.actions';
 import { SharedPromptsClient, type SharedPrompt } from './shared-prompts-client';
-import { LoadingStates } from '@/components/ui/loading-state';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   searchParams: Promise<{
@@ -39,18 +39,14 @@ export default async function SharedPromptsPage({ searchParams }: PageProps) {
   void tagsResult;
 
   return (
-    <Suspense
+    <SharedPromptsClient
       key={`${searchQuery}-${selectedTags.join(',')}-${sortBy}-${currentPage}`}
-      fallback={<LoadingStates.CardGrid count={6} />}
-    >
-      <SharedPromptsClient
-        initialPrompts={promptsResult.success && promptsResult.prompts ? (promptsResult.prompts as unknown as SharedPrompt[]) : []}
-        initialPagination={promptsResult.success && promptsResult.pagination ? promptsResult.pagination : null}
-        initialError={!promptsResult.success ? (promptsResult.error || 'Failed to load prompts') : null}
-        searchQuery={searchQuery}
-        selectedTags={selectedTags}
-        sortBy={sortBy}
-      />
-    </Suspense>
+      initialPrompts={promptsResult.success && promptsResult.prompts ? (promptsResult.prompts as unknown as SharedPrompt[]) : []}
+      initialPagination={promptsResult.success && promptsResult.pagination ? promptsResult.pagination : null}
+      initialError={!promptsResult.success ? (promptsResult.error || 'Failed to load prompts') : null}
+      searchQuery={searchQuery}
+      selectedTags={selectedTags}
+      sortBy={sortBy}
+    />
   );
 }
