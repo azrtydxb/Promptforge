@@ -11,10 +11,12 @@ import {
   Menu,
 } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AuthUserButton } from "../auth/user-button";
-import { TeamSwitcher } from "@/components/teams/team-switcher";
 
 const mobileNav = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -26,6 +28,8 @@ const mobileNav = [
 ];
 
 export function Header() {
+  const router = useRouter();
+  const [q, setQ] = useState("");
   return (
     <header
       className="sticky top-0 z-40 flex h-[54px] items-center gap-3.5 border-b border-line-200 bg-surface-card px-5"
@@ -66,11 +70,28 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
-      <div className="flex-1">
-        <TeamSwitcher className="max-w-xs" />
+      <div className="flex max-w-md flex-1 items-center">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (q.trim()) router.push(`/prompts?search=${encodeURIComponent(q.trim())}`);
+          }}
+          className="relative w-full"
+        >
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search…"
+            className="h-8 w-full rounded-[7px] border border-line-200 bg-surface-muted pl-9 pr-12 text-[13px] text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
+          />
+          <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-[4px] border border-line-200 bg-surface-card px-1.5 py-0.5 font-mono text-[10px] text-ink-400">
+            ⌘K
+          </kbd>
+        </form>
       </div>
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="ml-auto flex items-center justify-end gap-3">
         <AuthUserButton />
       </div>
     </header>

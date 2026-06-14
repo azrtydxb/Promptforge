@@ -56,17 +56,19 @@ export function PromptGrid({
       <div
         key={prompt.id}
         className={cn(
-          "relative",
-          isSelected ? "ring-2 ring-[#546ee5]" : ""
+          "group relative rounded-[11px]",
+          isSelected ? "ring-2 ring-accent-500" : ""
         )}
       >
         <button
           type="button"
           onClick={handleToggle}
           className={cn(
-            "absolute top-2 right-2 z-20 h-6 w-6 rounded-full border border-muted-foreground/40 bg-background/90",
-            "flex items-center justify-center text-sm transition-colors",
-            isSelected ? "bg-[#546ee5] text-white" : "text-muted-foreground"
+            "absolute top-3 right-3 z-20 h-5 w-5 rounded-[5px] border transition-all",
+            "flex items-center justify-center text-[11px]",
+            isSelected
+              ? "border-accent-500 bg-accent-500 text-white opacity-100"
+              : "border-line-200 bg-surface-card text-ink-400 opacity-0 group-hover:opacity-100"
           )}
           aria-pressed={isSelected}
           aria-label={isSelected ? "Deselect prompt" : "Select prompt"}

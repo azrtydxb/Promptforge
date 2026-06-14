@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ArrowRight, Eye, FileText, LayoutTemplate, Store } from "lucide-react";
+import { Heart, ArrowRight, Eye, FileText, LayoutTemplate, Store, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { togglePromptLike } from "@/app/actions/likes-comments.actions";
@@ -139,6 +139,11 @@ export function UnifiedPromptCardClean({
             {data.category}
           </span>
         )}
+        {variant === "personal" && (data as PersonalPromptData).pinnedAt && (
+          <span className="flex items-center gap-1 rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-[550] text-accent-700">
+            <Pin className="h-3 w-3" /> Pinned
+          </span>
+        )}
       </div>
 
       {/* Title */}
@@ -203,6 +208,9 @@ export function UnifiedPromptCardClean({
           {variant === "personal" && (
             <span className="tabular-nums">
               {((data as PersonalPromptData).usageCount ?? 0)} uses
+              {(data as PersonalPromptData)._count?.versions
+                ? ` · v${(data as PersonalPromptData)._count?.versions}`
+                : ""}
             </span>
           )}
         </div>

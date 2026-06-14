@@ -222,11 +222,30 @@ const getDashboardData = cache(async (userId: string) => {
     .slice(0, 5)
     .filter(p => p._count.favorites > 0);
 
+  // Real KPI extras: used-this-week, avg rating, and simple week-over-week deltas.
+  const weekAgo = new Date(Date.now() - 7 * 864e5);
+  const twoWeeksAgo = new Date(Date.now() - 14 * 864e5);
+  const [usedThisWeek, usedPriorWeek, createdThisWeek, ratingAgg] = await Promise.all([
+    db.prompt.count({ where: { userId, lastUsedAt: { gte: weekAgo } } }),
+    db.prompt.count({ where: { userId, lastUsedAt: { gte: twoWeeksAgo, lt: weekAgo } } }),
+    db.prompt.count({ where: { userId, createdAt: { gte: weekAgo } } }),
+    db.prompt.aggregate({ where: { userId }, _avg: { averageRating: true } }),
+  ]);
+  const avgRating = Math.round((ratingAgg._avg.averageRating ?? 0) * 10) / 10;
+  const promptsDelta = totalPrompts ? Math.round((createdThisWeek / totalPrompts) * 100) : 0;
+  const usedDelta = usedPriorWeek
+    ? Math.round(((usedThisWeek - usedPriorWeek) / usedPriorWeek) * 100)
+    : (usedThisWeek > 0 ? 100 : 0);
+
   return {
     totalPrompts,
     totalFolders,
     totalTags,
     totalVersions,
+    usedThisWeek,
+    avgRating,
+    promptsDelta,
+    usedDelta,
     promptsByMonth,
     promptsByFolder,
     topTags,

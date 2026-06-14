@@ -18,6 +18,10 @@ interface DashboardData {
   totalFolders: number;
   totalTags: number;
   totalVersions: number;
+  usedThisWeek?: number;
+  avgRating?: number;
+  promptsDelta?: number;
+  usedDelta?: number;
   promptsByMonth: Array<{ month: string; count: number }>;
   promptsByFolder: Array<{ name: string; count: number }>;
   topTags: Array<{ name: string; count: number }>;
@@ -50,10 +54,14 @@ function fmt(n: number) {
 function Metric({
   label,
   value,
+  suffix,
+  delta,
   caption,
 }: {
   label: string;
   value: string | number;
+  suffix?: string;
+  delta?: number;
   caption: string;
 }) {
   return (
@@ -61,8 +69,19 @@ function Metric({
       <div className="text-[10px] font-[600] uppercase tracking-[0.06em] text-ink-400">
         {label}
       </div>
-      <div className="mt-1.5 text-[24px] font-[680] leading-none tracking-[-0.03em] tabular-nums text-ink-900">
-        {value}
+      <div className="mt-1.5 flex items-baseline gap-1.5">
+        <span className="text-[24px] font-[680] leading-none tracking-[-0.03em] tabular-nums text-ink-900">
+          {value}
+        </span>
+        {suffix && <span className="text-[12px] text-ink-400">{suffix}</span>}
+        {typeof delta === "number" && delta !== 0 && (
+          <span
+            className={`text-[11px] font-[550] tabular-nums ${delta > 0 ? "text-success" : "text-danger"}`}
+          >
+            {delta > 0 ? "↑" : "↓"}
+            {Math.abs(delta)}%
+          </span>
+        )}
       </div>
       <div className="mt-1 text-[11px] text-ink-400">{caption}</div>
     </div>
@@ -96,9 +115,9 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
 
       {/* Unified KPI bar */}
       <div className="flex flex-wrap items-stretch divide-x divide-line-150 overflow-hidden rounded-[11px] border border-line-200 bg-surface-card">
-        <Metric label="Total prompts" value={fmt(data.totalPrompts)} caption="Active prompt templates" />
-        <Metric label="Folders" value={fmt(data.totalFolders)} caption="Organization structures" />
-        <Metric label="Tags" value={fmt(data.totalTags)} caption="Unique categories" />
+        <Metric label="Total prompts" value={fmt(data.totalPrompts)} delta={data.promptsDelta} caption="Active prompts" />
+        <Metric label="Used this week" value={fmt(data.usedThisWeek ?? 0)} delta={data.usedDelta} caption="Prompts run" />
+        <Metric label="Avg. rating" value={(data.avgRating ?? 0).toFixed(1)} suffix="/ 5" caption="Across your prompts" />
         <Metric label="Versions" value={fmt(data.totalVersions)} caption="Total revisions" />
         <div className="hidden min-w-[200px] flex-[1.4] flex-col justify-center px-[18px] py-4 lg:flex">
           <div className="text-[10px] font-[600] uppercase tracking-[0.06em] text-ink-400">
