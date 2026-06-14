@@ -51,8 +51,7 @@ jobs:
           tags: |
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
 
       # Builder stage as a separate :migrate image — has pnpm + prisma CLI + tsx + seed
       # scripts, used by a one-off Fargate task to run `prisma db push` + seed against RDS.
