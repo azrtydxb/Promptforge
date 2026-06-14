@@ -705,7 +705,9 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
                                   isLatest ? "text-accent-700" : "text-ink-700"
                                 }`}
                               >
-                                {ver.version ? `v${ver.version}` : `#${prompt.versions.length - idx}`}
+                                {ver.version
+                                  ? (String(ver.version).startsWith("v") ? ver.version : `v${ver.version}`)
+                                  : `#${prompt.versions.length - idx}`}
                               </span>
                               {isLatest && (
                                 <span className="bg-accent-100 text-accent-700 rounded-full text-[9px] px-1.5 py-0.5 font-[600]">

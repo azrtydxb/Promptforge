@@ -14,6 +14,8 @@ import { DeleteTagModal } from "../modals/delete-tag-modal";
 import { ChangePasswordModal } from "../modals/change-password-modal";
 import { SaveVersionModal } from "../modals/save-version-modal";
 import { SharePromptModal } from "../modals/share-prompt-modal";
+import { QuickPreviewModal } from "../modals/quick-preview-modal";
+import { InviteMemberModal } from "../modals/invite-member-modal";
 
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -41,6 +43,8 @@ export const ModalProvider = () => {
       <ChangePasswordModal />
       <SaveVersionModal />
       <SharePromptModal />
+      <QuickPreviewModal />
+      <InviteMemberModal />
     </>
   );
 };

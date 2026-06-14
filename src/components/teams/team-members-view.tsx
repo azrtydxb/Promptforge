@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useModal } from "@/hooks/use-modal-store";
 import { Avatar } from "@/components/ui/avatar";
 import { TeamRole } from "@/generated/prisma";
 import { UserPlus, ChevronLeft } from "lucide-react";
@@ -91,6 +92,7 @@ export function TeamMembersView({
   currentUserRole,
 }: TeamMembersViewProps) {
   const router = useRouter();
+  const { onOpen } = useModal();
 
   const isAdmin = currentUserRole === TeamRole.ADMIN || currentUserRole === TeamRole.OWNER;
   const isOwner = currentUserRole === TeamRole.OWNER;
@@ -128,7 +130,7 @@ export function TeamMembersView({
 
         {isAdmin && (
           <button
-            onClick={() => router.push(`/teams/${team.id}/members/invite`)}
+            onClick={() => onOpen("inviteMember", { inviteMember: { teamId: team.id, teamName: team.name } })}
             className="inline-flex items-center gap-1.5 bg-accent-500 hover:bg-accent-500/90 text-white rounded-[7px] px-3 py-1.5 text-[13px] font-[550] transition-colors"
           >
             <UserPlus className="h-4 w-4" />

@@ -60,6 +60,33 @@ async function main() {
     });
   }
 
+  // ---- Subscription (Growth Team = Business, so Alex can see Team + Business features) ----
+  await prisma.subscription.upsert({
+    where: { teamId: team.id },
+    update: { plan: "BUSINESS", seatsTotal: 12, seatsUsed: 8, unitPriceCents: 1800 },
+    create: {
+      teamId: team.id, plan: "BUSINESS", seatsTotal: 12, seatsUsed: 8, billingCycle: "MONTHLY",
+      unitPriceCents: 1800, status: "ACTIVE", renewsAt: new Date("2026-07-14"),
+    },
+  });
+  // ---- SAML / SSO (Business, Okta) ----
+  await prisma.samlConnection.upsert({
+    where: { teamId: team.id },
+    update: { status: "ACTIVE" },
+    create: {
+      teamId: team.id, status: "ACTIVE", requireSso: true, scimEnabled: true,
+      defaultRole: TeamRole.MEMBER, lastSyncAt: new Date(),
+      idpSsoUrl: "https://growth.okta.com/app/promptforge/sso/saml",
+      idpEntityId: "http://www.okta.com/exk1a2b3c4D5e6F7g8",
+      x509Cert: "-----BEGIN CERTIFICATE-----\nMIIDpDCCAoygAwIBAgIGAY3f...kQ2Vx8n2hUe1qLZ\n3pK9sFwTn0aQ7vYbN4mC1dXe...pR8oUjs2zHfP0iV\n-----END CERTIFICATE-----",
+      certExpiresAt: new Date("2027-03-01"),
+    },
+  });
+  for (const [domain, status] of [["growth.co", "VERIFIED"], ["growthlabs.io", "PENDING_DNS"]] as const) {
+    const existing = await prisma.verifiedDomain.findFirst({ where: { teamId: team.id, domain } });
+    if (!existing) await prisma.verifiedDomain.create({ data: { teamId: team.id, domain, status } });
+  }
+
   // ---- Folders (Alex) ----
   const folderByName: Record<string, string> = {};
   for (const name of ["Marketing", "Product", "Support"]) {

@@ -1,4 +1,5 @@
 import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { generateRandomUsername } from "@/lib/username-generator"
@@ -44,7 +45,10 @@ export const authOptions: AuthOptions = {
           name: user.name,
         }
       }
-    })
+    }),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [GoogleProvider({ clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET })]
+      : []),
   ],
   session: {
     strategy: "jwt" as const,

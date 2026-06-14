@@ -587,15 +587,73 @@ model Team {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  members     TeamMember[]
-  prompts     TeamPrompt[]
-  invitations TeamInvitation[]
-  activities  TeamActivity[]
-  folders     TeamFolder[]
-  tags        TeamTag[]
+  members      TeamMember[]
+  prompts      TeamPrompt[]
+  invitations  TeamInvitation[]
+  activities   TeamActivity[]
+  folders      TeamFolder[]
+  tags         TeamTag[]
+  subscription Subscription?
+  samlConnection SamlConnection?
+  verifiedDomains VerifiedDomain[]
 
   @@index([slug])
   @@index([createdById])
+}
+
+// Per-team commercial plan + seats. Free = a user with no paid team (no Subscription row).
+enum PlanTier {
+  TEAM
+  BUSINESS
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUAL
+}
+
+model Subscription {
+  id            String       @id @default(cuid())
+  teamId        String       @unique
+  team          Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  plan          PlanTier     @default(TEAM)
+  seatsTotal    Int          @default(5)
+  seatsUsed     Int          @default(1)
+  billingCycle  BillingCycle @default(MONTHLY)
+  unitPriceCents Int         @default(900)
+  status        String       @default("ACTIVE") // ACTIVE | PAST_DUE | CANCELED
+  renewsAt      DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// SAML 2.0 SP config per team (Business). Integrations (test/SCIM) are mocked at this stage.
+model SamlConnection {
+  id            String       @id @default(cuid())
+  teamId        String       @unique
+  team          Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  idpSsoUrl     String?
+  idpEntityId   String?
+  x509Cert      String?
+  certExpiresAt DateTime?
+  status        String       @default("DISABLED") // ACTIVE | DISABLED
+  lastSyncAt    DateTime?
+  requireSso    Boolean      @default(false)
+  scimEnabled   Boolean      @default(false)
+  defaultRole   TeamRole     @default(MEMBER)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model VerifiedDomain {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  domain    String
+  status    String   @default("PENDING_DNS") // VERIFIED | PENDING_DNS
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, domain])
 }
 
 model TeamMember {

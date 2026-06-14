@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { UserManagement } from "@/components/admin/user-management";
 import { AdminOverview } from "@/components/admin/admin-overview";
 import { BackupRestore } from "@/components/admin/backup-restore";
@@ -48,6 +49,12 @@ export default function AdminPage() {
               {tab.label}
             </button>
           ))}
+          <Link
+            href="/admin/security"
+            className="px-4 py-2.5 text-[13px] font-[500] border-b-2 border-transparent text-ink-600 hover:text-ink-900 hover:border-line-200 transition-colors"
+          >
+            Security &amp; SSO
+          </Link>
         </nav>
       </div>
 

@@ -3,53 +3,28 @@
 import { useState, useEffect, useCallback } from "react";
 import { useModal } from "@/hooks/use-modal-store";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { LoadingButton } from "@/components/ui/loading-button";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
   createShareLink,
   getUserShareLinks,
   updateShareLink,
   deleteShareLink,
-  getShareLinkAnalytics
 } from "@/app/actions/prompt-share.actions";
+import { publishPromptToMarketplace } from "@/app/actions/shared-prompts.actions";
 import {
   Copy,
   Check,
   Trash2,
   Eye,
   EyeOff,
-  Calendar,
-  Activity,
   Share2,
-  QrCode,
-  AlertCircle
+  X,
+  Globe,
+  Link,
+  Users,
 } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
-import { QRCodeSVG } from "qrcode.react";
+import { cn } from "@/lib/utils";
 
-interface ShareLink {
+interface ShareLinkItem {
   id: string;
   shareId: string;
   title: string;
@@ -66,502 +41,383 @@ interface ShareLink {
   };
 }
 
+type Permission = "view" | "edit";
+
 export function SharePromptModal() {
   const { isOpen, onClose, type, data } = useModal();
   const isModalOpen = isOpen && type === "sharePrompt";
   const { promptData } = data;
 
-  const [activeTab, setActiveTab] = useState("create");
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
-  
-  // Create form state
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [expiresIn, setExpiresIn] = useState<"1h" | "1d" | "7d" | "30d" | "never">("7d");
-  const [password, setPassword] = useState("");
-  const [maxViews, setMaxViews] = useState<number | undefined>(undefined);
-  const [showAuthor, setShowAuthor] = useState(true);
-  const [allowEmbed, setAllowEmbed] = useState(false);
-  
-  // Share links state
-  const [shareLinks, setShareLinks] = useState<ShareLink[]>([]);
-  const [selectedLink, setSelectedLink] = useState<ShareLink | null>(null);
-  const [analytics, setAnalytics] = useState<{
-    totalViews: number;
-    uniqueVisitors: number;
-    recentViews: Array<{
-      viewedAt: Date;
-      ipAddress: string | null;
-      referer: string | null;
-    }>;
-    dailyViews: Array<{
-      viewedAt: Date;
-      _count?: number;
-    }>;
-    shareLink: ShareLink;
-  } | null>(null);
-  
-  // New share link state
-  const [newShareUrl, setNewShareUrl] = useState<string | null>(null);
-  const [showQR, setShowQR] = useState(false);
+
+  // People section
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [invitePermission, setInvitePermission] = useState<Permission>("view");
+  const [shareLinks, setShareLinks] = useState<ShareLinkItem[]>([]);
+
+  // Publish section
+  const [isPublished, setIsPublished] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [publishLoading, setPublishLoading] = useState(false);
+
+  const appOrigin =
+    typeof window !== "undefined"
+      ? process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
+      : "";
+
+  const shareUrl = (shareId: string) => `${appOrigin}/share/${shareId}`;
+
+  const publicUrl = promptData
+    ? `${appOrigin}/shared-prompts/${promptData.id}`
+    : null;
 
   const loadShareLinks = useCallback(async () => {
     if (!promptData) return;
-    
     try {
       const links = await getUserShareLinks();
-      const promptLinks = links.filter((link) => 
-        link.prompt.id === promptData.id
-      );
-      setShareLinks(promptLinks);
-      
-      if (promptLinks.length > 0) {
-        setActiveTab("manage");
-      }
-    } catch (error) {
-      console.error("Error loading share links:", error);
+      const promptLinks = links.filter((l) => l.prompt.id === promptData.id);
+      setShareLinks(promptLinks as ShareLinkItem[]);
+    } catch {
+      // ignore
     }
   }, [promptData]);
 
   useEffect(() => {
     if (isModalOpen && promptData) {
-      setTitle(promptData.title);
-      setDescription(promptData.description || "");
       loadShareLinks();
     }
   }, [isModalOpen, promptData, loadShareLinks]);
 
-
-  const loadAnalytics = async (linkId: string) => {
+  const handleCopy = async (text: string, id: string) => {
     try {
-      const data = await getShareLinkAnalytics(linkId);
-      if (data && data.shareLink) {
-        setAnalytics(data as unknown as typeof analytics);
-      }
-    } catch (error) {
-      console.error("Error loading analytics:", error);
-    }
-  };
-
-  const handleCreateShare = async () => {
-    if (!promptData) return;
-    
-    setIsLoading(true);
-    try {
-      const result = await createShareLink({
-        promptId: promptData.id,
-        title,
-        description,
-        settings: {
-          expiresIn,
-          password: password || undefined,
-          maxViews: maxViews || undefined,
-          showAuthor,
-          allowEmbed
-        }
-      });
-
-      setNewShareUrl(result.shareUrl);
-      toast.success("Your prompt can now be shared with others");
-      
-      // Reload share links
-      await loadShareLinks();
-      
-      // Reset form
-      setPassword("");
-      setMaxViews(undefined);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create share link");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUpdateLink = async (linkId: string, updates: Partial<{
-    title: string;
-    description: string;
-    isActive: boolean;
-    password: string;
-    expiresIn: "1h" | "1d" | "7d" | "30d" | "never";
-    maxViews: number;
-    showAuthor: boolean;
-    allowEmbed: boolean;
-  }>) => {
-    setIsLoading(true);
-    try {
-      await updateShareLink(linkId, updates);
-      toast.success("Your changes have been saved.");
-      await loadShareLinks();
+      await navigator.clipboard.writeText(text);
+      setCopied(id);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopied(null), 2000);
     } catch {
-      toast.error("Failed to update share link");
+      toast.error("Failed to copy");
+    }
+  };
+
+  const handleInvite = async () => {
+    if (!promptData || !inviteEmail.trim()) return;
+    setIsLoading(true);
+    try {
+      await createShareLink({
+        promptId: promptData.id,
+        title: `Shared with ${inviteEmail}`,
+        description: `Permission: ${invitePermission}`,
+        settings: { expiresIn: "never", showAuthor: true, allowEmbed: false },
+      });
+      toast.success(`Invited ${inviteEmail}`);
+      setInviteEmail("");
+      await loadShareLinks();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to invite");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteLink = async (linkId: string) => {
-    if (!confirm("Are you sure you want to delete this share link?")) return;
-    
     setIsLoading(true);
     try {
       await deleteShareLink(linkId);
-      toast.success("The share link has been removed.");
       await loadShareLinks();
-      setSelectedLink(null);
     } catch {
-      toast.error("Failed to delete share link");
+      toast.error("Failed to remove");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCopy = async (text: string, id: string) => {
+  const handleToggleActive = async (link: ShareLinkItem) => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(id);
-      setTimeout(() => setCopied(null), 2000);
+      await updateShareLink(link.id, { isActive: !link.isActive });
+      await loadShareLinks();
     } catch {
-      toast.error("Failed to copy to clipboard");
+      toast.error("Failed to update");
     }
   };
 
-  const shareUrl = (shareId: string) => 
-    `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/share/${shareId}`;
+  const handlePublishToggle = async () => {
+    if (!promptData) return;
+    if (isPublished) {
+      setIsPublished(false);
+      setPublishedUrl(null);
+      return;
+    }
+    setPublishLoading(true);
+    try {
+      await publishPromptToMarketplace({ promptId: promptData.id });
+      setIsPublished(true);
+      setPublishedUrl(publicUrl);
+      toast.success("Published to Prompt Market");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to publish"
+      );
+    } finally {
+      setPublishLoading(false);
+    }
+  };
 
   if (!isModalOpen) return null;
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle>Share Prompt</DialogTitle>
-          <DialogDescription>
-            Create and manage share links for your prompt
-          </DialogDescription>
-        </DialogHeader>
-        
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="create">Create Link</TabsTrigger>
-            <TabsTrigger value="manage">
-              Manage Links {shareLinks.length > 0 && `(${shareLinks.length})`}
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="create" className="space-y-4">
-            {newShareUrl ? (
-              <div className="space-y-4">
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Your share link has been created successfully!
-                  </AlertDescription>
-                </Alert>
-                
-                <div className="space-y-2">
-                  <Label>Share URL</Label>
-                  <div className="flex gap-2">
-                    <Input value={newShareUrl} readOnly />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleCopy(newShareUrl, "new-url")}
-                    >
-                      {copied === "new-url" ? (
-                        <Check className="h-4 w-4" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
+    <>
+      {/* Scrim */}
+      <div
+        className="fixed inset-0 z-50 bg-[rgba(15,17,22,0.55)]"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div
+        className="fixed left-1/2 top-1/2 z-50 w-full max-w-[460px] -translate-x-1/2 -translate-y-1/2 rounded-[12px] border border-line-200 bg-surface-card shadow-[0_20px_60px_-12px_rgba(27,29,34,0.3)] max-h-[90vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Share prompt"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-line-200 sticky top-0 bg-surface-card z-10">
+          <div>
+            <h2 className="text-[15px] font-[660] tracking-[-0.015em] text-ink-900">
+              Share prompt
+            </h2>
+            {promptData?.title && (
+              <p className="text-[12px] text-ink-400 mt-0.5 truncate max-w-[340px]">
+                {promptData.title}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="shrink-0 flex items-center justify-center w-7 h-7 rounded-[7px] text-ink-400 hover:text-ink-700 hover:bg-surface-muted transition-colors"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-5">
+          {/* Info */}
+          <p className="text-[13px] text-ink-600 leading-[1.5]">
+            Share privately with people, publish to the Prompt Market, or both.
+          </p>
+
+          {/* ── SHARE WITH PEOPLE ── */}
+          <div>
+            <span className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 flex items-center gap-1.5 mb-3">
+              <Users className="h-3 w-3" />
+              Share with people
+            </span>
+
+            {/* Invite row */}
+            <div className="flex gap-2 mb-3">
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleInvite();
+                }}
+                placeholder="Email address"
+                className="flex-1 min-w-0 rounded-[7px] border border-line-200 bg-surface-muted px-3 py-2 text-[12px] text-ink-700 placeholder:text-ink-400 outline-none focus:border-accent-500 transition-colors"
+              />
+              <select
+                value={invitePermission}
+                onChange={(e) =>
+                  setInvitePermission(e.target.value as Permission)
+                }
+                className="rounded-[7px] border border-line-200 bg-surface-muted px-2.5 py-2 text-[12px] text-ink-700 outline-none focus:border-accent-500 transition-colors"
+              >
+                <option value="view">Can view</option>
+                <option value="edit">Can edit</option>
+              </select>
+              <button
+                onClick={handleInvite}
+                disabled={isLoading || !inviteEmail.trim()}
+                className="rounded-[7px] bg-accent-500 px-3.5 py-2 text-[12px] font-[550] text-white hover:bg-accent-500/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Invite
+              </button>
+            </div>
+
+            {/* People list */}
+            <div className="rounded-[9px] border border-line-200 overflow-hidden divide-y divide-line-200">
+              {/* Owner row */}
+              <div className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-accent-100 flex items-center justify-center text-[10px] font-[600] text-accent-700">
+                    Y
+                  </div>
+                  <span className="text-[12px] text-ink-700">You</span>
+                </div>
+                <span className="text-[11px] text-ink-400 font-[500]">
+                  Owner
+                </span>
+              </div>
+
+              {shareLinks.map((link) => (
+                <div
+                  key={link.id}
+                  className="flex items-center justify-between gap-3 px-3.5 py-2.5"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-full bg-surface-muted border border-line-200 flex items-center justify-center text-[10px] font-[600] text-ink-400 shrink-0">
+                      {link.title[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <span className="text-[12px] text-ink-700 truncate">
+                      {link.title}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span
+                      className={cn(
+                        "text-[11px] font-[500]",
+                        link.isActive ? "text-ink-600" : "text-ink-400"
                       )}
-                    </Button>
+                    >
+                      {link.isActive ? "Active" : "Inactive"}
+                    </span>
+                    <button
+                      onClick={() => handleToggleActive(link)}
+                      className="p-1 rounded-[5px] text-ink-400 hover:text-ink-700 hover:bg-surface-muted transition-colors"
+                      aria-label={link.isActive ? "Deactivate" : "Activate"}
+                    >
+                      {link.isActive ? (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Eye className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLink(link.id)}
+                      className="p-1 rounded-[5px] text-ink-400 hover:text-danger hover:bg-surface-muted transition-colors"
+                      aria-label="Delete link"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 </div>
-                
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowQR(!showQR)}
-                  >
-                    <QrCode className="h-4 w-4 mr-2" />
-                    {showQR ? "Hide" : "Show"} QR Code
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setNewShareUrl(null);
-                      setActiveTab("manage");
-                    }}
-                  >
-                    View All Links
-                  </Button>
+              ))}
+            </div>
+
+            {/* Copy link row */}
+            {shareLinks.length > 0 && shareLinks[0] && (
+              <div className="mt-2 flex items-center justify-between gap-2 rounded-[7px] border border-line-200 bg-surface-muted px-3 py-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Link className="h-3.5 w-3.5 text-ink-400 shrink-0" />
+                  <span className="text-[11px] text-ink-600 truncate">
+                    Anyone with the link
+                  </span>
                 </div>
-                
-                {showQR && (
-                  <div className="flex justify-center p-4 bg-white rounded-lg">
-                    <QRCodeSVG value={newShareUrl} size={200} />
+                <button
+                  onClick={() =>
+                    handleCopy(shareUrl(shareLinks[0].shareId), "link-row")
+                  }
+                  className="flex items-center gap-1 text-[11px] font-[550] text-accent-700 hover:text-accent-500 transition-colors shrink-0"
+                >
+                  {copied === "link-row" ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                  Copy link
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* ── PUBLISH TO PROMPT MARKET ── */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 flex items-center gap-1.5">
+                <Globe className="h-3 w-3" />
+                Publish to Prompt Market
+              </span>
+              {/* Toggle */}
+              <button
+                onClick={handlePublishToggle}
+                disabled={publishLoading}
+                className={cn(
+                  "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus:outline-none disabled:opacity-50",
+                  isPublished ? "bg-accent-500" : "bg-line-200"
+                )}
+                role="switch"
+                aria-checked={isPublished}
+              >
+                <span
+                  className={cn(
+                    "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform",
+                    isPublished ? "translate-x-4" : "translate-x-0"
+                  )}
+                />
+              </button>
+            </div>
+
+            {isPublished && (
+              <div className="space-y-2.5 rounded-[9px] border border-line-200 bg-surface-muted p-3.5">
+                {/* Stats */}
+                <div className="flex items-center gap-4 text-[11px] tabular-nums text-ink-400">
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-3 w-3" /> 0 views
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Share2 className="h-3 w-3" /> 0 copies
+                  </span>
+                </div>
+
+                {/* Public URL */}
+                {(publishedUrl ?? publicUrl) && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={(publishedUrl ?? publicUrl) ?? ""}
+                      readOnly
+                      className="flex-1 min-w-0 rounded-[7px] border border-line-200 bg-surface-card px-2.5 py-1.5 text-[11px] font-mono text-ink-600 outline-none"
+                    />
+                    <button
+                      onClick={() =>
+                        handleCopy(
+                          (publishedUrl ?? publicUrl) ?? "",
+                          "pub-url"
+                        )
+                      }
+                      className="flex items-center gap-1 rounded-[7px] border border-line-200 bg-surface-card px-2.5 py-1.5 text-[11px] font-[550] text-ink-700 hover:border-accent-500 hover:text-accent-700 transition-colors shrink-0"
+                    >
+                      {copied === "pub-url" ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                      Copy
+                    </button>
                   </div>
                 )}
               </div>
-            ) : (
-              <>
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Public Title</Label>
-                    <Input
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Enter a title for the shared prompt"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Public Description</Label>
-                    <Input
-                      id="description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Optional description"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="expires">Expiration</Label>
-                      <Select value={expiresIn} onValueChange={(v) => setExpiresIn(v as typeof expiresIn)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1h">1 hour</SelectItem>
-                          <SelectItem value="1d">1 day</SelectItem>
-                          <SelectItem value="7d">7 days</SelectItem>
-                          <SelectItem value="30d">30 days</SelectItem>
-                          <SelectItem value="never">Never</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="maxViews">Max Views (optional)</Label>
-                      <Input
-                        id="maxViews"
-                        type="number"
-                        value={maxViews || ""}
-                        onChange={(e) => setMaxViews(e.target.value ? parseInt(e.target.value) : undefined)}
-                        placeholder="Unlimited"
-                        min="1"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password (optional)</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Leave empty for no password"
-                    />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Show Author</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Display your name on the shared prompt
-                        </p>
-                      </div>
-                      <Switch
-                        checked={showAuthor}
-                        onCheckedChange={setShowAuthor}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Allow Embedding</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Allow this prompt to be embedded on other sites
-                        </p>
-                      </div>
-                      <Switch
-                        checked={allowEmbed}
-                        onCheckedChange={setAllowEmbed}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <LoadingButton
-                    onClick={handleCreateShare}
-                    loading={isLoading}
-                    disabled={!title}
-                    loadingText="Creating..."
-                  >
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Create Share Link
-                  </LoadingButton>
-                </DialogFooter>
-              </>
             )}
-          </TabsContent>
-          
-          <TabsContent value="manage" className="space-y-4">
-            {shareLinks.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  No share links created yet
-                </p>
-                <Button onClick={() => setActiveTab("create")}>
-                  Create Your First Share Link
-                </Button>
-              </div>
-            ) : (
-              <ScrollArea className="h-[400px]">
-                <div className="space-y-4">
-                  {shareLinks.map((link) => (
-                    <div
-                      key={link.id}
-                      className="border rounded-lg p-4 space-y-3"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">{link.title}</h4>
-                          {link.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {link.description}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {link.isExpired && (
-                            <Badge variant="destructive">Expired</Badge>
-                          )}
-                          {!link.isActive && (
-                            <Badge variant="secondary">Inactive</Badge>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteLink(link.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {format(new Date(link.createdAt), "MMM d, yyyy")}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {link.viewCount} views
-                        </div>
-                        {link.maxViews && (
-                          <div>Max: {link.maxViews}</div>
-                        )}
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <Input
-                            value={shareUrl(link.shareId)}
-                            readOnly
-                            className="text-xs"
-                          />
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleCopy(shareUrl(link.shareId), link.id)}
-                        >
-                          {copied === link.id ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedLink(link);
-                            loadAnalytics(link.id);
-                          }}
-                        >
-                          <Activity className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleUpdateLink(link.id, { 
-                            isActive: !link.isActive 
-                          })}
-                        >
-                          {link.isActive ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-            
-            {selectedLink && analytics && (
-              <Dialog open={!!selectedLink} onOpenChange={() => setSelectedLink(null)}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Share Link Analytics</DialogTitle>
-                    <DialogDescription>
-                      View statistics for {selectedLink.title}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Total Views</p>
-                        <p className="text-2xl font-bold">{analytics.totalViews}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Unique Visitors</p>
-                        <p className="text-2xl font-bold">{analytics.uniqueVisitors}</p>
-                      </div>
-                    </div>
-                    
-                    {analytics.recentViews.length > 0 && (
-                      <div>
-                        <h4 className="font-medium mb-2">Recent Views</h4>
-                        <div className="space-y-2 text-sm">
-                          {analytics.recentViews.slice(0, 5).map((view, i) => (
-                            <div key={i} className="flex justify-between text-muted-foreground">
-                              <span>{format(new Date(view.viewedAt), "MMM d, h:mm a")}</span>
-                              {view.referer && (
-                                <span className="truncate max-w-[200px]">
-                                  from {new URL(view.referer).hostname}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-line-200 sticky bottom-0 bg-surface-card">
+          <button
+            onClick={onClose}
+            className="rounded-[7px] border border-line-200 px-3.5 py-2 text-[13px] font-[550] text-ink-700 hover:border-line-150 hover:bg-surface-muted transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onClose}
+            className="rounded-[7px] bg-accent-500 px-4 py-2 text-[13px] font-[550] text-white hover:bg-accent-500/90 transition-colors"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

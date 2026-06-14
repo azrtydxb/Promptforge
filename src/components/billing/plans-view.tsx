@@ -1,10 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Minus, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { Check, Minus, Plus, X } from "lucide-react";
+import Link from "next/link";
 import type { Plan } from "@/lib/plan";
+import type { PlanTier } from "@/generated/prisma";
 import { cn } from "@/lib/utils";
+import { updateSeats } from "@/app/actions/billing.actions";
+import { toast } from "sonner";
+
+interface SubscriptionInfo {
+  plan?: PlanTier;
+  seatsTotal?: number;
+  seatsUsed?: number;
+  unitPriceCents?: number;
+  renewsAt?: Date | null;
+  teamId?: string;
+  teamName?: string;
+}
+
+interface PlansViewProps {
+  currentPlan: Plan;
+  subscription?: SubscriptionInfo;
+}
 
 interface PlanCard {
   key: Plan;
@@ -12,28 +30,53 @@ interface PlanCard {
   blurb: string;
   price: string;
   unit: string;
+  cta: string;
   featured?: boolean;
 }
 
 const PLAN_CARDS: PlanCard[] = [
-  { key: "FREE", name: "Individual", blurb: "Everything for personal prompt work.", price: "$0", unit: "/ forever" },
-  { key: "TEAM", name: "Team", blurb: "Private sharing, folders, roles & seats.", price: "$9", unit: "/ seat / mo", featured: true },
-  { key: "BUSINESS", name: "Business", blurb: "SSO/SAML, SCIM provisioning & audit log.", price: "$18", unit: "/ seat / mo" },
+  {
+    key: "FREE",
+    name: "Free",
+    blurb: "Everything for personal prompt work.",
+    price: "$0",
+    unit: "/ mo",
+    cta: "Get started free",
+  },
+  {
+    key: "TEAM",
+    name: "Team",
+    blurb: "Private sharing, folders, roles & seats.",
+    price: "$9",
+    unit: "/ seat / mo",
+    cta: "Get started",
+    featured: false,
+  },
+  {
+    key: "BUSINESS",
+    name: "Business",
+    blurb: "SSO/SAML, SCIM provisioning & audit log.",
+    price: "$18",
+    unit: "/ seat / mo",
+    cta: "Upgrade to Business",
+    featured: true,
+  },
 ];
 
 type Cell = boolean | string;
 const COMPARISON: Array<{ feature: string; cells: [Cell, Cell, Cell] }> = [
-  { feature: "Prompts, folders, versions, favorites", cells: [true, true, true] },
+  { feature: "Personal prompts & versions", cells: ["Unlimited", "Unlimited", "Unlimited"] },
   { feature: "Templates & Prompt Market", cells: [true, true, true] },
+  { feature: "Quick preview & copy", cells: [true, true, true] },
   { feature: "Shared Prompts (private)", cells: [false, true, true] },
   { feature: "Shared team folders", cells: [false, true, true] },
   { feature: "Roles & permissions", cells: [false, true, true] },
   { feature: "Team admin & seat management", cells: [false, true, true] },
-  { feature: "SSO/SAML & audit logs", cells: [false, false, true] },
+  { feature: "SSO / SAML & audit logs", cells: [false, false, true] },
   { feature: "Support", cells: ["Community", "Email", "Priority"] },
 ];
 
-function Cell({ value }: { value: Cell }) {
+function CellValue({ value }: { value: Cell }) {
   if (value === true)
     return (
       <span className="flex justify-center">
@@ -43,70 +86,124 @@ function Cell({ value }: { value: Cell }) {
   if (value === false)
     return (
       <span className="flex justify-center">
-        <Minus className="h-3.5 w-3.5 text-ink-300" />
+        <X className="h-3.5 w-3.5 text-ink-300" />
       </span>
     );
   return <span className="block text-center text-[12px] text-ink-600">{value}</span>;
 }
 
-export function PlansView({ currentPlan }: { currentPlan: Plan }) {
-  const [seats, setSeats] = useState(12);
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
 
-  const cta = (label: string) => () =>
-    toast.success(`${label} — checkout is mocked in this build.`);
+export function PlansView({ currentPlan, subscription }: PlansViewProps) {
+  const [seats, setSeats] = useState(subscription?.seatsTotal ?? 1);
+  const [updating, setUpdating] = useState(false);
+
+  const minSeats = subscription?.seatsUsed ?? 1;
+  const unitPrice = subscription?.unitPriceCents ?? 0;
+  const monthlyTotal = ((seats * unitPrice) / 100).toFixed(0);
+
+  const hasPaidSub =
+    subscription?.plan && subscription.teamId;
+
+  async function handleUpdateSeats() {
+    if (!subscription?.teamId) return;
+    setUpdating(true);
+    try {
+      await updateSeats(subscription.teamId, seats);
+      toast.success("Seats updated");
+    } catch {
+      toast.error("Failed to update seats");
+    } finally {
+      setUpdating(false);
+    }
+  }
 
   return (
     <div className="space-y-5">
+      {/* Tab navigation + badge */}
       <div className="flex items-center justify-between">
-        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">Plans &amp; billing</h1>
-        <span className="rounded-full bg-success-surface px-2.5 py-1 text-[11px] font-[550] text-success">
+        <div className="flex items-center gap-6">
+          <Link
+            href="/teams"
+            className="pb-1 text-[13.5px] font-[550] text-ink-400 hover:text-ink-700"
+          >
+            Teams
+          </Link>
+          <span className="border-b-2 border-accent-700 pb-1 text-[13.5px] font-[600] text-accent-700">
+            Plans
+          </span>
+          <Link
+            href="/teams"
+            className="pb-1 text-[13.5px] font-[550] text-ink-400 hover:text-ink-700"
+          >
+            Members
+          </Link>
+        </div>
+        <span className="rounded-full bg-accent-100 px-2 py-0.5 text-xs font-[550] text-accent-700">
           Billed annually · save 20%
         </span>
       </div>
 
-      {/* Current plan banner (paid plans) */}
-      {currentPlan !== "FREE" && (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-[11px] border border-line-200 bg-surface-card p-[18px]">
-          <div>
-            <p className="text-[13px] font-[600] text-ink-900">
-              You&apos;re on the{" "}
-              <span className="text-accent-700">
-                {currentPlan === "BUSINESS" ? "Business" : "Team"} plan
-              </span>
-            </p>
-            <p className="mt-0.5 text-[12px] text-ink-400">
-              {seats} seats · renews monthly ·{" "}
-              <span className="tabular-nums">
-                ${seats * (currentPlan === "BUSINESS" ? 18 : 9)}/mo
-              </span>
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center rounded-[7px] border border-line-200">
+      {/* Page title */}
+      <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">
+        Plans &amp; Billing
+      </h1>
+
+      {/* Current plan banner */}
+      {hasPaidSub && (
+        <div className="rounded-[11px] border border-line-200 bg-surface-card p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-[13px] font-[600] text-ink-900">
+                {subscription.teamName ?? "Your team"} is on the{" "}
+                <span className="text-accent-700">
+                  {subscription.plan === "BUSINESS" ? "Business" : "Team"} plan
+                </span>
+              </p>
+              <p className="mt-0.5 text-[12px] text-ink-400">
+                <span className="tabular-nums">{subscription.seatsUsed}</span> of{" "}
+                <span className="tabular-nums">{subscription.seatsTotal}</span> seats used
+                {subscription.renewsAt && (
+                  <> · renews {formatDate(subscription.renewsAt)}</>
+                )}
+                {" "}·{" "}
+                <span className="tabular-nums">${monthlyTotal}/mo</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center rounded-[7px] border border-line-200">
+                <button
+                  onClick={() => setSeats((s) => Math.max(minSeats, s - 1))}
+                  className="flex h-8 w-8 items-center justify-center text-ink-600 hover:bg-surface-muted"
+                  aria-label="Remove seat"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
+                <span className="w-10 text-center text-[13px] font-[550] tabular-nums text-ink-900">
+                  {seats}
+                </span>
+                <button
+                  onClick={() => setSeats((s) => s + 1)}
+                  className="flex h-8 w-8 items-center justify-center text-ink-600 hover:bg-surface-muted"
+                  aria-label="Add seat"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
               <button
-                onClick={() => setSeats((s) => Math.max(1, s - 1))}
-                className="flex h-8 w-8 items-center justify-center text-ink-600 hover:bg-surface-muted"
-                aria-label="Remove seat"
+                onClick={handleUpdateSeats}
+                disabled={updating}
+                className="rounded-[8px] bg-accent-500 px-3 py-2 text-[12.5px] font-[550] text-white hover:bg-[#4F5AC4] disabled:opacity-60"
               >
-                <Minus className="h-3.5 w-3.5" />
-              </button>
-              <span className="w-10 text-center text-[13px] font-[550] tabular-nums text-ink-900">
-                {seats}
-              </span>
-              <button
-                onClick={() => setSeats((s) => s + 1)}
-                className="flex h-8 w-8 items-center justify-center text-ink-600 hover:bg-surface-muted"
-                aria-label="Add seat"
-              >
-                <Plus className="h-3.5 w-3.5" />
+                {updating ? "Updating…" : "Update seats"}
               </button>
             </div>
-            <button
-              onClick={cta("Seats updated")}
-              className="rounded-[7px] bg-accent-500 px-3 py-2 text-[12.5px] font-[550] text-white hover:bg-[#4F5AC4]"
-            >
-              Update seats
-            </button>
           </div>
         </div>
       )}
@@ -119,7 +216,7 @@ export function PlansView({ currentPlan }: { currentPlan: Plan }) {
             <div
               key={p.key}
               className={cn(
-                "flex flex-col rounded-[11px] bg-surface-card p-5",
+                "flex flex-col rounded-[11px] bg-surface-card p-6",
                 p.featured
                   ? "border-[1.5px] border-accent-500 shadow-[0_12px_32px_-12px_rgba(94,106,210,0.35)]"
                   : "border border-line-200"
@@ -127,9 +224,14 @@ export function PlansView({ currentPlan }: { currentPlan: Plan }) {
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-[14px] font-[620] text-ink-900">{p.name}</h3>
-                {p.featured && (
+                {isCurrent && (
                   <span className="rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-[550] text-accent-700">
-                    {isCurrent ? "Your plan" : "Popular"}
+                    Your plan
+                  </span>
+                )}
+                {!isCurrent && p.featured && (
+                  <span className="rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-[550] text-accent-700">
+                    Popular
                   </span>
                 )}
               </div>
@@ -141,7 +243,6 @@ export function PlansView({ currentPlan }: { currentPlan: Plan }) {
                 <span className="text-[12px] text-ink-400">{p.unit}</span>
               </div>
               <button
-                onClick={isCurrent ? undefined : cta(`Switched to ${p.name}`)}
                 disabled={isCurrent}
                 className={cn(
                   "mt-5 rounded-[8px] px-3 py-2 text-[12.5px] font-[550] transition-colors",
@@ -152,7 +253,7 @@ export function PlansView({ currentPlan }: { currentPlan: Plan }) {
                       : "bg-accent-100 text-accent-700 hover:bg-accent-150"
                 )}
               >
-                {isCurrent ? "Current plan" : p.key === "FREE" ? "Downgrade" : "Upgrade"}
+                {isCurrent ? "Current plan" : p.cta}
               </button>
             </div>
           );
@@ -165,23 +266,29 @@ export function PlansView({ currentPlan }: { currentPlan: Plan }) {
           <thead>
             <tr className="border-b border-line-150 text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400">
               <th className="px-[18px] py-2.5 text-left font-[600]">Feature</th>
-              <th className="px-2 py-2.5 text-center font-[600]">Individual</th>
+              <th className="px-2 py-2.5 text-center font-[600]">Free</th>
               <th className="px-2 py-2.5 text-center font-[600]">Team</th>
               <th className="px-[18px] py-2.5 text-center font-[600]">Business</th>
             </tr>
           </thead>
           <tbody>
-            {COMPARISON.map((row) => (
-              <tr key={row.feature} className="border-t border-line-100">
+            {COMPARISON.map((row, i) => (
+              <tr
+                key={row.feature}
+                className={cn(
+                  "border-t border-line-100",
+                  i % 2 === 0 ? "bg-surface-muted" : ""
+                )}
+              >
                 <td className="px-[18px] py-2.5 text-[12.5px] text-ink-700">{row.feature}</td>
                 <td className="px-2 py-2.5">
-                  <Cell value={row.cells[0]} />
+                  <CellValue value={row.cells[0]} />
                 </td>
                 <td className="px-2 py-2.5">
-                  <Cell value={row.cells[1]} />
+                  <CellValue value={row.cells[1]} />
                 </td>
                 <td className="px-[18px] py-2.5">
-                  <Cell value={row.cells[2]} />
+                  <CellValue value={row.cells[2]} />
                 </td>
               </tr>
             ))}

@@ -5,6 +5,7 @@ import { Heart, ArrowRight, Eye, FileText, LayoutTemplate, Store, Pin } from "lu
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { togglePromptLike } from "@/app/actions/likes-comments.actions";
+import { useModal } from "@/hooks/use-modal-store";
 
 export type PromptCardVariant = "personal" | "template" | "shared";
 
@@ -95,6 +96,7 @@ export function UnifiedPromptCardClean({
   disableLink = false,
 }: UnifiedPromptCardProps) {
   const [isLiking, setIsLiking] = useState(false);
+  const { onOpen } = useModal();
 
   const isTemplate = (d: BasePromptData): d is TemplatePromptData => variant === "template";
   const isShared = (d: BasePromptData): d is SharedPromptData => variant === "shared";
@@ -116,6 +118,45 @@ export function UnifiedPromptCardClean({
       console.error("Error toggling like:", error);
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleQuickPreview = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isShared(data)) {
+      onOpen("quickPreview", {
+        quickPreview: {
+          sharedId: data.id,
+          promptId: data.promptId,
+          title: data.title,
+          content: data.content ?? "",
+          author: data.author.name
+            ? { name: data.author.name, avatar: data.author.profilePicture ?? undefined }
+            : undefined,
+          views: data.viewCount,
+          likes: data.likeCount,
+          copies: data.copyCount,
+        },
+      });
+    } else if (isTemplate(data)) {
+      onOpen("quickPreview", {
+        quickPreview: {
+          promptId: data.id,
+          title: data.name,
+          category: data.category,
+          content: data.content ?? "",
+          rating: data.rating ?? undefined,
+        },
+      });
+    } else {
+      onOpen("quickPreview", {
+        quickPreview: {
+          promptId: data.id,
+          title: data.title,
+          content: data.content ?? "",
+        },
+      });
     }
   };
 
@@ -216,15 +257,15 @@ export function UnifiedPromptCardClean({
         </div>
 
         <div className="flex items-center gap-2">
-          {variant === "personal" && (
-            <Link
-              href={`/prompts/${data.id}`}
-              aria-label="Preview"
-              className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-line-200 text-ink-600 hover:border-accent-500 hover:text-accent-700"
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </Link>
-          )}
+          {/* Quick preview eye button — all variants */}
+          <button
+            type="button"
+            onClick={handleQuickPreview}
+            aria-label="Quick preview"
+            className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-line-200 text-ink-600 hover:border-accent-500 hover:text-accent-700"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </button>
           <button
             type="button"
             onClick={(e) => {

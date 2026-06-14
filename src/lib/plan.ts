@@ -35,11 +35,11 @@ export function highestRole(roles: TeamRole[]): TeamRole | null {
   return roles.reduce((best, r) => (ROLE_RANK[r] > ROLE_RANK[best] ? r : best));
 }
 
-/** Build the {plan, roleLabel} a user's effective plan from their team memberships. */
+/** Build {plan, roleLabel} from a user's team memberships + the team's Subscription. */
 export async function getPlanContext(userId: string): Promise<PlanContext> {
   const memberships = await db.teamMember.findMany({
     where: { userId },
-    select: { role: true },
+    select: { role: true, team: { select: { subscription: { select: { plan: true } } } } },
   });
 
   if (memberships.length === 0) {
@@ -47,5 +47,8 @@ export async function getPlanContext(userId: string): Promise<PlanContext> {
   }
 
   const top = highestRole(memberships.map((m) => m.role)) as TeamRole;
-  return { plan: "TEAM", roleLabel: `Team · ${ROLE_DISPLAY[top]}` };
+  const hasBusiness = memberships.some((m) => m.team?.subscription?.plan === "BUSINESS");
+  const plan: Plan = hasBusiness ? "BUSINESS" : "TEAM";
+  const label = hasBusiness ? "Business" : "Team";
+  return { plan, roleLabel: `${label} · ${ROLE_DISPLAY[top]}` };
 }
