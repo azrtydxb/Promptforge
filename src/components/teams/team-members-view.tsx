@@ -1,43 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { updateTeamMemberRole, removeTeamMember } from "@/app/actions/team-members.actions";
 import { TeamRole } from "@/generated/prisma";
-// import { canPerformAction } from "@/app/actions/team.actions";
-import { toast } from "sonner";
-import { 
-  UserPlus, 
-  MoreVertical, 
-  Shield, 
-  UserX,
-  Mail,
-  Clock,
-  ChevronLeft
-} from "lucide-react";
+import { UserPlus, ChevronLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { RoleSelect, RemoveButton, ResendButton } from "./member-row-actions";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface TeamUser {
   id: string;
@@ -51,6 +23,7 @@ interface TeamMember {
   id: string;
   userId: string;
   role: string;
+  joinedAt?: Date;
   user: TeamUser;
 }
 
@@ -70,6 +43,10 @@ interface Invitation {
 interface Team {
   id: string;
   name: string;
+  _count?: {
+    prompts?: number;
+    folders?: number;
+  };
 }
 
 interface TeamMembersViewProps {
@@ -80,6 +57,32 @@ interface TeamMembersViewProps {
   currentUserRole: TeamRole;
 }
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const ROLE_DISPLAY: Record<string, string> = {
+  OWNER: "Owner",
+  ADMIN: "Admin",
+  MEMBER: "Editor",
+  VIEWER: "Viewer",
+};
+
+const LABEL_CLASS = "text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400";
+
+function KpiCell({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="flex flex-col gap-1 px-6 py-4 first:pl-5 last:pr-5">
+      <span className={LABEL_CLASS}>{label}</span>
+      <span className="text-[24px] font-[660] tabular-nums text-ink-900 leading-none">{value}</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
 export function TeamMembersView({
   team,
   members,
@@ -88,263 +91,208 @@ export function TeamMembersView({
   currentUserRole,
 }: TeamMembersViewProps) {
   const router = useRouter();
-  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
-  const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null);
-  
+
   const isAdmin = currentUserRole === TeamRole.ADMIN || currentUserRole === TeamRole.OWNER;
   const isOwner = currentUserRole === TeamRole.OWNER;
 
-  const handleRoleChange = async (memberId: string, newRole: TeamRole) => {
-    setUpdatingRoleId(memberId);
-    
-    try {
-      await updateTeamMemberRole({
-        teamId: team.id,
-        memberId,
-        newRole,
-      });
+  const promptCount = team._count?.prompts ?? 0;
+  const folderCount = team._count?.folders ?? 0;
+  const seatCount = members.length;
 
-      toast.success("Member role has been updated successfully");
-      
-      router.refresh();
-    } catch (error) {
-      console.error("Error updating role:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to update role");
-    } finally {
-      setUpdatingRoleId(null);
-    }
-  };
-
-  const handleRemoveMember = async (memberId: string) => {
-    try {
-      await removeTeamMember({
-        teamId: team.id,
-        memberId,
-      });
-
-      toast.success("Member has been removed from the team");
-      
-      router.refresh();
-    } catch (error) {
-      console.error("Error removing member:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to remove member");
-    } finally {
-      setRemovingMemberId(null);
-    }
-  };
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case "OWNER":
-        return "default";
-      case "ADMIN":
-        return "secondary";
-      default:
-        return "outline";
-    }
-  };
+  // Combine active members + pending invitations into one table
+  const allRows = [
+    ...members.map((m) => ({ type: "member" as const, data: m })),
+    ...invitations.map((inv) => ({ type: "invite" as const, data: inv })),
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
+    <div className="space-y-5">
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3">
+        <button
           onClick={() => router.push(`/teams/${team.id}`)}
+          className="rounded-[7px] p-1.5 hover:bg-surface-muted transition-colors text-ink-600"
+          aria-label="Back to team"
         >
           <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold">Team Members</h1>
-          <p className="text-muted-foreground">Manage members of {team.name}</p>
-        </div>
+        </button>
+
+        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900 flex-1">
+          Teams
+        </h1>
+
+        {/* Team chip */}
+        <span className="inline-flex items-center gap-1 bg-surface-muted border border-line-150 rounded-full px-3 py-1 text-[13px] font-[500] text-ink-700">
+          {team.name}
+        </span>
+
         {isAdmin && (
-          <Button onClick={() => router.push(`/teams/${team.id}/members/invite`)}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Invite Member
-          </Button>
+          <button
+            onClick={() => router.push(`/teams/${team.id}/members/invite`)}
+            className="inline-flex items-center gap-1.5 bg-accent-500 hover:bg-accent-500/90 text-white rounded-[7px] px-3 py-1.5 text-[13px] font-[550] transition-colors"
+          >
+            <UserPlus className="h-4 w-4" />
+            Invite member
+          </button>
         )}
       </div>
 
-      <Tabs defaultValue="members">
-        <TabsList>
-          <TabsTrigger value="members">
-            Members ({members.length})
-          </TabsTrigger>
-          {isAdmin && invitations.length > 0 && (
-            <TabsTrigger value="invitations">
-              Pending Invitations ({invitations.length})
-            </TabsTrigger>
-          )}
-        </TabsList>
+      {/* ── KPI Bar ── */}
+      <div className="bg-surface-card border border-line-200 rounded-[11px] flex divide-x divide-line-100 overflow-hidden">
+        <KpiCell label="Members" value={`${seatCount} / ${seatCount}`} />
+        <KpiCell label="Shared prompts" value={promptCount} />
+        <KpiCell label="Team folders" value={folderCount} />
+        <KpiCell label="Active today" value={0} />
+      </div>
 
-        <TabsContent value="members">
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Members</CardTitle>
-              <CardDescription>
-                People who have access to this team
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {members.map((member) => {
-                  const isSelf = member.userId === currentUserId;
-                  const memberRole = member.role as TeamRole;
-                  
-                  return (
-                    <div key={member.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar
-                          user={{
-                            id: member.user.id,
-                            name: member.user.name,
-                            email: member.user.email,
-                            username: member.user.username,
-                            avatarType: 'INITIALS' as const,
-                            profilePicture: member.user.image,
-                            gravatarEmail: member.user.email
-                          }}
-                          size="md"
-                          isCurrentUser={isSelf}
-                        />
-                        <div>
-                          <p className="font-medium">
-                            {member.user.name || member.user.username}
-                            {isSelf && <span className="text-muted-foreground ml-2">(You)</span>}
-                          </p>
-                          <p className="text-sm text-muted-foreground">{member.user.email}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Badge variant={getRoleBadgeVariant(member.role)}>
-                          {member.role}
-                        </Badge>
-                        
-                        {(isAdmin || isSelf) && memberRole !== TeamRole.OWNER && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                disabled={updatingRoleId === member.id}
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {isOwner && !isSelf && (
-                                <>
-                                  <DropdownMenuItem
-                                    onClick={() => handleRoleChange(member.id, TeamRole.ADMIN)}
-                                    disabled={memberRole === TeamRole.ADMIN}
-                                  >
-                                    <Shield className="h-4 w-4 mr-2" />
-                                    Make Admin
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => handleRoleChange(member.id, TeamRole.MEMBER)}
-                                    disabled={memberRole === TeamRole.MEMBER}
-                                  >
-                                    Make Member
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => handleRoleChange(member.id, TeamRole.VIEWER)}
-                                    disabled={memberRole === TeamRole.VIEWER}
-                                  >
-                                    Make Viewer
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                </>
-                              )}
-                              <DropdownMenuItem
-                                onClick={() => setRemovingMemberId(member.id)}
-                                className="text-destructive"
-                              >
-                                <UserX className="h-4 w-4 mr-2" />
-                                {isSelf ? "Leave Team" : "Remove from Team"}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      {/* ── Admin banner ── */}
+      {isAdmin && (
+        <div className="bg-accent-100 border border-accent-500/20 rounded-[10px] p-3 text-[13px] text-ink-700 leading-snug">
+          You&apos;re a <strong>team admin</strong> — you can invite people, change roles and remove
+          members. Seats are billed on the team&apos;s plan.
+        </div>
+      )}
 
-        {isAdmin && invitations.length > 0 && (
-          <TabsContent value="invitations">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pending Invitations</CardTitle>
-                <CardDescription>
-                  People who have been invited but haven&apos;t joined yet
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {invitations.map((invitation) => (
-                    <div key={invitation.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-full bg-muted">
-                          <Mail className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{invitation.email}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Invited by {invitation.invitedBy.name || invitation.invitedBy.email}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{invitation.role}</Badge>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Clock className="h-3 w-3 mr-1" />
-                          Expires {formatDistanceToNow(new Date(invitation.expiresAt), { addSuffix: true })}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+      {/* ── Members & Roles table ── */}
+      <div className="bg-surface-card border border-line-200 rounded-[11px] overflow-hidden">
+        {/* Table header */}
+        <div className="grid grid-cols-[1fr_1fr_120px_120px_120px] gap-0 px-4 py-2.5 border-b border-line-100">
+          <span className={LABEL_CLASS}>Member</span>
+          <span className={LABEL_CLASS}>Email</span>
+          <span className={LABEL_CLASS}>Role</span>
+          <span className={LABEL_CLASS}>Last active</span>
+          <span className={LABEL_CLASS}>Manage</span>
+        </div>
+
+        {/* Rows */}
+        <div className="divide-y divide-line-100">
+          {allRows.map((row) => {
+            if (row.type === "member") {
+              const member = row.data as TeamMember;
+              const isSelf = member.userId === currentUserId;
+              const isOwnerRow = member.role === TeamRole.OWNER;
+              const displayName = member.user.name || member.user.username || "Unknown";
+              const canManageThis = isAdmin && !isSelf && !isOwnerRow;
+              const canChangeRole = isOwner && !isSelf && !isOwnerRow;
+
+              return (
+                <div
+                  key={member.id}
+                  className="grid grid-cols-[1fr_1fr_120px_120px_120px] gap-0 items-center px-4 py-3 hover:bg-surface-muted/50 transition-colors"
+                >
+                  {/* Member column */}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Avatar
+                      user={{
+                        id: member.user.id,
+                        name: member.user.name,
+                        email: member.user.email,
+                        username: member.user.username,
+                        avatarType: "INITIALS" as const,
+                        profilePicture: member.user.image,
+                        gravatarEmail: member.user.email,
+                      }}
+                      size="sm"
+                      isCurrentUser={isSelf}
+                    />
+                    <span className="text-[13px] font-[500] text-ink-900 truncate">
+                      {displayName}
+                      {isSelf && (
+                        <span className="text-ink-400 font-[400] ml-1">(You)</span>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Email */}
+                  <span className="text-[13px] text-ink-600 truncate pr-3">
+                    {member.user.email ?? "—"}
+                  </span>
+
+                  {/* Role */}
+                  <div>
+                    {isOwnerRow ? (
+                      <span className="bg-surface-muted text-ink-600 rounded-full px-2 py-0.5 text-[11px] font-[500]">
+                        Owner
+                      </span>
+                    ) : (
+                      <RoleSelect
+                        teamId={team.id}
+                        memberId={member.id}
+                        currentRole={member.role}
+                        canChangeRole={canChangeRole}
+                      />
+                    )}
+                  </div>
+
+                  {/* Last active */}
+                  <span className="text-[13px] text-ink-400 tabular-nums">
+                    {"joinedAt" in member && member.joinedAt
+                      ? formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })
+                      : "—"}
+                  </span>
+
+                  {/* Manage */}
+                  <div>
+                    {isOwnerRow ? (
+                      <span className="text-[13px] text-ink-400">—</span>
+                    ) : canManageThis || isSelf ? (
+                      <RemoveButton
+                        teamId={team.id}
+                        memberId={member.id}
+                        isSelf={isSelf}
+                        memberName={displayName}
+                      />
+                    ) : (
+                      <span className="text-[13px] text-ink-400">—</span>
+                    )}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-      </Tabs>
+              );
+            }
 
-      <AlertDialog open={!!removingMemberId} onOpenChange={() => setRemovingMemberId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {members.find(m => m.id === removingMemberId)?.userId === currentUserId
-                ? "Leave Team"
-                : "Remove Member"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {members.find(m => m.id === removingMemberId)?.userId === currentUserId
-                ? "Are you sure you want to leave this team? You&apos;ll lose access to all team prompts."
-                : "Are you sure you want to remove this member from the team? They will lose access to all team prompts."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => removingMemberId && handleRemoveMember(removingMemberId)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {members.find(m => m.id === removingMemberId)?.userId === currentUserId
-                ? "Leave Team"
-                : "Remove Member"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            // Pending invitation row
+            const inv = row.data as Invitation;
+            return (
+              <div
+                key={inv.id}
+                className="grid grid-cols-[1fr_1fr_120px_120px_120px] gap-0 items-center px-4 py-3 hover:bg-surface-muted/50 transition-colors"
+              >
+                {/* Member column (dashed placeholder) */}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full border-2 border-dashed border-line-200 flex items-center justify-center text-ink-400 text-[10px] shrink-0">
+                    ?
+                  </div>
+                  <span className="text-[13px] font-[500] text-ink-400 truncate">Invited</span>
+                </div>
+
+                {/* Email */}
+                <span className="text-[13px] text-ink-600 truncate pr-3">{inv.email}</span>
+
+                {/* Role — show as Pending badge */}
+                <span className="inline-flex items-center bg-warning-surface text-warning rounded-full px-2 py-0.5 text-[11px] font-[500] w-fit">
+                  Pending
+                </span>
+
+                {/* Last active */}
+                <span className="text-[13px] text-ink-400">—</span>
+
+                {/* Manage */}
+                <div>
+                  {isAdmin && (
+                    <ResendButton teamId={team.id} email={inv.email} role={inv.role} />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {allRows.length === 0 && (
+            <div className="px-4 py-8 text-center text-[13px] text-ink-400">
+              No members found.
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

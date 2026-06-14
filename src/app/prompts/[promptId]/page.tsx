@@ -20,12 +20,30 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Save, ArrowLeft, Copy, Check, Share2, Eye, Split, Code2 } from "lucide-react";
+import { ChevronDown, Save, ArrowLeft, Copy, Check, Share2, Eye, Split, Code2, Star, Pencil } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 import { useSession } from "next-auth/react";
 import { MarkdownPreview } from "@/components/editor/markdown-preview";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FavoriteButton } from "@/components/prompts/favorite-button";
+
+// ── helper: highlight {{variables}} in prompt content ──────────────────────
+function renderContentWithVariables(content: string) {
+  const parts = content.split(/(\{\{[^}]+\}\})/g);
+  return parts.map((part, i) =>
+    /^\{\{[^}]+\}\}$/.test(part)
+      ? (
+        <span
+          key={i}
+          className="bg-accent-100 text-accent-700 rounded-[4px] px-1 font-mono text-[12px]"
+        >
+          {part}
+        </span>
+      )
+      : <span key={i}>{part}</span>
+  );
+}
 
 export default function PromptPage({
   params,
@@ -52,7 +70,7 @@ export default function PromptPage({
   const searchParams = useSearchParams();
   const { onOpen } = useModal();
   const { status } = useSession();
-  
+
   // Auto-save draft hook
   const {
     saveDraft,
@@ -82,7 +100,7 @@ export default function PromptPage({
   // Check authentication status
   useEffect(() => {
     if (status === "loading") return;
-    
+
     if (status === "unauthenticated") {
       router.push("/login");
     }
@@ -90,21 +108,21 @@ export default function PromptPage({
 
   useEffect(() => {
     if (!promptId || status !== "authenticated") return;
-    
+
     if (isCreateMode) {
       // Initialize empty state for new prompt
       setPrompt(null);
       setContent("");
       setTitle("");
       setDescription("");
-      
+
       // Initialize tags from query parameter if provided
       const tagsParam = searchParams.get('tags');
       const initialTags = tagsParam ? tagsParam.split(',').map(tag => tag.trim()) : [];
       setTags(initialTags);
-      
+
       setIsLoading(false);
-      
+
       // Check for draft (only show if it's less than 24 hours old, at least 30 seconds old, and has meaningful content)
       if (hasDraft) {
         const draft = loadDraft();
@@ -128,7 +146,7 @@ export default function PromptPage({
       }
       return;
     }
-    
+
     const fetchPrompt = async () => {
       try {
         const fetchedPrompt = await getPromptById(promptId);
@@ -137,11 +155,11 @@ export default function PromptPage({
         setTitle(fetchedPrompt?.title || "");
         setDescription(fetchedPrompt?.description || "");
         setTags(fetchedPrompt?.tags?.map(tag => tag.name) || []);
-        
+
         // Update lastUsedAt timestamp
         if (fetchedPrompt) {
           updatePromptLastUsed(promptId).catch(console.error);
-          
+
           // Check for draft after loading prompt
           if (hasDraft) {
             const draft = loadDraft();
@@ -190,13 +208,13 @@ export default function PromptPage({
 
   useEffect(() => {
     if (!promptId || isCreateMode || debouncedContent === prompt?.content) return;
-    
+
     updatePrompt(promptId, { content: debouncedContent });
   }, [debouncedContent, promptId, prompt?.content, isCreateMode]);
 
   useEffect(() => {
     if (!promptId || isCreateMode || debouncedDescription === prompt?.description) return;
-    
+
     updatePrompt(promptId, { description: debouncedDescription });
   }, [debouncedDescription, promptId, prompt?.description, isCreateMode]);
 
@@ -210,7 +228,7 @@ export default function PromptPage({
     try {
       // Get folderId from query parameter first, then fallback to localStorage
       let folderId = searchParams.get('folderId') || null;
-      
+
       if (!folderId) {
         const savedFolder = localStorage.getItem('selectedFolder');
         if (savedFolder) {
@@ -233,7 +251,7 @@ export default function PromptPage({
 
       // Clear draft after successful creation
       clearDraft();
-      
+
       // Navigate to the newly created prompt
       router.push(`/prompts/${newPrompt.id}`);
     } catch (error) {
@@ -346,81 +364,53 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
     );
   }
 
-  return (
-    <div className="flex h-full">
-      {/* Main section: Editor taking almost all screen */}
-      <div className="flex-grow flex flex-col">
-        {/* Unified Header */}
-        <div className="p-4 border-b">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={handleBack}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <Input
-              placeholder="Enter prompt title..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="flex-grow text-lg font-semibold"
-            />
-            {!isCreateMode && (
+  // ── Create mode: keep the original editor layout ──────────────────────────
+  if (isCreateMode) {
+    return (
+      <div className="flex h-full">
+        <div className="flex-grow flex flex-col">
+          {/* Header */}
+          <div className="p-4 border-b">
+            <div className="flex items-center gap-4">
+              <Button onClick={handleBack} variant="outline" size="sm" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+              <Input
+                placeholder="Enter prompt title..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="flex-grow text-lg font-semibold"
+              />
               <Button
-                onClick={() => onOpen("sharePrompt", { 
-                  promptData: { 
-                    id: promptId!, 
-                    title, 
-                    description,
-                    content 
-                  } 
-                })}
-                variant="outline"
+                onClick={handleSaveNewPrompt}
+                disabled={isSaving || !title.trim()}
                 className="flex items-center gap-2"
               >
-                <Share2 className="h-4 w-4" />
-                Share
+                <Save className="h-4 w-4" />
+                {isSaving ? "Creating..." : "Create Prompt"}
               </Button>
-            )}
-            <Button
-              onClick={isCreateMode ? handleSaveNewPrompt : handleSave}
-              disabled={isSaving || !title.trim()}
-              className="flex items-center gap-2"
-            >
-              <Save className="h-4 w-4" />
-              {isCreateMode
-                ? isSaving
-                  ? "Creating..."
-                  : "Create Prompt"
-                : isSaving
-                ? "Saving..."
-                : "Save"}
-            </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Description field above language dropdown */}
-        <div className="h-36 p-4 border-b">
-          <textarea
-            placeholder="Enter prompt description (optional)..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            maxLength={256}
-            className="w-full min-h-[80px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            rows={3}
-          />
-          <div className="text-xs text-gray-500 mt-2 text-right">
-            {description.length}/256 characters
+          {/* Description */}
+          <div className="h-36 p-4 border-b">
+            <textarea
+              placeholder="Enter prompt description (optional)..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={256}
+              className="w-full min-h-[80px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows={3}
+            />
+            <div className="text-xs text-gray-500 mt-2 text-right">
+              {description.length}/256 characters
+            </div>
           </div>
-        </div>
 
-        {/* Language dropdown and view mode toggles */}
-        <div className="p-3 border-b bg-gray-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          {/* Language toolbar */}
+          <div className="p-3 border-b bg-gray-50">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">Language:</span>
                 <DropdownMenu>
@@ -432,137 +422,328 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="bg-white">
                     {languageOptions.map((language) => (
-                      <DropdownMenuItem
-                        key={language}
-                        onClick={() => setSelectedLanguage(language)}
-                      >
+                      <DropdownMenuItem key={language} onClick={() => setSelectedLanguage(language)}>
                         {language}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              
-              {/* View mode toggles - only show for Markdown language */}
-              {selectedLanguage === "Markdown" && (
-                <div className="flex items-center">
-                  <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "edit" | "preview" | "split")}>
-                    <TabsList className="h-8">
-                      <TabsTrigger value="edit" className="h-7 px-3 text-xs">
-                        <Code2 className="h-3 w-3 mr-1" />
-                        Edit
-                      </TabsTrigger>
-                      <TabsTrigger value="split" className="h-7 px-3 text-xs">
-                        <Split className="h-3 w-3 mr-1" />
-                        Split
-                      </TabsTrigger>
-                      <TabsTrigger value="preview" className="h-7 px-3 text-xs">
-                        <Eye className="h-3 w-3 mr-1" />
-                        Preview
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
+              <SaveStatusIndicator status={draftStatus} lastSaved={lastSaved} onClear={clearDraft} />
+            </div>
+          </div>
+
+          {/* Editor */}
+          <div className="flex-grow overflow-hidden">
+            <EditorWithHistory value={content} onChange={setContent} language={selectedLanguage} />
+          </div>
+        </div>
+
+        {/* Tags sidebar */}
+        <div className="w-96 border-l flex flex-col">
+          <div className="h-32 p-4 border-b">
+            <label className="text-sm font-medium mb-2 block">Tags</label>
+            <EnhancedTagInput selectedTags={tags} onTagsChange={handleTagsChange} placeholder="Add tags..." />
+          </div>
+        </div>
+
+        {/* Draft Recovery Dialog */}
+        {recoveredDraft && (
+          <DraftRecoveryDialog
+            draft={recoveredDraft}
+            currentData={{
+              title: prompt?.title || title,
+              content: prompt?.content || content,
+              description: prompt?.description || description,
+              tags: prompt?.tags?.map(t => t.name) || tags,
+            }}
+            open={showDraftRecovery}
+            onOpenChange={setShowDraftRecovery}
+            onRecover={() => {
+              setTitle(recoveredDraft.title);
+              setContent(recoveredDraft.content);
+              setDescription(recoveredDraft.description);
+              setTags(recoveredDraft.tags);
+              clearDraft();
+            }}
+            onDiscard={() => { clearDraft(); }}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // ── View/Edit mode: Structured Pro detail layout ──────────────────────────
+
+  // Derived values
+  const versionCount = prompt?.versions?.length ?? 0;
+  const favoriteCount = (prompt as (Prompt & { tags: Tag[]; versions: PromptVersion[]; favorites?: unknown[] }) | null)?.favorites?.length ?? 0;
+  const variables = content
+    ? [...new Set([...content.matchAll(/\{\{([^}]+)\}\}/g)].map(m => m[1]))]
+    : [];
+
+  return (
+    <div className="flex flex-col h-full bg-surface-app">
+      {/* ── Topbar ── */}
+      <div className="flex items-center justify-between px-6 py-3 bg-surface-card border-b border-line-200 shrink-0">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1.5 text-sm">
+          <button
+            onClick={handleBack}
+            className="text-ink-400 hover:text-ink-700 transition-colors"
+          >
+            My Prompts
+          </button>
+          <span className="text-ink-300">/</span>
+          <span className="text-ink-700 font-[500] truncate max-w-[300px]">{title || "Untitled"}</span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          {/* Favorite */}
+          {promptId && (
+            <FavoriteButton
+              promptId={promptId}
+              isFavorited={false}
+              size="sm"
+              variant="ghost"
+              className="text-ink-400 hover:text-star"
+            />
+          )}
+
+          {/* Share */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-[7px] border-line-200 text-ink-700 text-[12.5px] gap-1.5"
+            onClick={() =>
+              onOpen("sharePrompt", {
+                promptData: { id: promptId!, title, description, content },
+              })
+            }
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Share
+          </Button>
+
+          {/* Edit / Save version */}
+          <Button
+            size="sm"
+            className="rounded-[7px] bg-accent-500 text-white text-[12.5px] gap-1.5 hover:bg-accent-700"
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            {isSaving ? "Saving..." : "Edit / Save"}
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Body: two-column grid ── */}
+      <div className="flex-1 overflow-auto px-6 py-5">
+        <div className="grid grid-cols-[1fr_300px] gap-6 max-w-[1200px] mx-auto">
+
+          {/* LEFT COLUMN */}
+          <div className="min-w-0">
+
+            {/* Title card */}
+            <div className="bg-surface-card border border-line-200 rounded-[11px] p-5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900 leading-tight">
+                  {title || "Untitled Prompt"}
+                </h1>
+                {versionCount > 0 && (
+                  <span className="bg-accent-100 text-accent-700 rounded-full text-[10px] px-2 py-0.5 font-[600] shrink-0">
+                    v{versionCount}
+                  </span>
+                )}
+              </div>
+
+              {description && (
+                <p className="text-ink-600 text-sm mt-2 leading-relaxed">{description}</p>
+              )}
+
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-3">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="bg-[#F1F2F5] text-ink-600 rounded-full text-[10px] px-2 py-0.5"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
-            
-            <div className="flex items-center gap-2">
-              <SaveStatusIndicator
-                status={draftStatus}
-                lastSaved={lastSaved}
-                onClear={clearDraft}
-              />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 flex items-center gap-2"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="h-3 w-3" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3 w-3" />
-                        Copy
-                        <ChevronDown className="h-3 w-3" />
-                      </>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white">
-                  <DropdownMenuItem onClick={handleCopy}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Content
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleCopyAsMarkdown}>
-                    <Code2 className="h-4 w-4 mr-2" />
-                    Copy as Markdown
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {!isCreateMode && prompt?.versions?.[0]?.version && (
-                <span className="text-sm text-gray-500">
-                  Version: {prompt.versions[0].version}
-                </span>
+
+            {/* Prompt content card */}
+            <div className="bg-surface-card border border-line-200 rounded-[11px] p-5 mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[13px] font-[620] text-ink-900">Prompt content</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-[7px] border-line-200 text-ink-700 text-[11px] h-7 px-2.5 gap-1"
+                  onClick={handleCopy}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-3 w-3" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      Copy
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="font-mono text-[12.5px] text-ink-700 whitespace-pre-wrap leading-relaxed bg-surface-muted rounded-[7px] p-4 border border-line-100">
+                {content ? renderContentWithVariables(content) : (
+                  <span className="text-ink-400 italic">No content yet.</span>
+                )}
+              </div>
+            </div>
+
+            {/* Variables card */}
+            <div className="bg-surface-card border border-line-200 rounded-[11px] p-5 mt-4">
+              <span className="text-[13px] font-[620] text-ink-900 block mb-3">Variables</span>
+              {variables.length > 0 ? (
+                <div className="grid grid-cols-2 gap-y-2 gap-x-6">
+                  {variables.map((varName) => (
+                    <div key={varName} className="flex items-center justify-between">
+                      <span className="font-mono text-ink-700 text-[12.5px]">{`{{${varName}}}`}</span>
+                      <span className="text-ink-400 text-[11px]">text</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-ink-400 text-sm">No variables detected</p>
               )}
             </div>
           </div>
-        </div>
-        
-        {/* Editor/Preview taking remaining space */}
-        <div className="flex-grow overflow-hidden">
-          {viewMode === "edit" && (
-            <EditorWithHistory value={content} onChange={setContent} language={selectedLanguage} />
-          )}
-          {viewMode === "preview" && (
-            <div className="h-full overflow-auto bg-gray-900">
-              <MarkdownPreview content={content} />
-            </div>
-          )}
-          {viewMode === "split" && (
-            <div className="flex h-full">
-              <div className="w-1/2 border-r border-gray-700">
-                <EditorWithHistory value={content} onChange={setContent} language={selectedLanguage} />
+
+          {/* RIGHT COLUMN (rail) */}
+          <div className="shrink-0">
+
+            {/* Usage stats card */}
+            <div className="bg-surface-card border border-line-200 rounded-[11px] p-5">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Uses */}
+                <div>
+                  <p className="tabular-nums text-[24px] font-[660] text-ink-900 leading-none">
+                    {(prompt as (Prompt & { tags: Tag[]; versions: PromptVersion[] }) | null)?.usageCount ?? 0}
+                  </p>
+                  <p className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 mt-1">Uses</p>
+                </div>
+
+                {/* Rating */}
+                <div>
+                  <p className="tabular-nums text-[24px] font-[660] text-ink-900 leading-none flex items-center gap-1">
+                    {(prompt as (Prompt & { tags: Tag[]; versions: PromptVersion[] }) | null)?.averageRating
+                      ? ((prompt as (Prompt & { tags: Tag[]; versions: PromptVersion[] })).averageRating as number).toFixed(1)
+                      : "—"}
+                    <Star className="h-4 w-4 text-star fill-current" />
+                  </p>
+                  <p className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 mt-1">Rating</p>
+                </div>
+
+                {/* Versions */}
+                <div>
+                  <p className="tabular-nums text-[24px] font-[660] text-ink-900 leading-none">
+                    {versionCount}
+                  </p>
+                  <p className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 mt-1">Versions</p>
+                </div>
+
+                {/* Favorites */}
+                <div>
+                  <p className="tabular-nums text-[24px] font-[660] text-ink-900 leading-none">
+                    {favoriteCount}
+                  </p>
+                  <p className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 mt-1">Favorites</p>
+                </div>
               </div>
-              <div className="w-1/2 overflow-auto bg-gray-900">
-                <MarkdownPreview content={content} />
-              </div>
             </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Right sidebar: TagInput at top, PromptHistoryTimeline below */}
-      <div className="w-96 border-l flex flex-col">
-        <div className="h-32 p-4 border-b">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Tags</label>
-            <EnhancedTagInput
-              selectedTags={tags}
-              onTagsChange={handleTagsChange}
-              placeholder="Add tags..."
-            />
+
+            {/* Version history card */}
+            {prompt && prompt.versions && prompt.versions.length > 0 && (
+              <div className="bg-surface-card border border-line-200 rounded-[11px] p-5 mt-4">
+                <span className="text-[13px] font-[620] text-ink-900 block mb-4">Version history</span>
+
+                <div className="relative">
+                  {/* Vertical connecting line */}
+                  <div className="absolute left-[7px] top-2 bottom-2 w-px bg-line-150" />
+
+                  <div className="flex flex-col gap-3">
+                    {prompt.versions.map((ver, idx) => {
+                      const isLatest = idx === 0;
+                      return (
+                        <div
+                          key={ver.id}
+                          className={`relative flex gap-3 rounded-[7px] p-2 -mx-2 ${
+                            isLatest ? "bg-accent-100" : ""
+                          }`}
+                        >
+                          {/* Dot */}
+                          <div
+                            className={`shrink-0 w-[15px] h-[15px] rounded-full border-2 mt-0.5 z-10 ${
+                              isLatest
+                                ? "bg-accent-500 border-accent-500"
+                                : "bg-surface-card border-line-200"
+                            }`}
+                          />
+
+                          {/* Version info */}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`font-mono text-[11px] font-[600] ${
+                                  isLatest ? "text-accent-700" : "text-ink-700"
+                                }`}
+                              >
+                                {ver.version ? `v${ver.version}` : `#${prompt.versions.length - idx}`}
+                              </span>
+                              {isLatest && (
+                                <span className="bg-accent-100 text-accent-700 rounded-full text-[9px] px-1.5 py-0.5 font-[600]">
+                                  current
+                                </span>
+                              )}
+                            </div>
+
+                            {ver.changeMessage && (
+                              <p className="text-ink-700 text-[12px] mt-0.5 leading-snug truncate">
+                                {ver.changeMessage}
+                              </p>
+                            )}
+
+                            <p className="text-ink-400 text-[11px] mt-0.5">
+                              {new Date(ver.createdAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Save-status indicator (subtle, below version history) */}
+            <div className="mt-3 flex justify-end">
+              <SaveStatusIndicator status={draftStatus} lastSaved={lastSaved} onClear={clearDraft} />
+            </div>
           </div>
         </div>
-        {!isCreateMode && prompt && (
-          <div className="flex-grow overflow-y-auto">
-            <div className="flex-1 overflow-y-auto p-4">
-              <PromptHistoryTimeline
-                promptId={promptId!}
-                currentContent={content}
-                currentTitle={title}
-                onRestore={handleRestore}
-                onLoad={(versionContent: string) => setContent(versionContent)}
-              />
-            </div>
-          </div>
-        )}
       </div>
-      
+
       {/* Draft Recovery Dialog */}
       {recoveredDraft && (
         <DraftRecoveryDialog

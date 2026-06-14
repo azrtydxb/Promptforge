@@ -166,7 +166,7 @@ export function UserManagement() {
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-ink-400" />
           <Input
             placeholder="Search users..."
             value={searchQuery}
@@ -176,7 +176,7 @@ export function UserManagement() {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-[11px] border border-line-200">
         <Table>
           <TableHeader>
             <TableRow>
@@ -194,27 +194,27 @@ export function UserManagement() {
                 <TableCell>
                   <div>
                     <div className="font-medium">{user.name || "Unnamed"}</div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <div className="text-sm text-ink-400 flex items-center gap-2">
                       {user.email}
                       {user.emailVerified && (
                         <span title="Email verified">
-                          <Mail className="h-3 w-3 text-[hsl(var(--success))]" />
+                          <Mail className="h-3 w-3 text-success" />
                         </span>
                       )}
                     </div>
                     {user.username && (
-                      <div className="text-xs text-muted-foreground">@{user.username}</div>
+                      <div className="text-xs text-ink-400">@{user.username}</div>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>{getRoleBadge(user.role)}</TableCell>
                 <TableCell>
                   {user.isActive ? (
-                    <Badge variant="outline" className="text-[hsl(var(--success))] border-[hsl(var(--success))]">
+                    <Badge variant="outline" className="text-success border-success">
                       <CheckCircle className="h-3 w-3 mr-1" /> Active
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-[hsl(var(--destructive))] border-[hsl(var(--destructive))]">
+                    <Badge variant="outline" className="text-danger border-danger">
                       <XCircle className="h-3 w-3 mr-1" /> Inactive
                     </Badge>
                   )}
@@ -222,13 +222,13 @@ export function UserManagement() {
                 <TableCell>
                   <div className="text-sm">
                     <div>{user._count.prompts} prompts</div>
-                    <div className="text-muted-foreground">
+                    <div className="text-ink-400">
                       {user._count.publishedPrompts} published
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-ink-400">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </div>
                 </TableCell>
@@ -239,7 +239,7 @@ export function UserManagement() {
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white">
+                    <DropdownMenuContent align="end" className="bg-surface-card">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -262,7 +262,7 @@ export function UserManagement() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        className="text-[hsl(var(--destructive))]"
+                        className="text-danger"
                         onClick={() => {
                           setSelectedUser(user);
                           setDeleteDialogOpen(true);
@@ -300,7 +300,7 @@ export function UserManagement() {
           <ChevronLeft className="h-4 w-4 mr-1" />
           Previous
         </Button>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-ink-400">
           Page {currentPage} of {totalPages}
         </span>
         <Button

@@ -1,163 +1,162 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { UnifiedSearch } from "@/components/search/unified-search";
+import { useState, useEffect, useMemo } from "react";
+import { Search, Plus } from "lucide-react";
 import { getPromptTemplates } from "@/app/actions/template.actions";
-import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
+import { UnifiedPromptCardClean } from "@/components/ui/unified-prompt-card-clean";
 import { LoadingStates } from "@/components/ui/loading-state";
-import { EmptyState } from "@/components/ui/empty-state";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface Template {
   id: string;
   name: string;
-  title?: string;
   description: string | null;
   content: string;
   category: string;
+  usageCount: number;
+  rating: number | null;
   author?: {
     id: string;
     image: string | null;
-    username: string;
+    username: string | null;
   } | null;
 }
 
+const CATEGORY_PILLS = ["All", "Writing", "Engineering", "Marketing", "Support", "Data"] as const;
+type CategoryPill = (typeof CATEGORY_PILLS)[number];
+
 export function TemplatesSearchComponent() {
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState<CategoryPill>("All");
 
   useEffect(() => {
-    loadTemplates();
+    async function load() {
+      try {
+        const data = await getPromptTemplates();
+        setTemplates(
+          data.map((t) => ({
+            id: t.id,
+            name: t.name,
+            description: t.description,
+            content: t.content,
+            category: t.category,
+            usageCount: t.usageCount ?? 0,
+            rating: t.rating ?? null,
+            author: t.author
+              ? { id: t.author.id, image: t.author.image, username: t.author.username }
+              : null,
+          }))
+        );
+      } catch (err) {
+        console.error("Failed to load templates:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    load();
   }, []);
 
-  const loadTemplates = async () => {
-    try {
-      const data = await getPromptTemplates();
-      const mappedTemplates: Template[] = data.map(t => ({
-        id: t.id,
-        name: t.name,
-        title: t.name,
-        description: t.description,
-        content: t.content,
-        category: t.category,
-        author: t.author,
-      }));
-      setTemplates(mappedTemplates);
-      setFilteredTemplates(mappedTemplates);
-
-      // Extract unique categories
-      const uniqueCategories = Array.from(
-        new Set(mappedTemplates.map((t) => t.category))
-      );
-      setCategories(uniqueCategories);
-    } catch (err) {
-      console.error("Failed to load templates:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSearch = async (query: string, _mode: string, filters: { category?: string }) => {
-    const filtered = templates.filter(template => {
-      const matchesQuery = !query ||
-        template.name.toLowerCase().includes(query.toLowerCase()) ||
-        (template.description || '').toLowerCase().includes(query.toLowerCase()) ||
-        template.content.toLowerCase().includes(query.toLowerCase());
-
-      const matchesCategory = !filters.category ||
-        filters.category === "all" ||
-        template.category === filters.category;
-
-      return matchesQuery && matchesCategory;
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return templates.filter((t) => {
+      const matchesCategory =
+        activeCategory === "All" ||
+        t.category.toLowerCase() === activeCategory.toLowerCase();
+      const matchesSearch =
+        !q ||
+        t.name.toLowerCase().includes(q) ||
+        (t.description ?? "").toLowerCase().includes(q);
+      return matchesCategory && matchesSearch;
     });
+  }, [templates, searchQuery, activeCategory]);
 
-    setFilteredTemplates(filtered);
-  };
-
-  const filtersComponent = (
-    <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-      <div className="space-y-2">
-        <Label>Category</Label>
-        <Select
-          value={selectedCategory}
-          onValueChange={(value) => {
-            setSelectedCategory(value);
-            handleSearch("", "keyword", { category: value });
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map(category => (
-              <SelectItem key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
-
-  if (isLoading) {
-    return <LoadingStates.CardGrid />;
-  }
+  if (isLoading) return <LoadingStates.CardGrid />;
 
   return (
-    <div className="space-y-6">
-      <UnifiedSearch
-        dataSource="templates"
-        onSearch={handleSearch}
-        placeholder="Search templates..."
-        filters={filtersComponent}
-        showHistory={true}
-      />
+    <div className="flex flex-col gap-5">
+      {/* Header row */}
+      <div className="flex items-center gap-3">
+        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900 mr-auto">
+          Templates
+        </h1>
 
-      {filteredTemplates.length > 0 ? (
-        <div>
-          <p className="text-sm text-muted-foreground mb-4">
-            Found {filteredTemplates.length} templates
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
-            {filteredTemplates.map((template) => (
-              <UnifiedPromptCard
-                key={template.id}
-                variant="template"
-                data={{
-                  id: template.id,
-                  title: template.title || template.name,
-                  name: template.name || template.title || 'Untitled',
-                  description: template.description,
-                  content: template.content,
-                  category: template.category,
-                  author: template.author ? {
-                    id: template.author.id,
-                    username: template.author.username,
-                    image: template.author.image,
-                  } : undefined,
-                }}
-              />
-            ))}
-          </div>
+        {/* Search input */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search templates…"
+            className="h-9 w-56 rounded-[7px] border border-line-200 bg-surface-card pl-8 pr-3 text-[13px] text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
+          />
+        </div>
+
+        {/* New template button */}
+        <button
+          type="button"
+          className="flex h-9 items-center gap-1.5 rounded-[7px] bg-accent-500 px-3.5 text-[13px] font-[550] text-white hover:bg-accent-500/90 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          New template
+        </button>
+      </div>
+
+      {/* Category filter pills */}
+      <div className="flex flex-wrap gap-2">
+        {CATEGORY_PILLS.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setActiveCategory(cat)}
+            className={cn(
+              "rounded-full px-3.5 py-1 text-[12px] font-[550] transition-colors",
+              activeCategory === cat
+                ? "bg-accent-500 text-white"
+                : "border border-line-200 bg-surface-card text-ink-600 hover:border-accent-500 hover:text-accent-700"
+            )}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Card grid */}
+      {filtered.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((template) => (
+            <UnifiedPromptCardClean
+              key={template.id}
+              variant="template"
+              data={{
+                id: template.id,
+                title: template.name,
+                name: template.name,
+                description: template.description,
+                content: template.content,
+                category: template.category,
+                usageCount: template.usageCount,
+                rating: template.rating,
+                author: template.author
+                  ? {
+                      id: template.author.id,
+                      username: template.author.username,
+                      image: template.author.image,
+                    }
+                  : undefined,
+              }}
+            />
+          ))}
         </div>
       ) : (
-        <EmptyState
-          type="noData"
-          title="No templates found"
-          description="Try adjusting your search query or filters"
-        />
+        <div className="flex flex-col items-center justify-center rounded-[11px] border border-line-200 bg-surface-muted py-16 text-center">
+          <p className="text-[14px] font-[550] text-ink-900">No templates found</p>
+          <p className="mt-1 text-[12px] text-ink-400">
+            Try a different search term or category filter.
+          </p>
+        </div>
       )}
     </div>
   );

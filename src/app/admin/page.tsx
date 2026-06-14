@@ -1,45 +1,70 @@
 "use client";
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserManagement } from "@/components/admin/user-management";
-import { AdminStats } from "@/components/admin/admin-stats";
+import { AdminOverview } from "@/components/admin/admin-overview";
 import { BackupRestore } from "@/components/admin/backup-restore";
-import { Users, BarChart, Database } from "lucide-react";
+
+
+type AdminTab = "overview" | "users" | "moderation" | "ai-settings" | "backup";
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState("stats");
+  const [activeTab, setActiveTab] = useState<AdminTab>("overview");
 
   return (
     <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
-          <TabsTrigger value="stats" className="flex items-center gap-2">
-            <BarChart className="h-4 w-4" />
-            <span className="hidden sm:inline">Statistics</span>
-          </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span className="hidden sm:inline">Users</span>
-          </TabsTrigger>
-          <TabsTrigger value="backup" className="flex items-center gap-2">
-            <Database className="h-4 w-4" />
-            <span className="hidden sm:inline">Backup</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Page header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">
+          Admin
+        </h1>
+        <span className="flex items-center gap-1.5 rounded-full bg-success-surface px-3 py-1 text-[12px] font-[500] text-success">
+          <span className="h-1.5 w-1.5 rounded-full bg-success inline-block" />
+          All systems operational
+        </span>
+      </div>
 
-        <TabsContent value="stats" className="space-y-4">
-          <AdminStats />
-        </TabsContent>
+      {/* Tabs */}
+      <div className="border-b border-line-200">
+        <nav className="-mb-px flex gap-1">
+          {(
+            [
+              { id: "overview", label: "Overview" },
+              { id: "users", label: "Users" },
+              { id: "moderation", label: "Moderation" },
+              { id: "ai-settings", label: "AI settings" },
+            ] as { id: AdminTab; label: string }[]
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={[
+                "px-4 py-2.5 text-[13px] font-[500] border-b-2 transition-colors",
+                activeTab === tab.id
+                  ? "border-accent-500 text-accent-700"
+                  : "border-transparent text-ink-600 hover:text-ink-900 hover:border-line-200",
+              ].join(" ")}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
 
-        <TabsContent value="users" className="space-y-4">
-          <UserManagement />
-        </TabsContent>
-
-        <TabsContent value="backup" className="space-y-4">
-          <BackupRestore />
-        </TabsContent>
-      </Tabs>
+      {/* Tab content */}
+      {activeTab === "overview" && <AdminOverview />}
+      {activeTab === "users" && <UserManagement />}
+      {activeTab === "moderation" && (
+        <div className="flex items-center justify-center rounded-[11px] border border-line-200 bg-surface-card p-12 text-ink-400">
+          <p className="text-[13px]">Moderation — coming soon</p>
+        </div>
+      )}
+      {activeTab === "ai-settings" && (
+        <div className="flex items-center justify-center rounded-[11px] border border-line-200 bg-surface-card p-12 text-ink-400">
+          <p className="text-[13px]">AI settings — coming soon</p>
+        </div>
+      )}
+      {activeTab === "backup" && <BackupRestore />}
     </div>
   );
 }
