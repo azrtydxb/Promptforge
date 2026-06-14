@@ -13,8 +13,10 @@ import {
   Tag,
   Shield,
   ArrowUpRight,
+  ChevronsUpDown,
 } from "lucide-react";
 import { Avatar, type AvatarUser } from "@/components/ui/avatar";
+import { WorkspaceSwitcher } from "./workspace-switcher";
 import type { Plan } from "@/lib/plan";
 import { cn } from "@/lib/utils";
 
@@ -152,16 +154,19 @@ export function SidebarClient({
         </div>
       )}
 
-      {/* Footer */}
-      <div className="flex items-center gap-2.5 border-t border-rail-border px-3.5 py-3">
-        <Avatar user={user} isCurrentUser size="sm" />
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[12.5px] font-[550] text-[#EEF0F3]">
-            {userName}
+      {/* Footer — user + workspace quick-switcher (the one allowed extra) */}
+      <WorkspaceSwitcher>
+        <div className="flex items-center gap-2.5 border-t border-rail-border px-3.5 py-3 hover:bg-white/5">
+          <Avatar user={user} isCurrentUser size="sm" />
+          <div className="min-w-0 flex-1 text-left">
+            <div className="truncate text-[12px] font-[550] leading-[1.2] text-[#EEF0F3]">
+              {userName}
+            </div>
+            <div className="truncate text-[10.5px] text-rail-text-dim">{roleLabel}</div>
           </div>
-          <div className="truncate text-[11px] text-rail-text-dim">{roleLabel}</div>
+          <ChevronsUpDown className="h-3.5 w-3.5 flex-shrink-0 text-rail-text-dim" />
         </div>
-      </div>
+      </WorkspaceSwitcher>
     </aside>
   );
 }

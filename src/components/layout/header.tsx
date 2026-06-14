@@ -1,58 +1,51 @@
 "use client";
 
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
 import {
   LayoutDashboard,
   FileText,
   Heart,
   LayoutTemplate,
+  Share2,
   Store,
+  Users,
   Tag,
-  Menu,
 } from "lucide-react";
-
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { AuthUserButton } from "../auth/user-button";
 
 const mobileNav = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/prompts", icon: FileText, label: "My Prompts" },
   { href: "/favorites", icon: Heart, label: "Favorites" },
   { href: "/templates", icon: LayoutTemplate, label: "Templates" },
+  { href: "/shared-with-me", icon: Share2, label: "Shared Prompts" },
   { href: "/shared-prompts", icon: Store, label: "Prompt Market" },
+  { href: "/teams", icon: Users, label: "Teams" },
   { href: "/tags", icon: Tag, label: "Tags" },
 ];
 
+/**
+ * App shell topbar — a 54px white bar (prototype). Its CONTENT is contextual and provided
+ * per-screen via <TopbarPortal> into #pf-topbar. The bar itself only owns the mobile-nav
+ * trigger; the user/workspace switcher lives in the sidebar footer.
+ */
 export function Header() {
-  const router = useRouter();
-  const [q, setQ] = useState("");
   return (
     <header
-      className="sticky top-0 z-40 flex h-[54px] items-center gap-3.5 border-b border-line-200 bg-surface-card px-5"
+      className="sticky top-0 z-40 flex h-[54px] flex-shrink-0 items-center gap-3.5 border-b border-line-200 bg-surface-card px-5"
       role="banner"
     >
-      {/* Mobile menu */}
       <Sheet>
         <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0 text-ink-600 md:hidden"
-          >
+          <Button variant="ghost" size="icon" className="shrink-0 text-ink-600 md:hidden">
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col">
-          <nav
-            id="main-navigation"
-            className="grid gap-1 pt-4"
-            aria-label="Main navigation"
-          >
+          <nav className="grid gap-1 pt-4" aria-label="Main navigation">
             {mobileNav.map((item) => {
               const Icon = item.icon;
               return (
@@ -70,30 +63,8 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
-      <div className="flex max-w-md flex-1 items-center">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (q.trim()) router.push(`/prompts?search=${encodeURIComponent(q.trim())}`);
-          }}
-          className="relative w-full"
-        >
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search…"
-            className="h-8 w-full rounded-[7px] border border-line-200 bg-surface-muted pl-9 pr-12 text-[13px] text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
-          />
-          <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-[4px] border border-line-200 bg-surface-card px-1.5 py-0.5 font-mono text-[10px] text-ink-400">
-            ⌘K
-          </kbd>
-        </form>
-      </div>
-
-      <div className="ml-auto flex items-center justify-end gap-3">
-        <AuthUserButton />
-      </div>
+      {/* Contextual topbar content portals in here */}
+      <div id="pf-topbar" className="flex w-full items-center gap-3.5" />
     </header>
   );
 }

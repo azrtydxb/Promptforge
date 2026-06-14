@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle, TopbarSearch, Segmented, TopbarNewButton } from "@/components/layout/topbar";
 import {
   ResponsiveContainer,
   PieChart,
@@ -91,29 +95,22 @@ function Metric({
 }
 
 export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
+  const router = useRouter();
+  const [range, setRange] = useState("7d");
   const topPrompts = (data.recentlyUsedPrompts ?? []).slice(0, 6);
   const folderTotal = data.promptsByFolder.reduce((s, f) => s + f.count, 0) || 1;
 
   return (
     <div className="space-y-4">
-      {/* Page heading + segmented range (visual) */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">Dashboard</h1>
-        <div className="flex items-center rounded-[7px] border border-line-200 bg-surface-muted p-0.5">
-          {["7d", "30d", "90d"].map((r, i) => (
-            <span
-              key={r}
-              className={
-                i === 1
-                  ? "rounded-[5px] bg-surface-card px-2.5 py-1 text-[11.5px] font-[550] text-ink-900 shadow-[0_1px_1px_rgba(0,0,0,0.04)]"
-                  : "px-2.5 py-1 text-[11.5px] text-ink-400"
-              }
-            >
-              {r}
-            </span>
-          ))}
+      {/* Contextual topbar (prototype 01): title + search + 7d/30d/90d + New */}
+      <TopbarPortal>
+        <TopbarTitle>Dashboard</TopbarTitle>
+        <TopbarSearch />
+        <div className="ml-auto flex items-center gap-2">
+          <Segmented options={["7d", "30d", "90d"]} value={range} onChange={setRange} />
+          <TopbarNewButton label="New" onClick={() => router.push("/prompts/new")} />
         </div>
-      </div>
+      </TopbarPortal>
 
       {/* Unified KPI bar */}
       <div className="flex flex-wrap items-stretch divide-x divide-line-150 overflow-hidden rounded-[11px] border border-line-200 bg-surface-card">
