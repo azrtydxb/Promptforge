@@ -71,6 +71,16 @@ export const PromptList = ({
     return filtered;
   }, [prompts, searchQuery, selectedTagIds]);
 
+  // Pagination (mockup: 3-col grid → ~12 per page + ‹ 1 2 3 … N › control)
+  const PAGE_SIZE = 12;
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedTagIds, folderId, tagId, prompts.length]);
+  const totalPages = Math.max(1, Math.ceil(filteredPrompts.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filteredPrompts.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
   const fetchPrompts = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -157,10 +167,69 @@ export const PromptList = ({
   return (
     <div>
       <PromptGrid
-        prompts={filteredPrompts}
+        prompts={pageItems}
         selectedPromptIds={selectedPromptIds}
         onToggleSelect={onToggleSelect}
       />
+
+      {filteredPrompts.length > PAGE_SIZE && (
+        <div className="mt-5 flex items-center justify-between">
+          <span className="text-[12px] tabular-nums text-ink-400">
+            Showing {(safePage - 1) * PAGE_SIZE + 1}–
+            {Math.min(safePage * PAGE_SIZE, filteredPrompts.length)} of {filteredPrompts.length}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              aria-label="Previous page"
+              className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-line-200 text-ink-600 hover:bg-surface-muted disabled:opacity-40"
+            >
+              ‹
+            </button>
+            {getPageNumbers(safePage, totalPages).map((n, i) =>
+              n === "…" ? (
+                <span key={`e${i}`} className="px-1 text-[12px] text-ink-400">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={n}
+                  onClick={() => setPage(n as number)}
+                  className={
+                    n === safePage
+                      ? "flex h-7 min-w-7 items-center justify-center rounded-[7px] bg-accent-500 px-2 text-[12px] font-[550] text-white"
+                      : "flex h-7 min-w-7 items-center justify-center rounded-[7px] border border-line-200 px-2 text-[12px] text-ink-600 hover:bg-surface-muted"
+                  }
+                >
+                  {n}
+                </button>
+              )
+            )}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              aria-label="Next page"
+              className="flex h-7 w-7 items-center justify-center rounded-[7px] border border-line-200 text-ink-600 hover:bg-surface-muted disabled:opacity-40"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+// Build the ‹ 1 2 3 … N › page list (current ± 1, first, last, ellipses).
+function getPageNumbers(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | "…")[] = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  if (start > 2) pages.push("…");
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (end < total - 1) pages.push("…");
+  pages.push(total);
+  return pages;
+}

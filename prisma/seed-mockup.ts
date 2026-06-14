@@ -203,6 +203,31 @@ async function main() {
     console.log("✅ Templates created");
   }
 
+  // ---- Team prompts shared with the team (frame 04 "shared with you") ----
+  const teamPromptCount = await prisma.teamPrompt.count({ where: { teamId: team.id } });
+  if (teamPromptCount === 0) {
+    const dev = await prisma.user.findUnique({ where: { email: "dev@build.dev" } });
+    const shared = [
+      { title: "Q3 campaign brief writer", by: maya.id, desc: "Drafts a structured campaign brief from goals, audience and channels.", days: 2 },
+      { title: "Bug triage assistant", by: dev?.id ?? jordan.id, desc: "Classifies and prioritizes incoming bug reports with a suggested severity.", days: 4 },
+      { title: "Investor update draft", by: sam.id, desc: "Monthly investor update from metrics, wins, lowlights and asks.", days: 7 },
+      { title: "Customer interview synth", by: priya.id, desc: "Synthesizes interview transcripts into themes, quotes and opportunities.", days: 9 },
+      { title: "Release notes writer", by: jordan.id, desc: "Turns merged PRs into friendly, grouped release notes.", days: 14 },
+      { title: "Onboarding email series", by: maya.id, desc: "Five-email onboarding sequence tuned to activation milestones.", days: 21 },
+    ];
+    for (const s of shared) {
+      await prisma.teamPrompt.create({
+        data: {
+          teamId: team.id, title: s.title, description: s.desc, createdById: s.by,
+          content: "# Role\nYou are an expert.\n\n# Task\nDo the task for {{input}}.",
+          viewCount: 40, copyCount: 12,
+          createdAt: new Date(Date.now() - s.days * 864e5),
+        },
+      });
+    }
+    console.log("✅ Team shared prompts created");
+  }
+
   console.log("🎉 Mockup seed complete");
 }
 

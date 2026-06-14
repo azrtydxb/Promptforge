@@ -32,8 +32,10 @@ interface DashboardData {
     title: string;
     description: string | null;
     lastUsedAt: Date | null;
+    usageCount?: number;
+    folder?: { name: string } | null;
     tags: Array<{ id: string; name: string }>;
-    _count: { likes: number };
+    _count: { likes: number; versions?: number };
   }>;
   mostLikedPrompts?: Array<{ id: string; title: string; _count: { likes: number } }>;
   mostVersionedPrompts?: Array<{ id: string; title: string; _count: { versions: number } }>;
@@ -166,13 +168,14 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
               <thead>
                 <tr className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400">
                   <th className="px-[18px] py-2 text-left font-[600]">Prompt</th>
-                  <th className="px-2 py-2 text-left font-[600]">Tags</th>
-                  <th className="px-2 py-2 text-right font-[600]">Likes</th>
+                  <th className="px-2 py-2 text-left font-[600]">Folder</th>
+                  <th className="px-2 py-2 text-right font-[600]">Uses</th>
+                  <th className="px-2 py-2 text-right font-[600]">Ver.</th>
                   <th className="px-[18px] py-2 text-right font-[600]">Updated</th>
                 </tr>
               </thead>
               <tbody>
-                {topPrompts.map((p) => (
+                {topPrompts.map((p, i) => (
                   <tr key={p.id} className="border-t border-line-100">
                     <td className="px-[18px] py-2.5">
                       <Link
@@ -183,19 +186,23 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                       </Link>
                     </td>
                     <td className="px-2 py-2.5">
-                      <div className="flex gap-1">
-                        {p.tags.slice(0, 2).map((t) => (
+                      {p.folder?.name ? (
+                        <span className="flex items-center gap-1.5 text-[12px] text-ink-600">
                           <span
-                            key={t.id}
-                            className="rounded-full bg-[#F1F2F5] px-2 py-0.5 text-[10px] font-[550] text-ink-600"
-                          >
-                            {t.name}
-                          </span>
-                        ))}
-                      </div>
+                            className="h-[7px] w-[7px] rounded-[2px]"
+                            style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                          />
+                          {p.folder.name}
+                        </span>
+                      ) : (
+                        <span className="text-[12px] text-ink-300">—</span>
+                      )}
                     </td>
                     <td className="px-2 py-2.5 text-right text-[12.5px] tabular-nums text-ink-600">
-                      {p._count.likes}
+                      {p.usageCount ?? 0}
+                    </td>
+                    <td className="px-2 py-2.5 text-right text-[12.5px] tabular-nums text-ink-400">
+                      {p._count.versions ?? 0}
                     </td>
                     <td className="px-[18px] py-2.5 text-right text-[12px] tabular-nums text-ink-400">
                       {p.lastUsedAt

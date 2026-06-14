@@ -180,16 +180,18 @@ const getDashboardData = cache(async (userId: string) => {
       },
       include: {
         tags: true,
+        folder: { select: { name: true } },
         _count: {
           select: {
             likes: true,
+            versions: true,
           },
         },
       },
       orderBy: {
-        lastUsedAt: 'desc',
+        usageCount: 'desc',
       },
-      take: 5,
+      take: 6,
     }),
     // Single query to get all counts at once
     db.prompt.findMany({
