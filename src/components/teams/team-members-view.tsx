@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 import { Avatar } from "@/components/ui/avatar";
 import { TeamRole } from "@/generated/prisma";
-import { UserPlus, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { RoleSelect, RemoveButton, ResendButton } from "./member-row-actions";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -101,6 +103,9 @@ export function TeamMembersView({
   const folderCount = team._count?.folders ?? 0;
   const seatCount = members.length;
 
+  // Team initial for chip
+  const teamInitial = team.name.charAt(0).toUpperCase();
+
   // Combine active members + pending invitations into one table
   const allRows = [
     ...members.map((m) => ({ type: "member" as const, data: m })),
@@ -109,7 +114,26 @@ export function TeamMembersView({
 
   return (
     <div className="space-y-5">
-      {/* ── Header ── */}
+      {/* ── Topbar Portal ── */}
+      <TopbarPortal>
+        <TopbarTitle>Teams</TopbarTitle>
+        <span className="flex items-center gap-1.5 rounded-[7px] border border-line-200 bg-surface-card px-2.5 py-1.5 text-[12.5px] font-[550] text-ink-700">
+          <span className="flex h-4 w-4 items-center justify-center rounded bg-accent-100 text-[9px] font-[600] text-accent-700">
+            {teamInitial}
+          </span>
+          {team.name}
+        </span>
+        {isAdmin && (
+          <div className="ml-auto">
+            <TopbarNewButton
+              label="Invite member"
+              onClick={() => onOpen("inviteMember", { inviteMember: { teamId: team.id, teamName: team.name } })}
+            />
+          </div>
+        )}
+      </TopbarPortal>
+
+      {/* ── Back button ── */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => router.push(`/teams/${team.id}`)}
@@ -118,25 +142,6 @@ export function TeamMembersView({
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-
-        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900 flex-1">
-          Teams
-        </h1>
-
-        {/* Team chip */}
-        <span className="inline-flex items-center gap-1 bg-surface-muted border border-line-150 rounded-full px-3 py-1 text-[13px] font-[500] text-ink-700">
-          {team.name}
-        </span>
-
-        {isAdmin && (
-          <button
-            onClick={() => onOpen("inviteMember", { inviteMember: { teamId: team.id, teamName: team.name } })}
-            className="inline-flex items-center gap-1.5 bg-accent-500 hover:bg-accent-500/90 text-white rounded-[7px] px-3 py-1.5 text-[13px] font-[550] transition-colors"
-          >
-            <UserPlus className="h-4 w-4" />
-            Invite member
-          </button>
-        )}
       </div>
 
       {/* ── KPI Bar ── */}

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useTransition, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { PromptList } from "@/components/prompts/prompt-list";
 import { Search, Plus, Upload, Trash2, FolderInput, ChevronDown } from "lucide-react";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -162,30 +164,23 @@ export function PromptsClientWrapper({
 
   return (
     <div className="space-y-4">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-2.5">
-          <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">My Prompts</h1>
-          <span className="text-[12.5px] tabular-nums text-ink-400">
-            {initialPrompts.length} total
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
+      <TopbarPortal>
+        <TopbarTitle>My Prompts</TopbarTitle>
+        <span className="text-[12.5px] tabular-nums text-ink-400">{initialPrompts.length} total</span>
+        <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 rounded-[7px] border border-line-200 bg-surface-card px-3 py-2 text-[12.5px] font-[550] text-ink-700 hover:bg-surface-muted"
+            className="flex items-center gap-1.5 rounded-[7px] border border-line-200 bg-surface-card px-3 py-[7px] text-[12.5px] font-[550] text-ink-700 hover:bg-surface-muted"
           >
             <Upload className="h-3.5 w-3.5" /> Import
           </button>
-          <input ref={fileInputRef} type="file" accept=".json" onChange={onImport} className="hidden" />
-          <button
+          <TopbarNewButton
+            label="New prompt"
             onClick={() => router.push(`/prompts/new${selectedFolderId ? `?folderId=${selectedFolderId}` : ""}`)}
-            className="flex items-center gap-1.5 rounded-[7px] bg-accent-500 px-3 py-2 text-[12.5px] font-[550] text-white shadow-[0_1px_2px_rgba(94,106,210,0.35)] hover:bg-[#4F5AC4]"
-          >
-            <Plus className="h-4 w-4" /> New prompt
-          </button>
+          />
         </div>
-      </div>
+      </TopbarPortal>
+      <input ref={fileInputRef} type="file" accept=".json" onChange={onImport} className="hidden" />
 
       {/* Toolbar: search + filter pills + sort */}
       <div className="flex flex-wrap items-center gap-3">

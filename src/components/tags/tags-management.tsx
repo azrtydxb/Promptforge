@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, MoreHorizontal, Tag as TagIcon } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, Tag as TagIcon, Search } from "lucide-react";
 import { useModal, type TagData } from "@/hooks/use-modal-store";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
 
 interface Tag {
   id: string;
@@ -66,21 +68,21 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
 
   return (
     <div className="space-y-4 pt-1">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">Tags</h1>
-          <p className="text-[12.5px] text-ink-400">
-            {tags.length} tag{tags.length !== 1 ? "s" : ""} total
-          </p>
+      <TopbarPortal>
+        <TopbarTitle>Tags</TopbarTitle>
+        <span className="text-[12.5px] tabular-nums text-ink-400">{tags.length} tags</span>
+        <div className="ml-auto flex items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
+            <input
+              type="search"
+              placeholder="Search tags…"
+              className="h-[30px] w-48 rounded-[7px] border border-line-200 bg-surface-muted pl-8 pr-3 text-[12.5px] text-ink-900 placeholder:text-[#9aa0ab] focus:outline-none"
+            />
+          </div>
+          <TopbarNewButton label="New tag" onClick={handleCreateTag} />
         </div>
-        <button
-          onClick={handleCreateTag}
-          className="flex items-center gap-1.5 rounded-[7px] bg-accent-500 px-3 py-2 text-[12.5px] font-[550] text-white shadow-[0_1px_2px_rgba(94,106,210,0.35)] hover:bg-[#4F5AC4]"
-        >
-          <Plus className="h-4 w-4" />
-          New tag
-        </button>
-      </div>
+      </TopbarPortal>
 
       {tags.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[11px] border border-line-200 bg-surface-card py-16">

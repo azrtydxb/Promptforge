@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { getPlanContext } from '@/lib/plan'
 import { TeamRole } from '@/generated/prisma'
 import { SecurityClient } from './SecurityClient'
+import { SecurityTopbar } from './SecurityTopbar'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,14 +53,7 @@ export default async function SecurityPage() {
   if (plan !== 'BUSINESS') {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">
-            Security &amp; SSO
-          </h1>
-          <span className="rounded-full border border-business-border bg-business-surface px-2.5 py-0.5 text-[11px] font-[600] text-business">
-            Business
-          </span>
-        </div>
+        <SecurityTopbar />
 
         <div className="flex flex-col items-center justify-center gap-4 rounded-[11px] border border-line-200 bg-surface-card p-16 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-business-surface">
@@ -98,15 +92,7 @@ export default async function SecurityPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">
-          Security &amp; SSO
-        </h1>
-        <span className="rounded-full border border-business-border bg-business-surface px-2.5 py-0.5 text-[11px] font-[600] text-business">
-          Business
-        </span>
-      </div>
+      <SecurityTopbar />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Left / main column */}
@@ -227,7 +213,7 @@ export default async function SecurityPage() {
           )}
 
           {/* Audit Log Card */}
-          <div className="rounded-[11px] border border-line-200 bg-surface-card p-5">
+          <div id="audit-log" className="rounded-[11px] border border-line-200 bg-surface-card p-5">
             <h2 className="mb-4 text-[13px] font-[600] text-ink-900">Audit log</h2>
             {activities.length === 0 ? (
               <p className="text-[12px] text-ink-400">No activity yet.</p>

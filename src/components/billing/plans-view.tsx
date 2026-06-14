@@ -8,6 +8,8 @@ import type { PlanTier } from "@/generated/prisma";
 import { cn } from "@/lib/utils";
 import { updateSeats } from "@/app/actions/billing.actions";
 import { toast } from "sonner";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle } from "@/components/layout/topbar";
 
 interface SubscriptionInfo {
   plan?: PlanTier;
@@ -126,9 +128,10 @@ export function PlansView({ currentPlan, subscription }: PlansViewProps) {
 
   return (
     <div className="space-y-5">
-      {/* Tab navigation + badge */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
+      {/* ── Topbar Portal ── */}
+      <TopbarPortal>
+        <TopbarTitle>Plans &amp; billing</TopbarTitle>
+        <div className="flex items-center gap-6 ml-4">
           <Link
             href="/teams"
             className="pb-1 text-[13.5px] font-[550] text-ink-400 hover:text-ink-700"
@@ -145,15 +148,10 @@ export function PlansView({ currentPlan, subscription }: PlansViewProps) {
             Members
           </Link>
         </div>
-        <span className="rounded-full bg-accent-100 px-2 py-0.5 text-xs font-[550] text-accent-700">
+        <span className="ml-auto rounded-full bg-accent-100 px-2.5 py-1 text-[11px] font-[550] text-accent-700">
           Billed annually · save 20%
         </span>
-      </div>
-
-      {/* Page title */}
-      <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">
-        Plans &amp; Billing
-      </h1>
+      </TopbarPortal>
 
       {/* Current plan banner */}
       {hasPaidSub && (

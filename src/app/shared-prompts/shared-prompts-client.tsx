@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useTransition, useCallback, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { UnifiedPromptCardClean as UnifiedPromptCard } from '@/components/ui/unified-prompt-card-clean';
 import { getSharedPromptsCached as getSharedPrompts } from '@/app/actions/shared-prompts.actions.cached';
 import { Loader2, RefreshCw, Search, X, ChevronDown, Star } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { NetworkErrorFallback } from '@/components/error-boundary/error-fallbacks';
+import { TopbarPortal } from '@/components/layout/topbar-portal';
+import { TopbarTitle, TopbarNewButton } from '@/components/layout/topbar';
 
 export interface SharedPrompt {
   id: string;
@@ -126,6 +129,7 @@ export function SharedPromptsClient({
   const [minStars, setMinStars] = useState<number | null>(null);
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const router = useRouter();
 
   // Reset when server-side props change
   useEffect(() => {
@@ -301,6 +305,12 @@ export function SharedPromptsClient({
       resetKeys={[prompts.length, pagination?.page || 1]}
     >
       <div className="flex flex-col gap-4">
+        <TopbarPortal>
+          <TopbarTitle>Prompt Market</TopbarTitle>
+          <div className="ml-auto">
+            <TopbarNewButton label="Publish" icon={false} onClick={() => router.push('/prompts')} />
+          </div>
+        </TopbarPortal>
         {/* ── 1. Prominent search bar ── */}
         <div className="bg-surface-card border border-line-200 rounded-[9px] shadow-sm flex items-center gap-3 px-4 py-2.5">
           <Search className="w-4 h-4 text-ink-400 shrink-0" />

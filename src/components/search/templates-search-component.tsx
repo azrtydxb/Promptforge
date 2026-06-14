@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search } from "lucide-react";
 import { getPromptTemplates } from "@/app/actions/template.actions";
 import { UnifiedPromptCardClean } from "@/components/ui/unified-prompt-card-clean";
 import { LoadingStates } from "@/components/ui/loading-state";
 import { cn } from "@/lib/utils";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
 
 interface Template {
   id: string;
@@ -76,33 +78,22 @@ export function TemplatesSearchComponent() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Header row */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900 mr-auto">
-          Templates
-        </h1>
-
-        {/* Search input */}
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search templates…"
-            className="h-9 w-56 rounded-[7px] border border-line-200 bg-surface-card pl-8 pr-3 text-[13px] text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
-          />
+      <TopbarPortal>
+        <TopbarTitle>Templates</TopbarTitle>
+        <div className="ml-auto flex items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search templates…"
+              className="h-[30px] w-56 rounded-[7px] border border-line-200 bg-surface-muted pl-8 pr-3 text-[12.5px] text-ink-900 placeholder:text-[#9aa0ab] focus:outline-none"
+            />
+          </div>
+          <TopbarNewButton label="New template" />
         </div>
-
-        {/* New template button */}
-        <button
-          type="button"
-          className="flex h-9 items-center gap-1.5 rounded-[7px] bg-accent-500 px-3.5 text-[13px] font-[550] text-white hover:bg-accent-500/90 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          New template
-        </button>
-      </div>
+      </TopbarPortal>
 
       {/* Category filter pills */}
       <div className="flex flex-wrap gap-2">

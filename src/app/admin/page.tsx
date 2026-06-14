@@ -5,6 +5,8 @@ import Link from "next/link";
 import { UserManagement } from "@/components/admin/user-management";
 import { AdminOverview } from "@/components/admin/admin-overview";
 import { BackupRestore } from "@/components/admin/backup-restore";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle } from "@/components/layout/topbar";
 
 
 type AdminTab = "overview" | "users" | "moderation" | "ai-settings" | "backup";
@@ -14,20 +16,10 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">
-          Admin
-        </h1>
-        <span className="flex items-center gap-1.5 rounded-full bg-success-surface px-3 py-1 text-[12px] font-[500] text-success">
-          <span className="h-1.5 w-1.5 rounded-full bg-success inline-block" />
-          All systems operational
-        </span>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-line-200">
-        <nav className="-mb-px flex gap-1">
+      {/* ── Topbar Portal ── */}
+      <TopbarPortal>
+        <TopbarTitle>Admin</TopbarTitle>
+        <div className="flex items-center gap-6 ml-4">
           {(
             [
               { id: "overview", label: "Overview" },
@@ -38,25 +30,29 @@ export default function AdminPage() {
           ).map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={[
-                "px-4 py-2.5 text-[13px] font-[500] border-b-2 transition-colors",
+              className={
                 activeTab === tab.id
-                  ? "border-accent-500 text-accent-700"
-                  : "border-transparent text-ink-600 hover:text-ink-900 hover:border-line-200",
-              ].join(" ")}
+                  ? "border-b-2 border-accent-700 pb-1 text-[13.5px] font-[600] text-accent-700"
+                  : "pb-1 text-[13.5px] font-[550] text-ink-400 hover:text-ink-700"
+              }
             >
               {tab.label}
             </button>
           ))}
           <Link
             href="/admin/security"
-            className="px-4 py-2.5 text-[13px] font-[500] border-b-2 border-transparent text-ink-600 hover:text-ink-900 hover:border-line-200 transition-colors"
+            className="pb-1 text-[13.5px] font-[550] text-ink-400 hover:text-ink-700"
           >
             Security &amp; SSO
           </Link>
-        </nav>
-      </div>
+        </div>
+        <span className="ml-auto flex items-center gap-1.5 rounded-full bg-success-surface px-2.5 py-1 text-[11px] font-[550] text-success">
+          <span className="h-1.5 w-1.5 rounded-full bg-success" />
+          All systems operational
+        </span>
+      </TopbarPortal>
 
       {/* Tab content */}
       {activeTab === "overview" && <AdminOverview />}

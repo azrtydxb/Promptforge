@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/auth";
 import { getPlanContext } from "@/lib/plan";
 import { db } from "@/lib/db";
 import { TeamRole } from "@/generated/prisma";
+import { SharedWithMeTopbar } from "./topbar";
 
 export const dynamic = "force-dynamic";
 
@@ -125,17 +126,8 @@ export default async function SharedWithMePage() {
 
   return (
     <div className="flex flex-col gap-6 p-8">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">
-          Shared Prompts
-        </h1>
-        {totalCount > 0 && (
-          <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-[12px] font-[550] text-ink-600">
-            {totalCount}
-          </span>
-        )}
-      </div>
+      {/* Topbar */}
+      <SharedWithMeTopbar count={totalCount} />
 
       {/* Info banner */}
       <div className="rounded-[11px] border border-accent-200 bg-accent-100 px-4 py-3 text-[13px] text-ink-700">
@@ -147,15 +139,6 @@ export default async function SharedWithMePage() {
         >
           Browse the Prompt Market →
         </Link>
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center gap-3">
-        <input
-          type="search"
-          placeholder="Search shared prompts…"
-          className="h-9 w-full max-w-sm rounded-[7px] border border-line-200 bg-surface-muted px-3 text-[13px] text-ink-900 placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
-        />
       </div>
 
       {/* Empty state */}

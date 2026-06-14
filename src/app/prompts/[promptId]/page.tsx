@@ -22,6 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, Save, ArrowLeft, Copy, Check, Share2, Eye, Split, Code2, Star, Pencil } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
 import { useModal } from "@/hooks/use-modal-store";
 import { useSession } from "next-auth/react";
 import { MarkdownPreview } from "@/components/editor/markdown-preview";
@@ -484,23 +487,14 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
 
   return (
     <div className="flex flex-col h-full bg-surface-app">
-      {/* ── Topbar ── */}
-      <div className="flex items-center justify-between px-6 py-3 bg-surface-card border-b border-line-200 shrink-0">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-1.5 text-sm">
-          <button
-            onClick={handleBack}
-            className="text-ink-400 hover:text-ink-700 transition-colors"
-          >
-            My Prompts
-          </button>
+      {/* ── Topbar (portal into app shell) ── */}
+      <TopbarPortal>
+        <div className="flex items-center gap-1.5 text-[13px]">
+          <Link href="/prompts" className="text-ink-400 hover:text-ink-700">My Prompts</Link>
           <span className="text-ink-300">/</span>
-          <span className="text-ink-700 font-[500] truncate max-w-[300px]">{title || "Untitled"}</span>
+          <span className="font-[550] text-ink-900">{title || "Untitled"}</span>
         </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* Favorite */}
+        <div className="ml-auto flex items-center gap-2">
           {promptId && (
             <FavoriteButton
               promptId={promptId}
@@ -510,34 +504,19 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
               className="text-ink-400 hover:text-star"
             />
           )}
-
-          {/* Share */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-[7px] border-line-200 text-ink-700 text-[12.5px] gap-1.5"
+          <button
+            className="border border-line-200 bg-surface-card rounded-[7px] px-3 py-[7px] text-[12.5px] font-[550] text-ink-700 hover:bg-surface-muted"
             onClick={() =>
               onOpen("sharePrompt", {
                 promptData: { id: promptId!, title, description, content },
               })
             }
           >
-            <Share2 className="h-3.5 w-3.5" />
             Share
-          </Button>
-
-          {/* Edit / Save version */}
-          <Button
-            size="sm"
-            className="rounded-[7px] bg-accent-500 text-white text-[12.5px] gap-1.5 hover:bg-accent-700"
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            {isSaving ? "Saving..." : "Edit / Save"}
-          </Button>
+          </button>
+          <TopbarNewButton label={isSaving ? "Saving…" : "Edit / Save"} icon={false} onClick={handleSave} />
         </div>
-      </div>
+      </TopbarPortal>
 
       {/* ── Body: two-column grid ── */}
       <div className="flex-1 overflow-auto px-6 py-5">
