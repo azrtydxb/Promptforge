@@ -1,10 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 import { Avatar } from "@/components/ui/avatar";
 import { TeamRole } from "@/generated/prisma";
-import { ChevronLeft } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { RoleSelect, RemoveButton, ResendButton } from "./member-row-actions";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
@@ -46,6 +44,9 @@ interface Invitation {
 interface Team {
   id: string;
   name: string;
+  seatsTotal?: number;
+  seatsUsed?: number;
+  activeToday?: number;
   _count?: {
     prompts?: number;
     folders?: number;
@@ -93,7 +94,6 @@ export function TeamMembersView({
   currentUserId,
   currentUserRole,
 }: TeamMembersViewProps) {
-  const router = useRouter();
   const { onOpen } = useModal();
 
   const isAdmin = currentUserRole === TeamRole.ADMIN || currentUserRole === TeamRole.OWNER;
@@ -101,14 +101,26 @@ export function TeamMembersView({
 
   const promptCount = team._count?.prompts ?? 0;
   const folderCount = team._count?.folders ?? 0;
-  const seatCount = members.length;
+  const seatsTotal = team.seatsTotal ?? members.length;
+  const seatsUsed = team.seatsUsed ?? members.length;
+  const activeToday = team.activeToday ?? 0;
 
   // Team initial for chip
   const teamInitial = team.name.charAt(0).toUpperCase();
 
-  // Combine active members + pending invitations into one table
+  // Order rows: Owner first, then Admin → Editor → Viewer, pending invites last
+  // (matches the prototype's "Members & roles" table ordering).
+  const ROLE_WEIGHT: Record<string, number> = {
+    [TeamRole.OWNER]: 0,
+    [TeamRole.ADMIN]: 1,
+    [TeamRole.MEMBER]: 2,
+    [TeamRole.VIEWER]: 3,
+  };
+  const sortedMembers = [...members].sort(
+    (a, b) => (ROLE_WEIGHT[a.role] ?? 5) - (ROLE_WEIGHT[b.role] ?? 5)
+  );
   const allRows = [
-    ...members.map((m) => ({ type: "member" as const, data: m })),
+    ...sortedMembers.map((m) => ({ type: "member" as const, data: m })),
     ...invitations.map((inv) => ({ type: "invite" as const, data: inv })),
   ];
 
@@ -133,23 +145,12 @@ export function TeamMembersView({
         )}
       </TopbarPortal>
 
-      {/* ── Back button ── */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.push(`/teams/${team.id}`)}
-          className="rounded-[7px] p-1.5 hover:bg-surface-muted transition-colors text-ink-600"
-          aria-label="Back to team"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-      </div>
-
       {/* ── KPI Bar ── */}
       <div className="bg-surface-card border border-line-200 rounded-[11px] flex divide-x divide-line-100 overflow-hidden">
-        <KpiCell label="Members" value={`${seatCount} / ${seatCount}`} />
+        <KpiCell label="Members" value={`${seatsUsed} / ${seatsTotal}`} />
         <KpiCell label="Shared prompts" value={promptCount} />
         <KpiCell label="Team folders" value={folderCount} />
-        <KpiCell label="Active today" value={0} />
+        <KpiCell label="Active today" value={activeToday} />
       </div>
 
       {/* ── Admin banner ── */}
@@ -159,6 +160,15 @@ export function TeamMembersView({
           members. Seats are billed on the team&apos;s plan.
         </div>
       )}
+
+      {/* ── Members & Roles section header ── */}
+      <div className="flex items-baseline gap-2.5">
+        <h2 className="text-[14px] font-[620] text-ink-900">Members &amp; roles</h2>
+        <span className="text-[12.5px] text-ink-400">
+          {members.length} member{members.length === 1 ? "" : "s"}
+          {invitations.length > 0 && ` · ${invitations.length} pending`}
+        </span>
+      </div>
 
       {/* ── Members & Roles table ── */}
       <div className="bg-surface-card border border-line-200 rounded-[11px] overflow-hidden">

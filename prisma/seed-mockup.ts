@@ -141,7 +141,7 @@ async function main() {
     for (let i = 0; i < target; i++) {
       const folder = folders[i % 3];
       const tg = tagNames[i % tagNames.length];
-      await prisma.prompt.create({
+      const filler = await prisma.prompt.create({
         data: {
           title: `${verbs[i % verbs.length]} ${nouns[i % nouns.length]} #${i + 1}`,
           description: "Reusable prompt for everyday work, tuned for tone and structure.",
@@ -151,10 +151,38 @@ async function main() {
           tags: { connect: [{ id: tagId[tg] }] },
         },
       });
+      // Every prompt carries a version history (prototype shows "· vN" on every card).
+      const nver = 1 + (i % 9);
+      for (let v = 1; v <= nver; v++) {
+        await prisma.promptVersion.create({
+          data: { promptId: filler.id, content, version: `v${v}`, changeMessage: v === 1 ? "Initial" : "Refined" },
+        });
+      }
     }
     console.log("✅ 248 prompts created for Alex");
   } else {
     console.log(`↷ ${promptCount} prompts already exist for Alex — skipping prompt seed`);
+  }
+
+  // Backfill: ensure every one of Alex's prompts has ≥1 version (prototype shows a
+  // version badge on every card). Runs idempotently even when prompts already exist.
+  {
+    const noVersion = await prisma.prompt.findMany({
+      where: { userId: alex.id, versions: { none: {} } },
+      select: { id: true, content: true },
+    });
+    let backfilled = 0;
+    for (let i = 0; i < noVersion.length; i++) {
+      const pr = noVersion[i];
+      const nver = 1 + (i % 9);
+      for (let v = 1; v <= nver; v++) {
+        await prisma.promptVersion.create({
+          data: { promptId: pr.id, content: pr.content ?? "", version: `v${v}`, changeMessage: v === 1 ? "Initial" : "Refined" },
+        });
+      }
+      backfilled++;
+    }
+    if (backfilled) console.log(`✅ Backfilled versions for ${backfilled} prompts`);
   }
 
   // ---- Prompt Market (public SharedPrompts) ----

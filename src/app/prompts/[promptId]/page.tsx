@@ -514,7 +514,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
           >
             Share
           </button>
-          <TopbarNewButton label={isSaving ? "Saving…" : "Edit / Save"} icon={false} onClick={handleSave} />
+          <TopbarNewButton label={isSaving ? "Saving…" : "Edit"} icon={false} onClick={handleSave} />
         </div>
       </TopbarPortal>
 

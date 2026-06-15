@@ -75,12 +75,25 @@ const getCachedTeamsData = unstable_cache(
 );
 
 export default async function TeamsPage() {
+  let user;
   try {
-    const user = await requireAuth();
-    const teamsData = await getCachedTeamsData(user.id);
-
-    return <TeamsView data={teamsData} />;
+    user = await requireAuth();
   } catch {
     redirect("/sign-in");
   }
+
+  const teamsData = await getCachedTeamsData(user.id);
+
+  // The prototype's "Teams" screen IS the team's members/roles management view.
+  // Land directly on the primary team's members view (no intermediate team-list,
+  // which isn't part of the prototype). Workspace switching is handled by the
+  // sidebar quick-switcher.
+  if (teamsData.teams.length > 0) {
+    const primary =
+      teamsData.teams.find((t) => t.isOwner) ?? teamsData.teams[0];
+    redirect(`/teams/${primary.id}/members`);
+  }
+
+  // No team yet (edge case): fall back to the existing view so the user can create one.
+  return <TeamsView data={teamsData} />;
 }
