@@ -22,6 +22,7 @@ export async function getPromptsByFolder(folderId?: string) {
     },
     include: {
       tags: true,
+      _count: { select: { versions: true } },
     },
     orderBy: [
       { pinnedAt: { sort: 'desc', nulls: 'last' } },
@@ -101,6 +102,7 @@ export async function getAllPrompts() {
     },
     include: {
       tags: true,
+      _count: { select: { versions: true } },
     },
     orderBy: [
       { pinnedAt: { sort: 'desc', nulls: 'last' } },
