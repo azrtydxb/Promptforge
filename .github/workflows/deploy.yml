@@ -19,6 +19,8 @@ env:
   AWS_REGION: eu-west-2
   ECR_REPOSITORY: promptforge
   ROLE_ARN: arn:aws:iam::296186243350:role/promptforge-gha-ecr-push
+  ECS_CLUSTER: promptforge
+  ECS_SERVICE: promptforge-web
 
 jobs:
   build-push:
@@ -67,6 +69,15 @@ jobs:
           tags: |
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:migrate
           cache-from: type=gha
+
+      # Roll the ECS service to the freshly-pushed :latest image (only on main).
+      - name: Deploy ECS service
+        if: github.ref == 'refs/heads/main'
+        run: |
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} --force-new-deployment >/dev/null
+          aws ecs wait services-stable --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }}
 
       - name: Image summary
         run: |

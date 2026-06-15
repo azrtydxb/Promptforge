@@ -34,6 +34,7 @@ RUN pnpm prisma generate
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public"
 ENV NEXTAUTH_SECRET="build-time-placeholder-not-used-at-runtime"
+ENV NEXTAUTH_URL="http://localhost:3000"
 RUN pnpm build
 
 # Clean build artifacts
