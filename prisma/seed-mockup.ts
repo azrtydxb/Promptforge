@@ -164,6 +164,37 @@ async function main() {
     console.log(`↷ ${promptCount} prompts already exist for Alex — skipping prompt seed`);
   }
 
+  // Backfill: ensure every one of Alex's prompts has real content + description.
+  // Some early-seed rows (the curated named prompts) were created before these fields
+  // were set, leaving empty content ("No content" in Quick Preview) and no card blurb.
+  // The prototype shows a description on every card. Runs idempotently.
+  {
+    const defaultContent = `# Role\nYou are a senior assistant.\n\n# Context\nProduct: {{product}} · Recipient: {{role}} at {{company}}\n\n# Task\nWrite output in a {{tone}} tone.`;
+    const genericDesc = "Reusable prompt for everyday work, tuned for tone and structure.";
+    const incomplete = await prisma.prompt.findMany({
+      where: {
+        userId: alex.id,
+        OR: [{ content: "" }, { description: null }, { description: "" }],
+      },
+      select: { id: true, title: true, content: true, description: true },
+    });
+    let fixed = 0;
+    for (const pr of incomplete) {
+      const namedMatch = named.find((n) => n.title === pr.title);
+      const newContent = pr.content && pr.content.trim() ? pr.content : defaultContent;
+      const newDesc =
+        pr.description && pr.description.trim()
+          ? pr.description
+          : namedMatch?.desc ?? genericDesc;
+      await prisma.prompt.update({
+        where: { id: pr.id },
+        data: { content: newContent, description: newDesc },
+      });
+      fixed++;
+    }
+    if (fixed) console.log(`✅ Backfilled content/description for ${fixed} prompts`);
+  }
+
   // Backfill: ensure every one of Alex's prompts has ≥1 version (prototype shows a
   // version badge on every card). Runs idempotently even when prompts already exist.
   {
