@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ListFilter } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
 import { TopbarTitle, TopbarSearch, Segmented, TopbarNewButton } from "@/components/layout/topbar";
 import {
@@ -62,16 +63,14 @@ function Metric({
   value,
   suffix,
   delta,
-  caption,
 }: {
   label: string;
   value: string | number;
   suffix?: string;
   delta?: number;
-  caption: string;
 }) {
   return (
-    <div className="flex-1 px-[18px] py-4">
+    <div className="flex-1 px-[18px] py-3.5">
       <div className="text-[10px] font-[600] uppercase tracking-[0.06em] text-ink-400">
         {label}
       </div>
@@ -89,7 +88,6 @@ function Metric({
           </span>
         )}
       </div>
-      <div className="mt-1 text-[11px] text-ink-400">{caption}</div>
     </div>
   );
 }
@@ -98,7 +96,11 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
   const router = useRouter();
   const [range, setRange] = useState("7d");
   const topPrompts = (data.recentlyUsedPrompts ?? []).slice(0, 6);
-  const folderTotal = data.promptsByFolder.reduce((s, f) => s + f.count, 0) || 1;
+  // Prototype's "By folder" lists named folders only (no "Unassigned" slice).
+  const namedFolders = data.promptsByFolder.filter(
+    (f) => f.name && f.name.toLowerCase() !== "unassigned" && f.count > 0
+  );
+  const folderTotal = namedFolders.reduce((s, f) => s + f.count, 0) || 1;
 
   return (
     <div className="space-y-4">
@@ -114,18 +116,15 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
 
       {/* Unified KPI bar */}
       <div className="flex flex-wrap items-stretch divide-x divide-line-150 overflow-hidden rounded-[11px] border border-line-200 bg-surface-card">
-        <Metric label="Total prompts" value={fmt(data.totalPrompts)} delta={data.promptsDelta} caption="Active prompts" />
-        <Metric label="Used this week" value={fmt(data.usedThisWeek ?? 0)} delta={data.usedDelta} caption="Prompts run" />
-        <Metric label="Avg. rating" value={(data.avgRating ?? 0).toFixed(1)} suffix="/ 5" caption="Across your prompts" />
-        <Metric label="Versions" value={fmt(data.totalVersions)} caption="Total revisions" />
-        <div className="hidden min-w-[200px] flex-[1.4] flex-col justify-center px-[18px] py-4 lg:flex">
-          <div className="text-[10px] font-[600] uppercase tracking-[0.06em] text-ink-400">
-            Growth
-          </div>
-          <div className="mt-1 h-[44px]">
+        <Metric label="Total prompts" value={fmt(data.totalPrompts)} delta={data.promptsDelta} />
+        <Metric label="Used this week" value={fmt(data.usedThisWeek ?? 0)} delta={data.usedDelta} />
+        <Metric label="Avg. rating" value={(data.avgRating ?? 0).toFixed(1)} suffix="/ 5" />
+        <Metric label="Versions" value={fmt(data.totalVersions)} />
+        <div className="hidden min-w-[200px] flex-[1.4] items-center px-[18px] py-3 lg:flex">
+          <div className="h-[46px] w-full">
             <SectionErrorBoundary fallback={<MinimalErrorFallback />}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.promptGrowth}>
+                <LineChart data={data.promptGrowth} margin={{ top: 4, bottom: 4, left: 0, right: 0 }}>
                   <Line
                     type="monotone"
                     dataKey="cumulative"
@@ -151,9 +150,9 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             </h2>
             <Link
               href="/prompts"
-              className="flex items-center gap-1 text-[11.5px] font-[550] text-accent-700 hover:text-accent-500"
+              className="flex items-center gap-1.5 text-[11px] text-ink-400 hover:text-ink-700"
             >
-              View all <ArrowRight className="h-3 w-3" />
+              <ListFilter className="h-3.5 w-3.5" /> Filter
             </Link>
           </div>
           {topPrompts.length === 0 ? (
@@ -218,7 +217,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
           {/* By folder donut */}
           <div className="rounded-[11px] border border-line-200 bg-surface-card p-[18px]">
             <h2 className="mb-3 text-[13px] font-[620] tracking-[-0.01em] text-ink-900">By folder</h2>
-            {data.promptsByFolder.length === 0 ? (
+            {namedFolders.length === 0 ? (
               <p className="text-[12px] text-ink-400">No folders yet.</p>
             ) : (
               <div className="flex items-center gap-4">
@@ -227,7 +226,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={data.promptsByFolder}
+                          data={namedFolders}
                           cx="50%"
                           cy="50%"
                           innerRadius={34}
@@ -237,7 +236,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                           stroke="none"
                           isAnimationActive={false}
                         >
-                          {data.promptsByFolder.map((_, i) => (
+                          {namedFolders.map((_, i) => (
                             <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
                           ))}
                         </Pie>
@@ -246,7 +245,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                   </SectionErrorBoundary>
                 </div>
                 <ul className="flex-1 space-y-1.5">
-                  {data.promptsByFolder.slice(0, 5).map((f, i) => (
+                  {namedFolders.slice(0, 5).map((f, i) => (
                     <li key={f.name} className="flex items-center gap-2 text-[11.5px]">
                       <span
                         className="h-2 w-2 rounded-[2px]"
@@ -278,7 +277,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                     <div className="min-w-0">
                       <p className="truncate text-[12px] font-[500] text-ink-700">{a.title}</p>
                       <p className="text-[11px] text-ink-400">
-                        {a.type} · {new Date(a.createdAt).toLocaleDateString()}
+                        {a.type} · {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
                       </p>
                     </div>
                   </li>

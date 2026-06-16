@@ -11,6 +11,7 @@ interface Tag {
   name: string;
   description: string | null;
   createdAt: Date;
+  sharedCount?: number;
   _count: {
     prompts: number;
   };
@@ -142,12 +143,12 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
                       {tag._count.prompts}
                     </td>
                     <td className="px-2 py-2.5 text-right text-[12.5px] tabular-nums text-ink-400">
-                      —
+                      {tag.sharedCount ? tag.sharedCount : "—"}
                     </td>
                     <td className="px-2 py-2.5 text-right text-[12px] tabular-nums text-ink-400">
                       {new Date(tag.createdAt).toLocaleDateString("en-US", {
                         month: "short",
-                        day: "numeric",
+                        year: "numeric",
                       })}
                     </td>
                     <td className="px-4 py-2.5">

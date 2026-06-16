@@ -18,14 +18,27 @@ async function getTagsDataInternal() {
         select: {
           prompts: true
         }
-      }
+      },
+      // Prompts under this tag that are published to the Prompt Market — drives the
+      // "Shared" column (prototype shows a real per-tag shared count).
+      prompts: {
+        where: { sharedPrompt: { isNot: null } },
+        select: { id: true },
+      },
     },
     orderBy: {
       name: 'asc'
     }
   });
 
-  return tags;
+  return tags.map((t) => ({
+    id: t.id,
+    name: t.name,
+    description: t.description,
+    createdAt: t.createdAt,
+    _count: { prompts: t._count.prompts },
+    sharedCount: t.prompts.length,
+  }));
 }
 
 // Cached version of getTagsData

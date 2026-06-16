@@ -27,6 +27,8 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { TopbarPortal } from "@/components/layout/topbar-portal";
+import { TopbarTitle } from "@/components/layout/topbar";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -161,6 +163,9 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
 
   return (
     <div className="container max-w-6xl mx-auto py-6 px-4">
+      <TopbarPortal>
+        <TopbarTitle>Prompt Market</TopbarTitle>
+      </TopbarPortal>
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button
@@ -214,8 +219,8 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                         <Shield className="h-4 w-4 text-[#546ee5]" />
                       )}
                     </div>
-                    {sharedPrompt.author.reputationScore && (
-                      <UserReputation reputationScore={sharedPrompt.author.reputationScore} size="sm" />
+                    {(sharedPrompt.author.reputationScore ?? 0) > 0 && (
+                      <UserReputation reputationScore={sharedPrompt.author.reputationScore ?? 0} size="sm" />
                     )}
                   </div>
                 </div>
@@ -377,7 +382,7 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                 <div>
                   <p className="font-medium">{authorDisplayName}</p>
                   {sharedPrompt.author.reputationScore && (
-                    <UserReputation reputationScore={sharedPrompt.author.reputationScore} />
+                    <UserReputation reputationScore={sharedPrompt.author.reputationScore ?? 0} />
                   )}
                 </div>
               </div>

@@ -216,6 +216,31 @@ async function main() {
     if (backfilled) console.log(`✅ Backfilled versions for ${backfilled} prompts`);
   }
 
+  // Backfill: spread Alex's prompts' createdAt over the last ~12 weeks so the Dashboard
+  // "Growth" sparkline renders a real rising curve (otherwise every prompt shares one
+  // createdAt → a single data point → a dot) and "Recent activity" shows varied times.
+  {
+    const all = await prisma.prompt.findMany({
+      where: { userId: alex.id },
+      select: { id: true },
+      orderBy: { id: "asc" },
+    });
+    const N = all.length;
+    const SPAN_DAYS = 84; // 12 weeks
+    const now = Date.now();
+    for (let i = 0; i < N; i++) {
+      // Oldest first → newest last, with mild jitter so weekly buckets fill in.
+      const frac = N > 1 ? i / (N - 1) : 1;
+      const daysAgo = Math.round((1 - frac) * SPAN_DAYS - (i % 3));
+      const created = new Date(now - Math.max(0, daysAgo) * 864e5);
+      await prisma.prompt.update({
+        where: { id: all[i].id },
+        data: { createdAt: created },
+      });
+    }
+    if (N) console.log(`✅ Spread createdAt over ${SPAN_DAYS}d for ${N} prompts`);
+  }
+
   // ---- Prompt Market (public SharedPrompts) ----
   const marketCount = await prisma.sharedPrompt.count();
   if (marketCount === 0) {
