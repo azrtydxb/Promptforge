@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { getPromptsByFolderRedis as getPromptsByFolder, getAllPromptsRedis as getAllPrompts } from "@/app/actions/prompt.actions.redis";
+import type { PromptSort } from "@/app/actions/prompt.actions";
 import { getTagsWithPrompts } from "@/app/actions/tag-management.actions";
 import type { Prompt, Tag } from "@/generated/prisma";
 import { useModal } from "@/hooks/use-modal-store";
@@ -25,6 +26,7 @@ interface PromptListProps {
   searchQuery?: string;
   selectedTagIds?: string[];
   selectedPromptIds?: string[];
+  sort?: PromptSort;
   onToggleSelect?: (promptId: string) => void;
   onPromptsLoaded?: (prompts: PromptGridItem[]) => void;
 }
@@ -36,6 +38,7 @@ export const PromptList = ({
   searchQuery = "",
   selectedTagIds = [],
   selectedPromptIds = [],
+  sort,
   onToggleSelect,
   onPromptsLoaded
 }: PromptListProps) => {
@@ -88,7 +91,7 @@ export const PromptList = ({
         // Fetch prompts by tag
         if (tagId === null) {
           // Show all prompts when "All Prompts" is selected
-          const allPrompts = await getAllPrompts();
+          const allPrompts = await getAllPrompts(sort);
           setPrompts(allPrompts as PromptWithTags[]);
           onPromptsLoaded?.(allPrompts as PromptGridItem[]);
         } else {
@@ -112,7 +115,7 @@ export const PromptList = ({
           onPromptsLoaded?.(promptsWithTags as PromptGridItem[]);
         }
       } else if (folderId !== undefined) {
-        const fetchedPrompts = await getPromptsByFolder(folderId);
+        const fetchedPrompts = await getPromptsByFolder(folderId, sort);
         setPrompts(fetchedPrompts as PromptWithTags[]);
         onPromptsLoaded?.(fetchedPrompts as PromptGridItem[]);
       } else if (initialPrompts) {
@@ -120,14 +123,14 @@ export const PromptList = ({
         onPromptsLoaded?.(initialPrompts as PromptGridItem[]);
       } else {
         // "All" (no folder selected) — show every prompt, not just unassigned.
-        const fetchedPrompts = await getAllPrompts();
+        const fetchedPrompts = await getAllPrompts(sort);
         setPrompts(fetchedPrompts as PromptWithTags[]);
         onPromptsLoaded?.(fetchedPrompts as PromptGridItem[]);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [folderId, tagId, initialPrompts, onPromptsLoaded]);
+  }, [folderId, tagId, initialPrompts, sort, onPromptsLoaded]);
 
   useEffect(() => {
     fetchPrompts();

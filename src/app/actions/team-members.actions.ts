@@ -417,7 +417,13 @@ export async function getTeamMembers(teamId: string) {
     
     const members = await db.teamMember.findMany({
       where: { teamId },
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        teamId: true,
+        role: true,
+        joinedAt: true,
+        lastActiveAt: true,
         user: {
           select: {
             id: true,
@@ -441,6 +447,66 @@ export async function getTeamMembers(teamId: string) {
     return members;
   } catch (_error) {
     logger.error("Error getting team members", _error);
+    throw _error;
+  }
+}
+
+export async function resendTeamInvitation(invitationId: string) {
+  try {
+    const user = await requireAuth();
+
+    // Load the invitation to get teamId
+    const invitation = await db.teamInvitation.findUnique({
+      where: { id: invitationId },
+      include: {
+        team: true,
+        invitedBy: true,
+      },
+    });
+
+    if (!invitation) {
+      throw new Error("Invitation not found");
+    }
+
+    if (invitation.status !== InvitationStatus.PENDING) {
+      throw new Error("Only pending invitations can be resent");
+    }
+
+    const userRole = await getUserTeamRole(invitation.teamId);
+    if (!(await canPerformAction(userRole, TeamRole.ADMIN))) {
+      throw new Error("Insufficient permissions to resend invitations");
+    }
+
+    // Regenerate token and extend expiry by 7 days
+    const token = randomBytes(32).toString("hex");
+    const expiresAt = addDays(new Date(), 7);
+
+    await db.teamInvitation.update({
+      where: { id: invitationId },
+      data: { token, expiresAt },
+    });
+
+    // Re-send email
+    const invitationUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/teams/invitations/${token}`;
+    await sendTeamInvitationEmail({
+      to: invitation.email,
+      teamName: invitation.team.name,
+      inviterName: invitation.invitedBy.name || invitation.invitedBy.email || "A team member",
+      invitationUrl,
+      role: invitation.role,
+    });
+
+    logger.info("Team invitation resent", {
+      invitationId,
+      teamId: invitation.teamId,
+      email: invitation.email,
+      resentBy: user.id,
+    });
+
+    revalidatePath(`/teams/${invitation.teamId}/members`);
+    return { success: true };
+  } catch (_error) {
+    logger.error("Error resending team invitation", _error);
     throw _error;
   }
 }

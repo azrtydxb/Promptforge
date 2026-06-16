@@ -34,9 +34,9 @@ export default async function SharedPromptsPage({ searchParams }: PageProps) {
     getAvailableSharedPromptTags()
   ]);
 
-  // tagsResult kept for parity with the action signature; the client renders its own
-  // Structured Pro filter rail (Sort by / Category / Min rating / Popular tags).
-  void tagsResult;
+  const popularTags = tagsResult.success && tagsResult.tags
+    ? tagsResult.tags.slice(0, 10).map((t) => t.name)
+    : [];
 
   return (
     <SharedPromptsClient
@@ -47,6 +47,7 @@ export default async function SharedPromptsPage({ searchParams }: PageProps) {
       searchQuery={searchQuery}
       selectedTags={selectedTags}
       sortBy={sortBy}
+      popularTags={popularTags}
     />
   );
 }

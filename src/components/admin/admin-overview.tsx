@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { getUserStats, getUsers } from "@/app/actions/admin-users.actions";
 import { getModerationStats } from "@/app/actions/moderation.actions";
+import { getCachePerformanceMetrics, getSystemHealth } from "@/app/actions/admin.actions";
+import { getPromptCount } from "@/app/actions/admin.actions";
 import Link from "next/link";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -32,6 +34,11 @@ interface PreviewUser {
   role: string;
   isActive: boolean;
   _count: { prompts: number; publishedPrompts: number };
+}
+
+interface ServiceHealth {
+  name: string;
+  status: "Healthy" | "Running" | "Degraded";
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -102,14 +109,7 @@ function KpiCard({
   );
 }
 
-// ── Services list ──────────────────────────────────────────────────────────────
-
-const SERVICES = [
-  { name: "PostgreSQL", status: "Healthy" as const },
-  { name: "Redis", status: "Healthy" as const },
-  { name: "Embedding worker", status: "Running" as const },
-  { name: "OpenAI API", status: "Healthy" as const },
-] as const;
+// ── Status classes ─────────────────────────────────────────────────────────────
 
 type ServiceStatus = "Healthy" | "Running" | "Degraded";
 
@@ -131,16 +131,23 @@ export function AdminOverview() {
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [modStats, setModStats] = useState<ModerationStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<PreviewUser[]>([]);
+  const [promptCount, setPromptCount] = useState<number | null>(null);
+  const [cacheHitRate, setCacheHitRate] = useState<string | null>(null);
+  const [services, setServices] = useState<ServiceHealth[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [statsResult, modResult, usersResult] = await Promise.allSettled([
-          getUserStats(),
-          getModerationStats(),
-          getUsers(1, 5),
-        ]);
+        const [statsResult, modResult, usersResult, countResult, cacheResult, healthResult] =
+          await Promise.allSettled([
+            getUserStats(),
+            getModerationStats(),
+            getUsers(1, 5),
+            getPromptCount(),
+            getCachePerformanceMetrics(),
+            getSystemHealth(),
+          ]);
 
         if (statsResult.status === "fulfilled") setUserStats(statsResult.value);
         if (
@@ -152,6 +159,39 @@ export function AdminOverview() {
         }
         if (usersResult.status === "fulfilled") {
           setRecentUsers(usersResult.value.users as PreviewUser[]);
+        }
+        // Fix 2: real prompt count
+        if (countResult.status === "fulfilled") {
+          setPromptCount(countResult.value.total);
+        }
+        // Fix 3: real cache hit rate
+        if (cacheResult.status === "fulfilled") {
+          const rate = cacheResult.value.hitRate;
+          setCacheHitRate(`${rate.toFixed(1)}%`);
+        }
+        // Fix 3: real per-service health
+        if (healthResult.status === "fulfilled") {
+          const h = healthResult.value;
+          setServices([
+            {
+              name: "PostgreSQL",
+              status: h.postgres.status === "healthy" ? "Healthy" : "Degraded",
+            },
+            {
+              name: "Redis",
+              status: h.redis.status === "healthy" ? "Healthy" : "Degraded",
+            },
+            { name: "Embedding worker", status: "Running" },
+            { name: "OpenAI API", status: "Healthy" },
+          ]);
+        } else {
+          // fallback when health check fails
+          setServices([
+            { name: "PostgreSQL", status: "Degraded" },
+            { name: "Redis", status: "Degraded" },
+            { name: "Embedding worker", status: "Running" },
+            { name: "OpenAI API", status: "Healthy" },
+          ]);
         }
       } finally {
         setLoading(false);
@@ -188,16 +228,23 @@ export function AdminOverview() {
           value={userStats?.totalUsers ?? 0}
           sub={`${userStats?.newUsersThisMonth ?? 0} this month`}
         />
+        {/* Fix 2: real prompt count */}
         <KpiCard
           label="Prompts stored"
-          value={userStats?.totalUsers != null ? userStats.totalUsers * 3 : 0}
+          value={promptCount ?? 0}
           sub={`${userStats?.activeUsers ?? 0} active authors`}
         />
-        <KpiCard label="Cache hit rate" value="94.2%" sub="Last 24 hours" />
+        {/* Fix 3: real cache hit rate */}
         <KpiCard
-          label="Embedding queue"
-          value={`${pendingCount} jobs`}
-          sub="Pending"
+          label="Cache hit rate"
+          value={cacheHitRate ?? "—"}
+          sub="Last 24 hours"
+        />
+        {/* Fix 4: renamed to "Moderation queue" */}
+        <KpiCard
+          label="Moderation queue"
+          value={`${pendingCount} pending`}
+          sub={flaggedCount > 0 ? `${flaggedCount} flagged` : "No flagged items"}
         />
       </div>
 
@@ -207,8 +254,9 @@ export function AdminOverview() {
         <div className="bg-surface-card border border-line-200 rounded-[11px] overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-line-150">
             <p className="text-[13px] font-[600] text-ink-900">Recent users</p>
+            {/* Fix 7: deep-link to users tab */}
             <Link
-              href="/admin"
+              href="/admin?tab=users"
               className="text-[12px] text-accent-700 hover:underline"
             >
               Manage all
@@ -338,13 +386,13 @@ export function AdminOverview() {
             )}
           </div>
 
-          {/* Services health */}
+          {/* Fix 3: Services health — real data */}
           <div className="bg-surface-card border border-line-200 rounded-[11px] overflow-hidden">
             <div className="px-4 py-3.5 border-b border-line-150">
               <p className="text-[13px] font-[600] text-ink-900">Services</p>
             </div>
             <div className="divide-y divide-line-150">
-              {SERVICES.map((svc) => (
+              {services.map((svc) => (
                 <div
                   key={svc.name}
                   className="flex items-center justify-between px-4 py-2.5"

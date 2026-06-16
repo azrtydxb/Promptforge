@@ -106,22 +106,55 @@ export async function publishPromptToMarketplace(data: PublishPromptData) {
   }
 }
 
+/** Whether a prompt is currently published to the Market, plus its URL. */
+export async function getPublishStateForPrompt(
+  promptId: string
+): Promise<{ published: boolean; url: string | null }> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { published: false, url: null };
+  const shared = await db.sharedPrompt.findFirst({
+    where: { promptId, authorId: session.user.id },
+    select: { id: true, isPublished: true },
+  });
+  if (!shared) return { published: false, url: null };
+  return { published: shared.isPublished, url: `/shared-prompts/${shared.id}` };
+}
+
+/** Remove a prompt from the Prompt Market (deletes its SharedPrompt). Owner only. */
+export async function unpublishPrompt(promptId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, error: 'Authentication required' };
+  const shared = await db.sharedPrompt.findFirst({
+    where: { promptId, authorId: session.user.id },
+    select: { id: true },
+  });
+  if (!shared) return { success: false, error: 'Prompt is not published' };
+  await db.sharedPrompt.delete({ where: { id: shared.id } });
+  revalidatePath('/shared-prompts');
+  revalidatePath('/prompts');
+  return { success: true };
+}
+
 /**
  * Get shared prompts with filtering and pagination
  */
 export async function getSharedPrompts({
   page = 1,
   limit = 12,
-  search = '',
-  tags = [],
-  sortBy = 'recent',
+  search,
+  tags,
+  sortBy = 'newest',
+  category,
+  minRating,
   authorId,
 }: {
   page?: number;
   limit?: number;
   search?: string;
   tags?: string[];
-  sortBy?: 'recent' | 'popular' | 'liked' | 'copied';
+  sortBy?: 'trending' | 'most-copied' | 'top-rated' | 'newest' | 'recent' | 'popular' | 'liked' | 'copied';
+  category?: string;
+  minRating?: number;
   authorId?: string;
 } = {}) {
   try {
@@ -142,7 +175,7 @@ export async function getSharedPrompts({
       ];
     }
 
-    if (tags.length > 0) {
+    if (tags && tags.length > 0) {
       where.prompt = {
         tags: {
           some: {
@@ -152,22 +185,41 @@ export async function getSharedPrompts({
       };
     }
 
+    if (category) {
+      where.category = category;
+    }
+
+    if (minRating !== undefined && minRating !== null) {
+      where.averageRating = { gte: minRating };
+    }
+
     if (authorId) {
       where.authorId = authorId;
     }
 
     // Build order by clause
-    let orderBy: Prisma.SharedPromptOrderByWithRelationInput = { publishedAt: 'desc' }; // default: recent
+    let orderBy: Prisma.SharedPromptOrderByWithRelationInput = { publishedAt: 'desc' }; // default: newest
 
     switch (sortBy) {
-      case 'popular':
+      // New canonical values
+      case 'trending':
         orderBy = { viewCount: 'desc' };
         break;
-      case 'liked':
-        orderBy = { likeCount: 'desc' };
-        break;
+      case 'most-copied':
       case 'copied':
         orderBy = { copyCount: 'desc' };
+        break;
+      case 'top-rated':
+      case 'liked':
+        orderBy = { averageRating: 'desc' };
+        break;
+      case 'newest':
+      case 'recent':
+        orderBy = { publishedAt: 'desc' };
+        break;
+      // Legacy
+      case 'popular':
+        orderBy = { viewCount: 'desc' };
         break;
     }
 
@@ -611,6 +663,45 @@ async function checkAndAwardBadges(userId: string, reputationScore: number) {
 
   } catch (_error) {
 
+  }
+}
+
+/**
+ * Get similar shared prompts in the same category (up to 4, excluding self)
+ */
+export async function getSimilarSharedPrompts(sharedPromptId: string) {
+  try {
+    const self = await db.sharedPrompt.findUnique({
+      where: { id: sharedPromptId },
+      select: { category: true }
+    });
+
+    if (!self?.category) {
+      return { success: true, prompts: [] };
+    }
+
+    const prompts = await db.sharedPrompt.findMany({
+      where: {
+        isPublished: true,
+        status: 'APPROVED',
+        category: self.category,
+        id: { not: sharedPromptId }
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        author: {
+          select: { username: true, name: true }
+        }
+      },
+      orderBy: { viewCount: 'desc' },
+      take: 4
+    });
+
+    return { success: true, prompts };
+  } catch (_error) {
+    return { success: false, error: 'Failed to load similar prompts', prompts: [] };
   }
 }
 

@@ -140,7 +140,7 @@ export async function moderatePrompt(input: z.infer<typeof moderatePromptSchema>
       data: {
         contentType: "prompt",
         contentId: validated.promptId,
-        action: validated.status === "APPROVED" ? "FLAG" : "REJECT",
+        action: validated.status === "APPROVED" ? "APPROVE" : "FLAG",
         reason: validated.reason,
         automated: false,
         reviewedBy: user.id,

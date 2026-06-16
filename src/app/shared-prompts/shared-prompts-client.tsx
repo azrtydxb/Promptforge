@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, useTransition, useCallback, useEffect, useMemo } from 'react';
+import { useState, useTransition, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { UnifiedPromptCardClean as UnifiedPromptCard } from '@/components/ui/unified-prompt-card-clean';
-import { getSharedPromptsCached as getSharedPrompts } from '@/app/actions/shared-prompts.actions.cached';
+import { getSharedPrompts } from '@/app/actions/shared-prompts.actions';
+import { getAllPrompts } from '@/app/actions/prompt.actions';
+import { publishPromptToMarketplace } from '@/app/actions/shared-prompts.actions';
 import { Loader2, RefreshCw, Search, X, ChevronDown, Star } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SectionErrorBoundary } from '@/components/error-boundary';
 import { NetworkErrorFallback } from '@/components/error-boundary/error-fallbacks';
 import { TopbarPortal } from '@/components/layout/topbar-portal';
 import { TopbarTitle, TopbarNewButton } from '@/components/layout/topbar';
+import { toast } from 'sonner';
 
 export interface SharedPrompt {
   id: string;
@@ -54,81 +57,63 @@ interface SharedPromptsClientProps {
   searchQuery: string;
   selectedTags: string[];
   sortBy: 'recent' | 'popular' | 'liked' | 'copied';
+  popularTags?: string[];
 }
 
-type SortOption = 'trending' | 'copied' | 'liked' | 'newest';
+type SortOption = 'trending' | 'copied' | 'top-rated' | 'newest';
 
-const CATEGORY_TAG_MAP: Record<string, string[]> = {
-  Writing: ['writing', 'essay', 'blog', 'content', 'copy', 'article', 'text'],
-  Engineering: ['code', 'engineering', 'sql', 'api', 'debug', 'programming', 'developer'],
-  Marketing: ['marketing', 'seo', 'ads', 'campaign', 'brand', 'social'],
-  Sales: ['sales', 'pitch', 'email', 'crm', 'outreach', 'lead'],
-  Support: ['support', 'customer', 'help', 'service', 'ticket', 'chat'],
-  Data: ['data', 'analysis', 'analytics', 'report', 'csv', 'excel', 'bi'],
-};
-
-const POPULAR_TAGS = ['code', 'sql', 'email', 'writing', 'review', 'data', 'agent'];
+const CATEGORY_OPTIONS = ['Writing', 'Engineering', 'Marketing', 'Sales', 'Support', 'Data'] as const;
 
 const SORT_LABELS: Record<SortOption, string> = {
   trending: 'Trending',
   copied: 'Most copied',
-  liked: 'Top rated',
+  'top-rated': 'Top rated',
   newest: 'Newest',
 };
 
-function sortPrompts(prompts: SharedPrompt[], sort: SortOption): SharedPrompt[] {
-  const copy = [...prompts];
+// Map client SortOption to server sortBy param
+function toServerSort(sort: SortOption): 'trending' | 'most-copied' | 'top-rated' | 'newest' {
   switch (sort) {
-    case 'trending':
-      return copy.sort((a, b) => b.viewCount - a.viewCount);
-    case 'copied':
-      return copy.sort((a, b) => b.copyCount - a.copyCount);
-    case 'liked':
-      return copy.sort((a, b) => b.likeCount - a.likeCount);
-    case 'newest':
-      return copy.sort((a, b) => {
-        const aDate = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-        const bDate = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-        return bDate - aDate;
-      });
-    default:
-      return copy;
+    case 'trending': return 'trending';
+    case 'copied': return 'most-copied';
+    case 'top-rated': return 'top-rated';
+    case 'newest': return 'newest';
   }
 }
 
-function promptMatchesCategory(prompt: SharedPrompt, category: string): boolean {
-  const tagNames = (prompt.prompt?.tags ?? []).map((t) => t.name.toLowerCase());
-  const catTags = CATEGORY_TAG_MAP[category] ?? [];
-  return catTags.some((ct) => tagNames.some((t) => t.includes(ct)));
+interface UserPrompt {
+  id: string;
+  title: string;
 }
-
-function promptMatchesMinRating(prompt: SharedPrompt, minLikes: number): boolean {
-  return prompt.likeCount >= minLikes;
-}
-
-// Min-rating star thresholds mapped to likeCount
-const STAR_THRESHOLDS: Record<number, number> = { 1: 0, 2: 5, 3: 10, 4: 25, 5: 50 };
 
 export function SharedPromptsClient({
   initialPrompts,
   initialPagination,
   initialError,
-  searchQuery: initialSearch,
-  selectedTags: initialTags,
-  sortBy: initialSort,
+  searchQuery: _initialSearch,
+  selectedTags: _initialTags,
+  sortBy: _initialSort,
+  popularTags = [],
 }: SharedPromptsClientProps) {
   const [prompts, setPrompts] = useState<SharedPrompt[]>(initialPrompts);
   const [pagination, setPagination] = useState<PaginationInfo | null>(initialPagination);
   const [error, setError] = useState<string | null>(initialError);
   const [isPending, startTransition] = useTransition();
 
-  // Local filter state (client-side)
+  // Server-side filter state
   const [searchText, setSearchText] = useState('');
   const [sort, setSort] = useState<SortOption>('trending');
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
-  const [minStars, setMinStars] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [minRating, setMinRating] = useState<number | null>(null);
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+
+  // Publish modal state
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [userPrompts, setUserPrompts] = useState<UserPrompt[]>([]);
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
 
   // Reset when server-side props change
@@ -138,29 +123,108 @@ export function SharedPromptsClient({
     setError(initialError);
   }, [initialPrompts, initialPagination, initialError]);
 
-  const loadMore = useCallback(() => {
-    if (!pagination?.hasNext || isPending) return;
+  // Fetch from server whenever filters change
+  const fetchPrompts = useCallback((opts: {
+    search?: string;
+    sort?: SortOption;
+    category?: string | null;
+    minRating?: number | null;
+    tags?: string[];
+    page?: number;
+    append?: boolean;
+  }) => {
+    const {
+      search = searchText,
+      sort: s = sort,
+      category = activeCategory,
+      minRating: mr = minRating,
+      tags = activeTags,
+      page = 1,
+      append = false,
+    } = opts;
+
     startTransition(async () => {
       try {
         const result = await getSharedPrompts({
-          page: pagination.page + 1,
+          page,
           limit: 12,
-          search: initialSearch,
-          tags: initialTags,
-          sortBy: initialSort,
+          search: search || undefined,
+          tags: tags.length > 0 ? tags : undefined,
+          sortBy: toServerSort(s),
+          category: category || undefined,
+          minRating: mr ?? undefined,
         });
         if (result.success && result.prompts && result.pagination) {
-          setPrompts((prev) => [...prev, ...(result.prompts as unknown as SharedPrompt[])]);
+          const newPrompts = result.prompts as unknown as SharedPrompt[];
+          setPrompts((prev) => append ? [...prev, ...newPrompts] : newPrompts);
           setPagination(result.pagination);
           setError(null);
         } else {
-          setError(result.error || 'Failed to load more prompts');
+          setError(result.error || 'Failed to load prompts');
         }
       } catch {
-        setError('Failed to load more prompts');
+        setError('Failed to load prompts');
       }
     });
-  }, [pagination, isPending, initialSearch, initialTags, initialSort]);
+  }, [searchText, sort, activeCategory, minRating, activeTags]);
+
+  // Debounced search
+  const handleSearchChange = (val: string) => {
+    setSearchText(val);
+    if (searchDebounce.current) clearTimeout(searchDebounce.current);
+    searchDebounce.current = setTimeout(() => {
+      fetchPrompts({ search: val, page: 1 });
+    }, 350);
+  };
+
+  const handleSortChange = (val: SortOption) => {
+    setSort(val);
+    setSortDropdownOpen(false);
+    fetchPrompts({ sort: val, page: 1 });
+  };
+
+  const handleCategoryToggle = (cat: string) => {
+    const next = activeCategory === cat ? null : cat;
+    setActiveCategory(next);
+    fetchPrompts({ category: next, page: 1 });
+  };
+
+  const handleMinRatingChange = (stars: number) => {
+    const next = minRating === stars ? null : stars;
+    setMinRating(next);
+    fetchPrompts({ minRating: next, page: 1 });
+  };
+
+  const handleTagToggle = (tag: string) => {
+    const next = activeTags.includes(tag)
+      ? activeTags.filter((t) => t !== tag)
+      : [...activeTags, tag];
+    setActiveTags(next);
+    fetchPrompts({ tags: next, page: 1 });
+  };
+
+  const handleTagRemove = (tag: string) => {
+    const next = activeTags.filter((t) => t !== tag);
+    setActiveTags(next);
+    fetchPrompts({ tags: next, page: 1 });
+  };
+
+  const clearAll = () => {
+    setActiveCategory(null);
+    setMinRating(null);
+    setActiveTags([]);
+    setSearchText('');
+    fetchPrompts({ search: '', category: null, minRating: null, tags: [], page: 1 });
+  };
+
+  const loadMore = useCallback(() => {
+    if (!pagination?.hasNext || isPending) return;
+    fetchPrompts({ page: pagination.page + 1, append: true });
+  }, [pagination, isPending, fetchPrompts]);
+
+  const refresh = useCallback(() => {
+    fetchPrompts({ page: 1 });
+  }, [fetchPrompts]);
 
   const handleLikeToggle = useCallback((promptId: string, isLiked: boolean) => {
     setPrompts((prev) =>
@@ -178,107 +242,44 @@ export function SharedPromptsClient({
     );
   }, []);
 
-  const refresh = useCallback(() => {
-    startTransition(async () => {
-      try {
-        const result = await getSharedPrompts({
-          page: 1,
-          limit: 12,
-          search: initialSearch,
-          tags: initialTags,
-          sortBy: initialSort,
-        });
-        if (result.success && result.prompts && result.pagination) {
-          setPrompts(result.prompts as unknown as SharedPrompt[]);
-          setPagination(result.pagination);
-          setError(null);
-        } else {
-          setError(result.error || 'Failed to refresh prompts');
-        }
-      } catch {
-        setError('Failed to refresh prompts');
+  // Publish modal
+  const openPublishModal = async () => {
+    try {
+      const result = await getAllPrompts();
+      setUserPrompts(result.map((p) => ({ id: p.id, title: p.title })));
+    } catch {
+      toast.error('Failed to load your prompts');
+      return;
+    }
+    setPublishModalOpen(true);
+  };
+
+  const handlePublish = async (promptId: string) => {
+    setPublishingId(promptId);
+    try {
+      const result = await publishPromptToMarketplace({ promptId });
+      if (result.success) {
+        toast.success(result.message ?? 'Prompt published!');
+        setPublishModalOpen(false);
+        refresh();
+      } else {
+        toast.error(result.error ?? 'Failed to publish prompt');
       }
-    });
-  }, [initialSearch, initialTags, initialSort]);
-
-  // Client-side filtered + sorted prompts
-  const filteredPrompts = useMemo(() => {
-    let result = prompts;
-
-    // Search filter
-    if (searchText.trim()) {
-      const q = searchText.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          (p.description ?? '').toLowerCase().includes(q) ||
-          (p.prompt?.tags ?? []).some((t) => t.name.toLowerCase().includes(q)) ||
-          (p.author.username ?? '').toLowerCase().includes(q) ||
-          (p.author.name ?? '').toLowerCase().includes(q)
-      );
+    } catch {
+      toast.error('Failed to publish prompt');
+    } finally {
+      setPublishingId(null);
     }
-
-    // Category filter
-    if (activeCategories.length > 0) {
-      result = result.filter((p) =>
-        activeCategories.some((cat) => promptMatchesCategory(p, cat))
-      );
-    }
-
-    // Min-rating filter (using likeCount as proxy)
-    if (minStars !== null) {
-      const threshold = STAR_THRESHOLDS[minStars] ?? 0;
-      result = result.filter((p) => promptMatchesMinRating(p, threshold));
-    }
-
-    // Tag filter
-    if (activeTags.length > 0) {
-      result = result.filter((p) => {
-        const tagNames = (p.prompt?.tags ?? []).map((t) => t.name.toLowerCase());
-        return activeTags.some((at) => tagNames.some((tn) => tn.includes(at)));
-      });
-    }
-
-    return sortPrompts(result, sort);
-  }, [prompts, searchText, activeCategories, minStars, activeTags, sort]);
-
-  const toggleCategory = (cat: string) => {
-    setActiveCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-  };
-
-  const toggleTag = (tag: string) => {
-    setActiveTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
-  const removeCategory = (cat: string) => {
-    setActiveCategories((prev) => prev.filter((c) => c !== cat));
-  };
-
-  const removeTag = (tag: string) => {
-    setActiveTags((prev) => prev.filter((t) => t !== tag));
-  };
-
-  const clearAll = () => {
-    setActiveCategories([]);
-    setMinStars(null);
-    setActiveTags([]);
-    setSearchText('');
   };
 
   const hasActiveFilters =
-    activeCategories.length > 0 || minStars !== null || activeTags.length > 0;
+    activeCategory !== null || minRating !== null || activeTags.length > 0;
 
   // Chip array for active-filter row
   const filterChips: Array<{ label: string; onRemove: () => void }> = [
-    ...activeCategories.map((cat) => ({ label: cat, onRemove: () => removeCategory(cat) })),
-    ...(minStars !== null
-      ? [{ label: `${minStars}★ & up`, onRemove: () => setMinStars(null) }]
-      : []),
-    ...activeTags.map((tag) => ({ label: tag, onRemove: () => removeTag(tag) })),
+    ...(activeCategory ? [{ label: activeCategory, onRemove: () => { setActiveCategory(null); fetchPrompts({ category: null, page: 1 }); } }] : []),
+    ...(minRating !== null ? [{ label: `${minRating}★ & up`, onRemove: () => { setMinRating(null); fetchPrompts({ minRating: null, page: 1 }); } }] : []),
+    ...activeTags.map((tag) => ({ label: tag, onRemove: () => handleTagRemove(tag) })),
   ];
 
   if (error) {
@@ -308,22 +309,58 @@ export function SharedPromptsClient({
         <TopbarPortal>
           <TopbarTitle>Prompt Market</TopbarTitle>
           <div className="ml-auto">
-            <TopbarNewButton label="Publish" icon={false} onClick={() => router.push('/prompts')} />
+            <TopbarNewButton label="Publish" icon={false} onClick={openPublishModal} />
           </div>
         </TopbarPortal>
+
+        {/* ── Publish modal ── */}
+        {publishModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setPublishModalOpen(false)}>
+            <div
+              className="bg-surface-card border border-line-200 rounded-[13px] shadow-xl w-full max-w-md mx-4 p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[15px] font-[650] text-ink-900">Publish a prompt</h2>
+                <button onClick={() => setPublishModalOpen(false)} className="text-ink-400 hover:text-ink-700">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {userPrompts.length === 0 ? (
+                <p className="text-sm text-ink-400 text-center py-6">You have no prompts to publish.</p>
+              ) : (
+                <ul className="flex flex-col gap-1 max-h-72 overflow-y-auto">
+                  {userPrompts.map((p) => (
+                    <li key={p.id} className="flex items-center justify-between gap-3 rounded-[8px] px-3 py-2.5 hover:bg-surface-muted">
+                      <span className="text-sm text-ink-800 truncate flex-1">{p.title}</span>
+                      <button
+                        onClick={() => handlePublish(p.id)}
+                        disabled={publishingId === p.id}
+                        className="shrink-0 text-xs font-[550] px-3 py-1 rounded-[6px] bg-accent-500 text-white hover:bg-accent-600 disabled:opacity-50 transition-colors"
+                      >
+                        {publishingId === p.id ? 'Publishing…' : 'Publish'}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── 1. Prominent search bar ── */}
         <div className="bg-surface-card border border-line-200 rounded-[9px] shadow-sm flex items-center gap-3 px-4 py-2.5">
           <Search className="w-4 h-4 text-ink-400 shrink-0" />
           <input
             type="text"
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Search public prompts by title, tag, model or author…"
             className="flex-1 bg-transparent text-sm text-ink-900 placeholder:text-ink-300 outline-none min-w-0"
           />
           {searchText && (
             <button
-              onClick={() => setSearchText('')}
+              onClick={() => handleSearchChange('')}
               className="text-ink-400 hover:text-ink-600 shrink-0"
             >
               <X className="w-4 h-4" />
@@ -347,10 +384,7 @@ export function SharedPromptsClient({
                 {(Object.entries(SORT_LABELS) as [SortOption, string][]).map(([val, label]) => (
                   <button
                     key={val}
-                    onClick={() => {
-                      setSort(val);
-                      setSortDropdownOpen(false);
-                    }}
+                    onClick={() => handleSortChange(val)}
                     className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${
                       sort === val
                         ? 'text-accent-700 bg-accent-100'
@@ -389,7 +423,7 @@ export function SharedPromptsClient({
               Clear all
             </button>
             <span className="ml-auto text-xs text-ink-400 tabular-nums">
-              {filteredPrompts.length} results
+              {pagination?.total ?? prompts.length} results
             </span>
           </div>
         )}
@@ -415,7 +449,7 @@ export function SharedPromptsClient({
                           ? 'border-accent-500 bg-accent-500'
                           : 'border-line-200 group-hover:border-accent-500'
                       }`}
-                      onClick={() => setSort(val)}
+                      onClick={() => handleSortChange(val)}
                     >
                       {sort === val && (
                         <span className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -423,7 +457,7 @@ export function SharedPromptsClient({
                     </span>
                     <span
                       className={`text-sm ${sort === val ? 'text-ink-900 font-medium' : 'text-ink-600'}`}
-                      onClick={() => setSort(val)}
+                      onClick={() => handleSortChange(val)}
                     >
                       {label}
                     </span>
@@ -441,20 +475,20 @@ export function SharedPromptsClient({
                 Category
               </p>
               <div className="flex flex-col gap-1">
-                {Object.keys(CATEGORY_TAG_MAP).map((cat) => (
+                {CATEGORY_OPTIONS.map((cat) => (
                   <label
                     key={cat}
                     className="flex items-center gap-2.5 cursor-pointer py-1 group"
                   >
                     <span
                       className={`w-4 h-4 rounded-[4px] border-2 flex items-center justify-center shrink-0 transition-colors ${
-                        activeCategories.includes(cat)
+                        activeCategory === cat
                           ? 'border-accent-500 bg-accent-500'
                           : 'border-line-200 group-hover:border-accent-500'
                       }`}
-                      onClick={() => toggleCategory(cat)}
+                      onClick={() => handleCategoryToggle(cat)}
                     >
-                      {activeCategories.includes(cat) && (
+                      {activeCategory === cat && (
                         <svg
                           className="w-2.5 h-2.5 text-white"
                           viewBox="0 0 10 10"
@@ -472,8 +506,8 @@ export function SharedPromptsClient({
                       )}
                     </span>
                     <span
-                      className={`text-sm ${activeCategories.includes(cat) ? 'text-ink-900 font-medium' : 'text-ink-600'}`}
-                      onClick={() => toggleCategory(cat)}
+                      className={`text-sm ${activeCategory === cat ? 'text-ink-900 font-medium' : 'text-ink-600'}`}
+                      onClick={() => handleCategoryToggle(cat)}
                     >
                       {cat}
                     </span>
@@ -494,9 +528,9 @@ export function SharedPromptsClient({
                 {[5, 4, 3, 2, 1].map((stars) => (
                   <button
                     key={stars}
-                    onClick={() => setMinStars(minStars === stars ? null : stars)}
+                    onClick={() => handleMinRatingChange(stars)}
                     className={`flex items-center gap-2 py-1 text-left group transition-colors ${
-                      minStars === stars ? 'text-ink-900' : 'text-ink-600 hover:text-ink-900'
+                      minRating === stars ? 'text-ink-900' : 'text-ink-600 hover:text-ink-900'
                     }`}
                   >
                     <span className="flex items-center gap-0.5">
@@ -510,7 +544,7 @@ export function SharedPromptsClient({
                       ))}
                     </span>
                     <span className="text-xs">& up</span>
-                    {minStars === stars && (
+                    {minRating === stars && (
                       <span className="ml-auto text-[10px] text-accent-700">✓</span>
                     )}
                   </button>
@@ -522,26 +556,28 @@ export function SharedPromptsClient({
             <div className="border-t border-line-100" />
 
             {/* POPULAR TAGS */}
-            <div>
-              <p className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 mb-2">
-                Popular Tags
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {POPULAR_TAGS.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => toggleTag(tag)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                      activeTags.includes(tag)
-                        ? 'bg-accent-500 text-white'
-                        : 'bg-surface-muted text-ink-600 hover:bg-accent-100 hover:text-accent-700'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
+            {popularTags.length > 0 && (
+              <div>
+                <p className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 mb-2">
+                  Popular Tags
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {popularTags.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => handleTagToggle(tag)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                        activeTags.includes(tag)
+                          ? 'bg-accent-500 text-white'
+                          : 'bg-surface-muted text-ink-600 hover:bg-accent-100 hover:text-accent-700'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </aside>
 
           {/* ── RIGHT: Card grid ── */}
@@ -550,12 +586,16 @@ export function SharedPromptsClient({
             {!hasActiveFilters && (
               <div className="flex items-center justify-end mb-3">
                 <span className="text-xs text-ink-400 tabular-nums">
-                  {filteredPrompts.length} results
+                  {pagination?.total ?? prompts.length} results
                 </span>
               </div>
             )}
 
-            {filteredPrompts.length === 0 ? (
+            {isPending && prompts.length === 0 ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-6 h-6 animate-spin text-ink-400" />
+              </div>
+            ) : prompts.length === 0 ? (
               <EmptyState
                 type={searchText || hasActiveFilters ? 'noResults' : 'noData'}
                 title="No prompts found"
@@ -566,8 +606,8 @@ export function SharedPromptsClient({
                 }
               />
             ) : (
-              <div className="grid grid-cols-2 gap-4">
-                {filteredPrompts.map((prompt) => (
+              <div className={`grid grid-cols-2 gap-4 transition-opacity ${isPending ? 'opacity-60' : ''}`}>
+                {prompts.map((prompt) => (
                   <UnifiedPromptCard
                     key={prompt.id}
                     variant="shared"

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { getPromptTemplates } from "@/app/actions/template.actions";
+import { getPromptTemplates, createPromptFromTemplate } from "@/app/actions/template.actions";
 import { UnifiedPromptCardClean } from "@/components/ui/unified-prompt-card-clean";
 import { LoadingStates } from "@/components/ui/loading-state";
 import { cn } from "@/lib/utils";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
 import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
+import { toast } from "sonner";
 
 interface Template {
   id: string;
@@ -32,6 +34,7 @@ export function TemplatesSearchComponent() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<CategoryPill>("All");
+  const router = useRouter();
 
   useEffect(() => {
     async function load() {
@@ -91,7 +94,7 @@ export function TemplatesSearchComponent() {
               className="h-[30px] w-56 rounded-[7px] border border-line-200 bg-surface-muted pl-8 pr-3 text-[12.5px] text-ink-900 placeholder:text-[#9aa0ab] focus:outline-none"
             />
           </div>
-          <TopbarNewButton label="New template" />
+          <TopbarNewButton label="New template" onClick={() => router.push('/templates/new')} />
         </div>
       </TopbarPortal>
 
@@ -137,6 +140,15 @@ export function TemplatesSearchComponent() {
                       image: template.author.image,
                     }
                   : undefined,
+              }}
+              onUseTemplate={async (t) => {
+                try {
+                  const promptId = await createPromptFromTemplate(t.id);
+                  toast.success("Prompt created from template!");
+                  router.push(`/prompts/${promptId}`);
+                } catch {
+                  toast.error("Failed to create prompt from template");
+                }
               }}
             />
           ))}

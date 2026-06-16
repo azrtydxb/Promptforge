@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 import {
   getAllPrompts as getAllPromptsDB,
   getPromptsByFolder as getPromptsByFolderDB,
+  type PromptSort,
   getPromptById as getPromptByIdDB,
   searchPrompts as searchPromptsDB,
   getRecentlyUsedPrompts as getRecentlyUsedPromptsDB,
@@ -35,15 +36,17 @@ const PROMPT_CACHE_TTL = {
  * Get all prompts for the current user (Redis-cached)
  * Cache key: user:{userId}:prompts:all
  */
-export async function getAllPromptsRedis() {
+export async function getAllPromptsRedis(sort?: PromptSort) {
   const user = await requireAuth();
-  const cacheKey = cacheKeys.userPrompts(user.id);
+  const cacheKey = sort
+    ? `${cacheKeys.userPrompts(user.id)}:sort:${encodeURIComponent(sort)}`
+    : cacheKeys.userPrompts(user.id);
 
   return cacheAside(
     cacheKey,
     async () => {
       logger.info('Cache miss: getAllPrompts', { userId: user.id });
-      return getAllPromptsDB();
+      return getAllPromptsDB(sort);
     },
     PROMPT_CACHE_TTL.userPrompts
   );
@@ -53,17 +56,18 @@ export async function getAllPromptsRedis() {
  * Get prompts by folder (Redis-cached)
  * Cache key: folder:{folderId}:contents OR user:{userId}:prompts:no-folder
  */
-export async function getPromptsByFolderRedis(folderId?: string) {
+export async function getPromptsByFolderRedis(folderId?: string, sort?: PromptSort) {
   const user = await requireAuth();
-  const cacheKey = folderId
+  const baseKey = folderId
     ? cacheKeys.folderContents(folderId)
     : `user:${user.id}:prompts:no-folder`;
+  const cacheKey = sort ? `${baseKey}:sort:${encodeURIComponent(sort)}` : baseKey;
 
   return cacheAside(
     cacheKey,
     async () => {
       logger.info('Cache miss: getPromptsByFolder', { userId: user.id, folderId });
-      return getPromptsByFolderDB(folderId);
+      return getPromptsByFolderDB(folderId, sort);
     },
     PROMPT_CACHE_TTL.folderPrompts
   );

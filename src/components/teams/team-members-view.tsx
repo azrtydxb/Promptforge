@@ -24,7 +24,8 @@ interface TeamMember {
   id: string;
   userId: string;
   role: string;
-  joinedAt?: Date;
+  joinedAt?: Date | null;
+  lastActiveAt?: Date | null;
   user: TeamUser;
 }
 
@@ -40,6 +41,7 @@ interface Invitation {
   expiresAt: Date;
   invitedBy: InvitedBy;
 }
+
 
 interface Team {
   id: string;
@@ -139,7 +141,16 @@ export function TeamMembersView({
           <div className="ml-auto">
             <TopbarNewButton
               label="Invite member"
-              onClick={() => onOpen("inviteMember", { inviteMember: { teamId: team.id, teamName: team.name } })}
+              onClick={() =>
+                onOpen("inviteMember", {
+                  inviteMember: {
+                    teamId: team.id,
+                    teamName: team.name,
+                    seatsTotal,
+                    seatsAvailable: seatsTotal - seatsUsed,
+                  },
+                })
+              }
             />
           </div>
         )}
@@ -241,11 +252,13 @@ export function TeamMembersView({
                     )}
                   </div>
 
-                  {/* Last active */}
+                  {/* Last active — uses lastActiveAt; falls back to joinedAt if null */}
                   <span className="text-[13px] text-ink-400 tabular-nums">
-                    {"joinedAt" in member && member.joinedAt
-                      ? formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })
-                      : "—"}
+                    {member.lastActiveAt
+                      ? formatDistanceToNow(new Date(member.lastActiveAt), { addSuffix: true })
+                      : member.joinedAt
+                        ? formatDistanceToNow(new Date(member.joinedAt), { addSuffix: true })
+                        : "—"}
                   </span>
 
                   {/* Manage */}
@@ -296,7 +309,7 @@ export function TeamMembersView({
                 {/* Manage */}
                 <div>
                   {isAdmin && (
-                    <ResendButton teamId={team.id} email={inv.email} role={inv.role} />
+                    <ResendButton invitationId={inv.id} email={inv.email} />
                   )}
                 </div>
               </div>

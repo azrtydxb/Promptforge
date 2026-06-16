@@ -452,6 +452,7 @@ enum ModerationSeverity {
 }
 
 enum ModerationAction {
+  APPROVE
   FLAG
   BLOCK
   REJECT
@@ -632,6 +633,7 @@ model SamlConnection {
   id            String       @id @default(cuid())
   teamId        String       @unique
   team          Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  providerName  String?      @default("SAML") // e.g. Okta, Azure AD, Google Workspace
   idpSsoUrl     String?
   idpEntityId   String?
   x509Cert      String?
@@ -646,12 +648,13 @@ model SamlConnection {
 }
 
 model VerifiedDomain {
-  id        String   @id @default(cuid())
-  teamId    String
-  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  domain    String
-  status    String   @default("PENDING_DNS") // VERIFIED | PENDING_DNS
-  createdAt DateTime @default(now())
+  id                String   @id @default(cuid())
+  teamId            String
+  team              Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  domain            String
+  status            String   @default("PENDING_DNS") // VERIFIED | PENDING_DNS
+  verificationToken String?  // DNS TXT record token for domain verification
+  createdAt         DateTime @default(now())
 
   @@unique([teamId, domain])
 }
@@ -662,9 +665,10 @@ model TeamMember {
   team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      TeamRole
-  joinedAt  DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role         TeamRole
+  joinedAt     DateTime @default(now())
+  lastActiveAt DateTime?
+  updatedAt    DateTime @updatedAt
 
   @@unique([teamId, userId])
   @@index([teamId])

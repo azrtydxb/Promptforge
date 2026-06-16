@@ -4,6 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ListFilter } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
 import { TopbarTitle, TopbarSearch, Segmented, TopbarNewButton } from "@/components/layout/topbar";
@@ -49,6 +55,7 @@ interface DashboardData {
 
 interface DashboardAnalyticsProps {
   data: DashboardData;
+  range?: "7d" | "30d" | "90d";
 }
 
 // Structured Pro indigo donut palette.
@@ -92,10 +99,15 @@ function Metric({
   );
 }
 
-export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
+export function DashboardAnalytics({ data, range: initialRange = "7d" }: DashboardAnalyticsProps) {
   const router = useRouter();
-  const [range, setRange] = useState("7d");
+  const [range, setRange] = useState<"7d" | "30d" | "90d">(initialRange);
   const topPrompts = (data.recentlyUsedPrompts ?? []).slice(0, 6);
+  const [folderFilter, setFolderFilter] = useState<string | null>(null);
+  const allFolderNames = Array.from(new Set(topPrompts.map((p) => p.folder?.name).filter(Boolean) as string[]));
+  const filteredTopPrompts = folderFilter
+    ? topPrompts.filter((p) => p.folder?.name === folderFilter)
+    : topPrompts;
   // Prototype's "By folder" lists named folders only (no "Unassigned" slice).
   const namedFolders = data.promptsByFolder.filter(
     (f) => f.name && f.name.toLowerCase() !== "unassigned" && f.count > 0
@@ -109,7 +121,14 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
         <TopbarTitle>Dashboard</TopbarTitle>
         <TopbarSearch />
         <div className="ml-auto flex items-center gap-2">
-          <Segmented options={["7d", "30d", "90d"]} value={range} onChange={setRange} />
+          <Segmented
+            options={["7d", "30d", "90d"]}
+            value={range}
+            onChange={(v) => {
+              setRange(v as "7d" | "30d" | "90d");
+              router.push(`?range=${v}`);
+            }}
+          />
           <TopbarNewButton label="New" onClick={() => router.push("/prompts/new")} />
         </div>
       </TopbarPortal>
@@ -148,16 +167,26 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
             <h2 className="text-[13px] font-[620] tracking-[-0.01em] text-ink-900">
               Top prompts this week
             </h2>
-            <Link
-              href="/prompts"
-              className="flex items-center gap-1.5 text-[11px] text-ink-400 hover:text-ink-700"
-            >
-              <ListFilter className="h-3.5 w-3.5" /> Filter
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1.5 text-[11px] text-ink-400 hover:text-ink-700">
+                <ListFilter className="h-3.5 w-3.5" />
+                {folderFilter ?? "Filter"}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setFolderFilter(null)}>
+                  All folders
+                </DropdownMenuItem>
+                {allFolderNames.map((name) => (
+                  <DropdownMenuItem key={name} onClick={() => setFolderFilter(name)}>
+                    {name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          {topPrompts.length === 0 ? (
+          {filteredTopPrompts.length === 0 ? (
             <div className="px-[18px] py-10 text-center text-[12.5px] text-ink-400">
-              No prompt activity yet. Create a prompt to see it here.
+              {folderFilter ? `No prompts in "${folderFilter}" this week.` : "No prompt activity yet. Create a prompt to see it here."}
             </div>
           ) : (
             <table className="w-full">
@@ -171,7 +200,7 @@ export function DashboardAnalytics({ data }: DashboardAnalyticsProps) {
                 </tr>
               </thead>
               <tbody>
-                {topPrompts.map((p, i) => (
+                {filteredTopPrompts.map((p, i) => (
                   <tr key={p.id} className="border-t border-line-100">
                     <td className="px-[18px] py-2.5">
                       <Link

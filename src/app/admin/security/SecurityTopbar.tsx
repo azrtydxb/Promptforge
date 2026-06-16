@@ -10,13 +10,14 @@ export function SecurityTopbar() {
       <TopbarTitle>Admin</TopbarTitle>
       <div className="flex items-center gap-6 ml-4">
         <Link
-          href="/admin"
+          href="/admin?tab=overview"
           className="pb-1 text-[13.5px] font-[550] text-ink-400 hover:text-ink-700"
         >
           Overview
         </Link>
+        {/* Fix 7: Members link deep-links to users tab */}
         <Link
-          href="/admin"
+          href="/admin?tab=users"
           className="pb-1 text-[13.5px] font-[550] text-ink-400 hover:text-ink-700"
         >
           Members

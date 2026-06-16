@@ -33,22 +33,30 @@ async function main() {
   await mkUser("nina@labs.ai", "Nina Kaur", "ninak");
 
   // ---- Growth Team ----
+  const aiSettings = {
+    defaultModel: "claude-opus-4-8",
+    temperature: 0.7,
+    maxTokens: 4096,
+    moderationEnabled: true,
+    autoTagging: true,
+  };
   const team = await prisma.team.upsert({
     where: { slug: "growth-team" },
-    update: { name: "Growth Team" },
-    create: { name: "Growth Team", slug: "growth-team", description: "Marketing, product & eng", createdById: alex.id },
+    update: { name: "Growth Team", settings: aiSettings },
+    create: { name: "Growth Team", slug: "growth-team", description: "Marketing, product & eng", createdById: alex.id, settings: aiSettings },
   });
-  const member = (userId: string, role: TeamRole) =>
+  const now = Date.now();
+  const member = (userId: string, role: TeamRole, lastActiveAt: Date) =>
     prisma.teamMember.upsert({
       where: { teamId_userId: { teamId: team.id, userId } },
-      update: { role },
-      create: { teamId: team.id, userId, role },
+      update: { role, lastActiveAt },
+      create: { teamId: team.id, userId, role, lastActiveAt },
     });
-  await member(alex.id, TeamRole.OWNER);
-  await member(maya.id, TeamRole.ADMIN);
-  await member(jordan.id, TeamRole.MEMBER);
-  await member(sam.id, TeamRole.MEMBER);
-  await member(priya.id, TeamRole.VIEWER);
+  await member(alex.id, TeamRole.OWNER, new Date(now));               // now
+  await member(maya.id, TeamRole.ADMIN, new Date(now - 12 * 60e3));   // 12m ago
+  await member(jordan.id, TeamRole.MEMBER, new Date(now - 60 * 60e3)); // 1h ago
+  await member(sam.id, TeamRole.MEMBER, new Date(now - 26 * 36e5));    // ~yesterday
+  await member(priya.id, TeamRole.VIEWER, new Date(now - 2 * 864e5));  // 2d ago
   // Pending invite (devin)
   const existingInvite = await prisma.teamInvitation.findFirst({ where: { teamId: team.id, email: "devin@growth.co" } });
   if (!existingInvite) {
@@ -72,9 +80,10 @@ async function main() {
   // ---- SAML / SSO (Business, Okta) ----
   await prisma.samlConnection.upsert({
     where: { teamId: team.id },
-    update: { status: "ACTIVE" },
+    update: { status: "ACTIVE", providerName: "Okta" },
     create: {
       teamId: team.id, status: "ACTIVE", requireSso: true, scimEnabled: true,
+      providerName: "Okta",
       defaultRole: TeamRole.MEMBER, lastSyncAt: new Date(),
       idpSsoUrl: "https://growth.okta.com/app/promptforge/sso/saml",
       idpEntityId: "http://www.okta.com/exk1a2b3c4D5e6F7g8",

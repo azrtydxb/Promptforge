@@ -8,7 +8,11 @@ import {
   updateShareLink,
   deleteShareLink,
 } from "@/app/actions/prompt-share.actions";
-import { publishPromptToMarketplace } from "@/app/actions/shared-prompts.actions";
+import {
+  publishPromptToMarketplace,
+  getPublishStateForPrompt,
+  unpublishPrompt,
+} from "@/app/actions/shared-prompts.actions";
 import {
   Copy,
   Check,
@@ -84,9 +88,19 @@ export function SharePromptModal() {
   }, [promptData]);
 
   useEffect(() => {
-    if (isModalOpen && promptData) {
-      loadShareLinks();
-    }
+    if (!isModalOpen || !promptData) return;
+    loadShareLinks();
+    // Initialize publish state from DB each time modal opens
+    setPublishLoading(true);
+    getPublishStateForPrompt(promptData.id)
+      .then(({ published, url }) => {
+        setIsPublished(published);
+        setPublishedUrl(url);
+      })
+      .catch(() => {
+        // If action not yet deployed or fails, leave defaults (false/null)
+      })
+      .finally(() => setPublishLoading(false));
   }, [isModalOpen, promptData, loadShareLinks]);
 
   const handleCopy = async (text: string, id: string) => {
@@ -104,6 +118,11 @@ export function SharePromptModal() {
     if (!promptData || !inviteEmail.trim()) return;
     setIsLoading(true);
     try {
+      // NOTE: CreateShareLinkParams has no `permission` field — the share link
+      // grants read access to the prompt content. "Can edit" is stored in the
+      // description for record-keeping but is NOT enforced server-side by the
+      // share link system (share links are view-only by design). To enforce
+      // edit permissions, a team membership with MEMBER role is required instead.
       await createShareLink({
         promptId: promptData.id,
         title: `Shared with ${inviteEmail}`,
@@ -143,21 +162,23 @@ export function SharePromptModal() {
 
   const handlePublishToggle = async () => {
     if (!promptData) return;
-    if (isPublished) {
-      setIsPublished(false);
-      setPublishedUrl(null);
-      return;
-    }
     setPublishLoading(true);
     try {
-      await publishPromptToMarketplace({ promptId: promptData.id });
-      setIsPublished(true);
-      setPublishedUrl(publicUrl);
-      toast.success("Published to Prompt Market");
+      if (isPublished) {
+        // Turn OFF — call real unpublish action
+        await unpublishPrompt(promptData.id);
+        setIsPublished(false);
+        setPublishedUrl(null);
+        toast.success("Removed from Prompt Market");
+      } else {
+        // Turn ON — publish to marketplace
+        await publishPromptToMarketplace({ promptId: promptData.id });
+        setIsPublished(true);
+        setPublishedUrl(publicUrl);
+        toast.success("Published to Prompt Market");
+      }
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to publish"
-      );
+      toast.error(err instanceof Error ? err.message : isPublished ? "Failed to unpublish" : "Failed to publish");
     } finally {
       setPublishLoading(false);
     }

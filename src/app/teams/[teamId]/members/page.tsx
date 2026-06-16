@@ -31,10 +31,18 @@ export default async function TeamMembersPage({ params }: TeamMembersPageProps) 
       db.subscription.findUnique({ where: { teamId: team.id } }).catch(() => null),
     ]);
 
+    // Compute active today: members whose lastActiveAt is today (midnight local time)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const activeToday = members.filter(
+      (m) => m.lastActiveAt != null && new Date(m.lastActiveAt) >= startOfToday
+    ).length;
+
     const teamWithSeats = {
       ...team,
       seatsTotal: subscription?.seatsTotal,
       seatsUsed: subscription?.seatsUsed,
+      activeToday,
     };
 
     // Map invitations to ensure invitedBy.email is not null

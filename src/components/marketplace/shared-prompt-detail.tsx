@@ -35,6 +35,27 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import type { Comment } from "@/components/comments/types";
 
+/** Wrapper that hides the card entirely when SimilarPrompts returns nothing */
+function SimilarPromptsCard({ sharedPromptId }: { sharedPromptId: string }) {
+  const [hasContent, setHasContent] = useState<boolean | null>(null);
+
+  // SimilarPrompts renders null when empty; use an inner container with a
+  // MutationObserver-free approach: pass a callback so SimilarPrompts can report.
+  return (
+    <Card className={hasContent === false ? "hidden" : undefined}>
+      <CardHeader>
+        <h3 className="font-semibold">Similar Prompts</h3>
+      </CardHeader>
+      <CardContent>
+        <SimilarPrompts
+          promptId={sharedPromptId}
+          onHasContent={(v) => setHasContent(v)}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
 interface SharedPromptDetailProps {
   sharedPrompt: {
     id: string;
@@ -387,28 +408,21 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                 </div>
               </div>
               
-              <Button
-                variant="outline"
-                className="w-full gap-2"
-                onClick={() => router.push(`/profile/${sharedPrompt.author.username}`)}
-              >
-                View Profile
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              {sharedPrompt.author.username && (
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => router.push(`/profile/${sharedPrompt.author.username}`)}
+                >
+                  View Profile
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
             </CardContent>
           </Card>
 
-          {/* Similar Prompts */}
-          <Card>
-            <CardHeader>
-              <h3 className="font-semibold">Similar Prompts</h3>
-            </CardHeader>
-            <CardContent>
-              <SimilarPrompts
-                promptId={sharedPrompt.promptId}
-              />
-            </CardContent>
-          </Card>
+          {/* Similar Prompts — rendered by SimilarPrompts itself; hide card heading when empty */}
+          <SimilarPromptsCard sharedPromptId={sharedPrompt.id} />
         </div>
       </div>
     </div>

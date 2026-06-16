@@ -6,12 +6,15 @@ import { useRouter } from "next/navigation";
 import { Copy, Check, Star, Eye, Heart, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { copySharedPrompt } from "@/app/actions/shared-prompts.actions";
+import { createPrompt } from "@/app/actions/prompt.actions";
 
 export function QuickPreviewModal() {
   const { isOpen, onClose, type, data } = useModal();
   const isModalOpen = isOpen && type === "quickPreview";
   const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [copyingToLibrary, setCopyingToLibrary] = useState(false);
 
   if (!isModalOpen) return null;
 
@@ -67,8 +70,31 @@ export function QuickPreviewModal() {
     }
   };
 
-  const handleCopyToLibrary = () => {
-    toast.info("Copy to library coming soon");
+  const handleCopyToLibrary = async () => {
+    setCopyingToLibrary(true);
+    try {
+      if (sharedId) {
+        // Marketplace/shared prompt — use the dedicated copy action
+        const result = await copySharedPrompt(sharedId);
+        if (result && "error" in result && result.error) {
+          throw new Error(result.error as string);
+        }
+      } else if (promptId && title !== undefined && content !== undefined) {
+        // Personal prompt preview — duplicate into user's library
+        await createPrompt({
+          title: `${title ?? "Untitled"} (Copy)`,
+          content: content ?? "",
+        });
+      } else {
+        throw new Error("No prompt data to copy");
+      }
+      toast.success("Copied to your library");
+      onClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to copy to library");
+    } finally {
+      setCopyingToLibrary(false);
+    }
   };
 
   const avatarInitials = author?.name
@@ -231,9 +257,10 @@ export function QuickPreviewModal() {
           </button>
           <button
             onClick={handleCopyToLibrary}
-            className="flex items-center gap-1.5 rounded-[7px] bg-accent-500 px-4 py-2 text-[13px] font-[550] text-white hover:bg-accent-500/90 transition-colors"
+            disabled={copyingToLibrary}
+            className="flex items-center gap-1.5 rounded-[7px] bg-accent-500 px-4 py-2 text-[13px] font-[550] text-white hover:bg-accent-500/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Copy to my library
+            {copyingToLibrary ? "Copying…" : "Copy to my library"}
           </button>
         </div>
       </div>

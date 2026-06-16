@@ -105,7 +105,9 @@ export function ModerationRules() {
     try {
       const result = await getModerationRules();
       if (result.success && result.rules) {
-        setRules(result.rules);
+        // Rule actions are always one of FLAG/BLOCK/REJECT/REQUIRE_REVIEW (APPROVE is a
+        // log-only action on the ModerationAction enum, never used for rules).
+        setRules(result.rules as ModerationRule[]);
       } else {
         toast.error(result.error || 'Failed to load moderation rules');
       }

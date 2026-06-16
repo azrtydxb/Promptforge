@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Plan } from "@/lib/plan";
 import type { PlanTier } from "@/generated/prisma";
 import { cn } from "@/lib/utils";
-import { updateSeats } from "@/app/actions/billing.actions";
+import { updateSeats, changePlan } from "@/app/actions/billing.actions";
 import { toast } from "sonner";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
 import { TopbarTitle } from "@/components/layout/topbar";
@@ -105,6 +105,7 @@ function formatDate(date: Date): string {
 export function PlansView({ currentPlan, subscription }: PlansViewProps) {
   const [seats, setSeats] = useState(subscription?.seatsTotal ?? 1);
   const [updating, setUpdating] = useState(false);
+  const [planChanging, setPlanChanging] = useState<string | null>(null);
 
   const minSeats = subscription?.seatsUsed ?? 1;
   const unitPrice = subscription?.unitPriceCents ?? 0;
@@ -112,6 +113,27 @@ export function PlansView({ currentPlan, subscription }: PlansViewProps) {
 
   const hasPaidSub =
     subscription?.plan && subscription.teamId;
+
+  async function handleChangePlan(tier: Plan) {
+    if (!subscription?.teamId) {
+      // FREE users with no team subscription: redirect to teams to create/upgrade
+      window.location.href = "/teams";
+      return;
+    }
+    setPlanChanging(tier);
+    try {
+      // changePlan only accepts TEAM or BUSINESS — FREE has no paid subscription action
+      if (tier === "FREE") return;
+      await changePlan(subscription.teamId, tier as "TEAM" | "BUSINESS");
+      toast.success(`Plan updated to ${tier === "TEAM" ? "Team" : "Business"}`);
+      // Refresh the page to reflect the new plan
+      window.location.reload();
+    } catch {
+      toast.error("Failed to change plan");
+    } finally {
+      setPlanChanging(null);
+    }
+  }
 
   async function handleUpdateSeats() {
     if (!subscription?.teamId) return;
@@ -142,7 +164,7 @@ export function PlansView({ currentPlan, subscription }: PlansViewProps) {
             Plans
           </span>
           <Link
-            href="/teams"
+            href={subscription?.teamId ? `/teams/${subscription.teamId}/members` : "/teams"}
             className="pb-1 text-[13.5px] font-[550] text-ink-400 hover:text-ink-700"
           >
             Members
@@ -241,17 +263,24 @@ export function PlansView({ currentPlan, subscription }: PlansViewProps) {
                 <span className="text-[12px] text-ink-400">{p.unit}</span>
               </div>
               <button
-                disabled={isCurrent}
+                disabled={isCurrent || planChanging === p.key || p.key === "FREE"}
+                onClick={() => !isCurrent && p.key !== "FREE" ? handleChangePlan(p.key) : undefined}
                 className={cn(
                   "mt-5 rounded-[8px] px-3 py-2 text-[12.5px] font-[550] transition-colors",
-                  isCurrent
+                  isCurrent || p.key === "FREE"
                     ? "cursor-default bg-surface-muted text-ink-400"
                     : p.featured
-                      ? "bg-accent-500 text-white hover:bg-[#4F5AC4]"
-                      : "bg-accent-100 text-accent-700 hover:bg-accent-150"
+                      ? "bg-accent-500 text-white hover:bg-[#4F5AC4] disabled:opacity-60"
+                      : "bg-accent-100 text-accent-700 hover:bg-accent-150 disabled:opacity-60"
                 )}
               >
-                {isCurrent ? "Current plan" : p.cta}
+                {isCurrent
+                  ? "Current plan"
+                  : planChanging === p.key
+                    ? "Updating…"
+                    : p.key === "FREE"
+                      ? "Free forever"
+                      : p.cta}
               </button>
             </div>
           );

@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateTeamMemberRole, removeTeamMember, inviteTeamMember } from "@/app/actions/team-members.actions";
+import { updateTeamMemberRole, removeTeamMember, resendTeamInvitation } from "@/app/actions/team-members.actions";
 import { TeamRole } from "@/generated/prisma";
 import { toast } from "sonner";
+// TeamRole still used by RoleSelect; resendTeamInvitation replaces inviteTeamMember for resend flow
 
 // ---------------------------------------------------------------------------
 // Role select for active members
@@ -124,22 +125,21 @@ export function RemoveButton({ teamId, memberId, isSelf, memberName }: RemoveBut
 }
 
 // ---------------------------------------------------------------------------
-// Resend invite button (re-sends invitation to same email)
+// Resend invite button
 // ---------------------------------------------------------------------------
 
 interface ResendButtonProps {
-  teamId: string;
+  invitationId: string;
   email: string;
-  role: string;
 }
 
-export function ResendButton({ teamId, email, role }: ResendButtonProps) {
+export function ResendButton({ invitationId, email }: ResendButtonProps) {
   const [pending, startTransition] = useTransition();
 
   const handleResend = () => {
     startTransition(async () => {
       try {
-        await inviteTeamMember({ teamId, email, role: role as TeamRole });
+        await resendTeamInvitation(invitationId);
         toast.success(`Invitation resent to ${email}`);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to resend invite");

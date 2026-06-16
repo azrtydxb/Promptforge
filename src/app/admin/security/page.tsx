@@ -5,6 +5,7 @@ import { getPlanContext } from '@/lib/plan'
 import { TeamRole } from '@/generated/prisma'
 import { SecurityClient } from './SecurityClient'
 import { SecurityTopbar } from './SecurityTopbar'
+import { AddDomainForm } from './AddDomainForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,6 +36,7 @@ export default async function SecurityPage() {
         include: {
           samlConnection: true,
           verifiedDomains: true,
+          _count: { select: { members: true } },
           activities: {
             orderBy: { createdAt: 'desc' },
             take: 20,
@@ -89,6 +91,7 @@ export default async function SecurityPage() {
   const saml = team?.samlConnection ?? null
   const domains = team?.verifiedDomains ?? []
   const activities = team?.activities ?? []
+  const memberCount = team?._count?.members ?? 0
 
   return (
     <div className="space-y-6">
@@ -109,9 +112,9 @@ export default async function SecurityPage() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-[500] text-ink-400">Okta</p>
+                    <p className="text-[11px] font-[500] text-ink-400">{saml.providerName ?? 'SAML IdP'}</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-[14px] font-[600] text-ink-900">Okta SAML 2.0</p>
+                      <p className="text-[14px] font-[600] text-ink-900">{saml.providerName ?? 'SAML'} SAML 2.0</p>
                       {saml.status === 'ACTIVE' ? (
                         <span className="rounded-full bg-success-surface px-2 py-0.5 text-[10px] font-[600] text-success">
                           Active
@@ -123,8 +126,7 @@ export default async function SecurityPage() {
                       )}
                     </div>
                     <p className="mt-0.5 text-[12px] text-ink-400">
-                      Connected · last sync {formatDate(saml.lastSyncAt)} · 8 users provisioned via
-                      SCIM
+                      Connected · last sync {formatDate(saml.lastSyncAt)} · {memberCount} members
                     </p>
                   </div>
                 </div>
@@ -244,30 +246,13 @@ export default async function SecurityPage() {
 
         {/* Right rail */}
         <div className="space-y-4">
-          {/* Verified Domains */}
-          <div className="rounded-[11px] border border-line-200 bg-surface-card p-5">
-            <h2 className="mb-4 text-[13px] font-[600] text-ink-900">Verified domains</h2>
-            {domains.length === 0 ? (
-              <p className="text-[12px] text-ink-400">No domains added yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {domains.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between">
-                    <span className="text-[12px] font-[500] text-ink-700">{d.domain}</span>
-                    {d.status === 'VERIFIED' ? (
-                      <span className="rounded-full bg-success-surface px-2 py-0.5 text-[10px] font-[600] text-success">
-                        Verified
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-warning-surface px-2 py-0.5 text-[10px] font-[600] text-warning">
-                        Pending DNS
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Fix 11: Verified Domains with add + verify */}
+          {team && (
+            <AddDomainForm
+              teamId={team.id}
+              domains={domains}
+            />
+          )}
 
           {/* Business plan note */}
           <div className="rounded-[11px] border border-business-border bg-business-surface p-4">

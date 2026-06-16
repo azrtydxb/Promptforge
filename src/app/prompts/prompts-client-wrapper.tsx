@@ -252,14 +252,15 @@ export function PromptsClientWrapper({
 
       {/* Grid */}
       <PromptList
-        key={`${selectedFolderId ?? "root"}-${refreshKey}`}
+        key={`${selectedFolderId ?? "root"}-${refreshKey}-${sort}`}
         selectedPromptIds={selectedPromptIds}
         onToggleSelect={toggleSelect}
         onPromptsLoaded={onPromptsLoaded}
-        prompts={isInitialRender.current ? initialPrompts : undefined}
+        prompts={isInitialRender.current && sort === SORTS[0] ? initialPrompts : undefined}
         folderId={selectedFolderId || undefined}
         searchQuery={searchQuery}
         selectedTagIds={selectedTagIds}
+        sort={sort as import("@/app/actions/prompt.actions").PromptSort}
       />
     </div>
   );

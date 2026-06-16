@@ -65,6 +65,7 @@ export default function PromptPage({
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">("edit");
+  const [isFavorited, setIsFavorited] = useState(false);
   const [showDraftRecovery, setShowDraftRecovery] = useState(false);
   const [recoveredDraft, setRecoveredDraft] = useState<Draft | null>(null);
   const debouncedContent = useDebounce(content, 500);
@@ -158,6 +159,11 @@ export default function PromptPage({
         setTitle(fetchedPrompt?.title || "");
         setDescription(fetchedPrompt?.description || "");
         setTags(fetchedPrompt?.tags?.map(tag => tag.name) || []);
+        // Set initial favorited state from DB
+        if (fetchedPrompt) {
+          const fp = fetchedPrompt as typeof fetchedPrompt & { favorites?: { id: string }[] };
+          setIsFavorited(Array.isArray(fp.favorites) && fp.favorites.length > 0);
+        }
 
         // Update lastUsedAt timestamp
         if (fetchedPrompt) {
@@ -487,7 +493,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
 
   // Derived values
   const versionCount = prompt?.versions?.length ?? 0;
-  const favoriteCount = (prompt as (Prompt & { tags: Tag[]; versions: PromptVersion[]; favorites?: unknown[] }) | null)?.favorites?.length ?? 0;
+  const favoriteCount = (prompt as (Prompt & { tags: Tag[]; versions: PromptVersion[]; _count?: { favorites?: number } }) | null)?._count?.favorites ?? 0;
   const variables = content
     ? [...new Set([...content.matchAll(/\{\{([^}]+)\}\}/g)].map(m => m[1]))]
     : [];
@@ -505,7 +511,7 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
           {promptId && (
             <FavoriteButton
               promptId={promptId}
-              isFavorited={false}
+              isFavorited={isFavorited}
               size="sm"
               variant="ghost"
               className="text-ink-400 hover:text-star"

@@ -61,6 +61,9 @@ export function InviteMemberModal() {
     ? seatsTotal - seatsAvailable
     : undefined;
 
+  // When seat counts are known, block invites if no seats remain
+  const noSeatsLeft = seatsAvailable !== undefined && seatsAvailable <= 0;
+
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
@@ -259,12 +262,24 @@ export function InviteMemberModal() {
 
         {/* Footer */}
         <div className="flex items-center justify-between gap-3 px-5 py-4 border-t border-line-200">
-          <span className="text-[12px] text-ink-400 tabular-nums">
-            {chips.length} invite{chips.length !== 1 ? "s" : ""}
-            {seatsUsed !== undefined && (
-              <> &middot; {seatsUsed} seats used</>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[12px] text-ink-400 tabular-nums">
+              {chips.length} invite{chips.length !== 1 ? "s" : ""}
+              {seatsUsed !== undefined && seatsTotal !== undefined && (
+                <> &middot; {seatsUsed} of {seatsTotal} seats used</>
+              )}
+            </span>
+            {seatsAvailable !== undefined && (
+              <span className={cn(
+                "text-[11px] tabular-nums",
+                noSeatsLeft ? "text-danger font-[550]" : "text-ink-400"
+              )}>
+                {noSeatsLeft
+                  ? "No seats remaining — upgrade your plan to invite more members"
+                  : `${seatsAvailable} seat${seatsAvailable !== 1 ? "s" : ""} remaining`}
+              </span>
             )}
-          </span>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
@@ -274,7 +289,8 @@ export function InviteMemberModal() {
             </button>
             <button
               onClick={handleSendInvites}
-              disabled={isLoading || chips.length === 0}
+              disabled={isLoading || chips.length === 0 || noSeatsLeft}
+              title={noSeatsLeft ? "No seats remaining" : undefined}
               className="inline-flex items-center gap-1.5 rounded-[7px] bg-accent-500 px-4 py-2 text-[13px] font-[550] text-white hover:bg-accent-500/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserPlus className="h-3.5 w-3.5" />

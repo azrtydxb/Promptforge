@@ -1,10 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, MoreHorizontal, Tag as TagIcon, Search } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, Tag as TagIcon, Search, Edit2 } from "lucide-react";
 import { useModal, type TagData } from "@/hooks/use-modal-store";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
 import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Tag {
   id: string;
@@ -32,7 +38,14 @@ const PILL_COLORS = [
 
 export function TagsManagement({ initialTags }: TagsManagementProps) {
   const [tags, setTags] = useState(initialTags);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { onOpen } = useModal();
+
+  // Fix 8: filter tags by search query
+  const filteredTags = searchQuery.trim()
+    ? tags.filter((t) => t.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    : tags;
 
   const handleCreateTag = () => {
     onOpen("createTag", {
@@ -63,7 +76,59 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
   const handleDeleteTag = (tag: Tag) => {
     onOpen("deleteTag", {
       tag,
-      onSuccess: () => setTags((prev) => prev.filter((t) => t.id !== tag.id)),
+      onSuccess: () => {
+        setTags((prev) => prev.filter((t) => t.id !== tag.id));
+        setSelectedIds((prev) => { const s = new Set(prev); s.delete(tag.id); return s; });
+      },
+    });
+  };
+
+  // Fix 10: bulk delete selected tags
+  const handleBulkDelete = () => {
+    const selected = tags.filter((t) => selectedIds.has(t.id));
+    if (selected.length === 0) return;
+    if (!confirm(`Delete ${selected.length} tag${selected.length > 1 ? 's' : ''}? This cannot be undone.`)) return;
+
+    // Delete each tag via the modal's underlying action; for bulk we call each serially
+    // using the existing deleteTag modal action.
+    // Since the modal is fire-and-forget, we optimistically remove them from the UI.
+    selected.forEach((tag) => {
+      onOpen("deleteTag", {
+        tag,
+        onSuccess: () => {
+          setTags((prev) => prev.filter((t) => t.id !== tag.id));
+        },
+      });
+    });
+    setSelectedIds(new Set());
+  };
+
+  // Fix 10: select-all logic against filtered set
+  const allFilteredSelected =
+    filteredTags.length > 0 && filteredTags.every((t) => selectedIds.has(t.id));
+  const someFilteredSelected = filteredTags.some((t) => selectedIds.has(t.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds((prev) => {
+        const s = new Set(prev);
+        filteredTags.forEach((t) => s.delete(t.id));
+        return s;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const s = new Set(prev);
+        filteredTags.forEach((t) => s.add(t.id));
+        return s;
+      });
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
     });
   };
 
@@ -75,8 +140,11 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
         <div className="ml-auto flex items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-400" />
+            {/* Fix 8: wired search input */}
             <input
               type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tags…"
               className="h-[30px] w-48 rounded-[7px] border border-line-200 bg-surface-muted pl-8 pr-3 text-[12.5px] text-ink-900 placeholder:text-[#9aa0ab] focus:outline-none"
             />
@@ -84,6 +152,28 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
           <TopbarNewButton label="New tag" onClick={handleCreateTag} />
         </div>
       </TopbarPortal>
+
+      {/* Fix 10: bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-[9px] border border-line-200 bg-surface-muted px-4 py-2">
+          <span className="text-[12.5px] text-ink-600">
+            {selectedIds.size} selected
+          </span>
+          <button
+            onClick={handleBulkDelete}
+            className="ml-auto flex items-center gap-1.5 rounded-[7px] bg-danger-surface px-3 py-1.5 text-[12px] font-[550] text-danger hover:opacity-80 transition-opacity"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete selected
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-[12px] text-ink-400 hover:text-ink-700"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
       {tags.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[11px] border border-line-200 bg-surface-card py-16">
@@ -105,7 +195,15 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
             <thead>
               <tr className="border-b border-line-150 text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400">
                 <th className="w-10 px-4 py-2.5">
-                  <input type="checkbox" className="rounded-[4px] border-line-200" aria-label="Select all" />
+                  {/* Fix 10: select-all checkbox */}
+                  <input
+                    type="checkbox"
+                    className="rounded-[4px] border-line-200"
+                    aria-label="Select all"
+                    checked={allFilteredSelected}
+                    ref={(el) => { if (el) el.indeterminate = someFilteredSelected && !allFilteredSelected; }}
+                    onChange={toggleSelectAll}
+                  />
                 </th>
                 <th className="px-2 py-2.5 text-left font-[600]">Tag</th>
                 <th className="px-2 py-2.5 text-right font-[600]">Prompts</th>
@@ -115,7 +213,7 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
               </tr>
             </thead>
             <tbody>
-              {tags.map((tag, i) => {
+              {filteredTags.map((tag, i) => {
                 const c = PILL_COLORS[i % PILL_COLORS.length];
                 return (
                   <tr
@@ -123,10 +221,13 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
                     className="group border-t border-line-100 hover:bg-surface-muted/60"
                   >
                     <td className="px-4 py-2.5">
+                      {/* Fix 10: per-row checkbox */}
                       <input
                         type="checkbox"
                         className="rounded-[4px] border-line-200"
                         aria-label={`Select ${tag.name}`}
+                        checked={selectedIds.has(tag.id)}
+                        onChange={() => toggleSelect(tag.id)}
                       />
                     </td>
                     <td className="px-2 py-2.5">
@@ -160,12 +261,30 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
-                        <button
-                          aria-label="More"
-                          className="flex h-7 w-7 items-center justify-center rounded-[6px] text-ink-400 hover:bg-surface-muted hover:text-ink-700"
-                        >
-                          <MoreHorizontal className="h-3.5 w-3.5" />
-                        </button>
+                        {/* Fix 9: ⋯ button opens a dropdown with Edit and Delete */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              aria-label="More"
+                              className="flex h-7 w-7 items-center justify-center rounded-[6px] text-ink-400 hover:bg-surface-muted hover:text-ink-700"
+                            >
+                              <MoreHorizontal className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditTag(tag)}>
+                              <Edit2 className="mr-2 h-3.5 w-3.5" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteTag(tag)}
+                              className="text-danger focus:text-danger"
+                            >
+                              <Trash2 className="mr-2 h-3.5 w-3.5" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>
@@ -173,6 +292,11 @@ export function TagsManagement({ initialTags }: TagsManagementProps) {
               })}
             </tbody>
           </table>
+          {filteredTags.length === 0 && searchQuery && (
+            <div className="py-8 text-center text-[13px] text-ink-400">
+              No tags match &ldquo;{searchQuery}&rdquo;
+            </div>
+          )}
         </div>
       )}
     </div>

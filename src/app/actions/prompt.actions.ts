@@ -11,7 +11,23 @@ import {
   onPromptTagsUpdate
 } from '@/lib/cache-manager';
 
-export async function getPromptsByFolder(folderId?: string) {
+export type PromptSort = "Recently used" | "Recently updated" | "Most used" | "A–Z";
+
+function getOrderBy(sort?: PromptSort) {
+  switch (sort) {
+    case "Recently used":
+      return [{ pinnedAt: { sort: 'desc' as const, nulls: 'last' as const } }, { lastUsedAt: { sort: 'desc' as const, nulls: 'last' as const } }];
+    case "Most used":
+      return [{ pinnedAt: { sort: 'desc' as const, nulls: 'last' as const } }, { usageCount: 'desc' as const }];
+    case "A–Z":
+      return [{ pinnedAt: { sort: 'desc' as const, nulls: 'last' as const } }, { title: 'asc' as const }];
+    case "Recently updated":
+    default:
+      return [{ pinnedAt: { sort: 'desc' as const, nulls: 'last' as const } }, { updatedAt: 'desc' as const }];
+  }
+}
+
+export async function getPromptsByFolder(folderId?: string, sort?: PromptSort) {
   const user = await requireAuth();
 
   // Main query with simple includes only - uses indexes efficiently
@@ -24,10 +40,7 @@ export async function getPromptsByFolder(folderId?: string) {
       tags: true,
       _count: { select: { versions: true } },
     },
-    orderBy: [
-      { pinnedAt: { sort: 'desc', nulls: 'last' } },
-      { order: "asc" },
-    ],
+    orderBy: getOrderBy(sort),
   });
 
   // Early return if no prompts found
@@ -92,7 +105,7 @@ export async function getPromptsByFolder(folderId?: string) {
   return promptsWithLikeData;
 }
 
-export async function getAllPrompts() {
+export async function getAllPrompts(sort?: PromptSort) {
   const user = await requireAuth();
 
   // Main query with simple includes only - uses indexes efficiently
@@ -104,10 +117,7 @@ export async function getAllPrompts() {
       tags: true,
       _count: { select: { versions: true } },
     },
-    orderBy: [
-      { pinnedAt: { sort: 'desc', nulls: 'last' } },
-      { updatedAt: "desc" },
-    ],
+    orderBy: getOrderBy(sort),
   });
 
   // Early return if no prompts found
@@ -282,6 +292,13 @@ export async function getPromptById(id: string) {
         orderBy: {
           createdAt: 'desc',
         },
+      },
+      favorites: {
+        where: { userId: user.id },
+        select: { id: true },
+      },
+      _count: {
+        select: { favorites: true },
       },
     },
   });

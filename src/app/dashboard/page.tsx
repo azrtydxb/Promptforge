@@ -272,12 +272,75 @@ const getCachedDashboardData = unstable_cache(
   }
 );
 
-export default async function Dashboard() {
+// Range-aware dashboard data fetch
+async function getDashboardDataForRange(userId: string, range: "7d" | "30d" | "90d") {
+  const rangeDays = range === "90d" ? 90 : range === "30d" ? 30 : 7;
+  const rangeStart = new Date(Date.now() - rangeDays * 864e5);
+  const prevRangeStart = new Date(Date.now() - rangeDays * 2 * 864e5);
+
+  const base = await getCachedDashboardData(userId);
+
+  // Recompute range-specific KPIs
+  const [usedInRange, usedPriorRange, createdInRange] = await Promise.all([
+    db.prompt.count({ where: { userId, lastUsedAt: { gte: rangeStart } } }),
+    db.prompt.count({ where: { userId, lastUsedAt: { gte: prevRangeStart, lt: rangeStart } } }),
+    db.prompt.count({ where: { userId, createdAt: { gte: rangeStart } } }),
+  ]);
+
+  const usedDelta = usedPriorRange
+    ? Math.round(((usedInRange - usedPriorRange) / usedPriorRange) * 100)
+    : (usedInRange > 0 ? 100 : 0);
+  const promptsDelta = base.totalPrompts
+    ? Math.round((createdInRange / base.totalPrompts) * 100)
+    : 0;
+
+  // Recompute sparkline for the selected range
+  const promptsInRange = await db.prompt.findMany({
+    where: { userId, createdAt: { gte: rangeStart } },
+    select: { createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  const growthData = new Map<string, { new: number; cumulative: number }>();
+  let cumulative = 0;
+  for (const p of promptsInRange) {
+    const key = p.createdAt.toISOString().slice(0, 10);
+    if (!growthData.has(key)) growthData.set(key, { new: 0, cumulative: 0 });
+    const d = growthData.get(key)!;
+    d.new += 1;
+    cumulative += 1;
+    d.cumulative = cumulative;
+  }
+  const promptGrowth = Array.from(growthData.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, data]) => ({
+      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      prompts: data.new,
+      cumulative: data.cumulative,
+    }));
+
+  return {
+    ...base,
+    usedThisWeek: usedInRange,
+    usedDelta,
+    promptsDelta,
+    promptGrowth,
+  };
+}
+
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string }>;
+}) {
   try {
     const user = await requireAuth();
-    const dashboardData = await getCachedDashboardData(user.id);
+    const { range: rawRange } = await searchParams;
+    const range: "7d" | "30d" | "90d" =
+      rawRange === "30d" || rawRange === "90d" ? rawRange : "7d";
+    const dashboardData = await getDashboardDataForRange(user.id, range);
 
-    return <DashboardAnalytics data={dashboardData} />;
+    return <DashboardAnalytics data={dashboardData} range={range} />;
   } catch {
     redirect("/sign-in");
   }
