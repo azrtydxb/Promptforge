@@ -21,14 +21,6 @@ const ROLE_RANK: Record<TeamRole, number> = {
   VIEWER: 1,
 };
 
-/** Map a TeamRole to the redesign's role vocabulary (MEMBER reads as "Editor"). */
-const ROLE_DISPLAY: Record<TeamRole, string> = {
-  OWNER: "Owner",
-  ADMIN: "Admin",
-  MEMBER: "Editor",
-  VIEWER: "Viewer",
-};
-
 /** Highest-ranked role across the given memberships, or null if none. */
 export function highestRole(roles: TeamRole[]): TeamRole | null {
   if (roles.length === 0) return null;
@@ -46,9 +38,9 @@ export async function getPlanContext(userId: string): Promise<PlanContext> {
     return { plan: "FREE", roleLabel: "Free plan" };
   }
 
-  const top = highestRole(memberships.map((m) => m.role)) as TeamRole;
   const hasBusiness = memberships.some((m) => m.team?.subscription?.plan === "BUSINESS");
   const plan: Plan = hasBusiness ? "BUSINESS" : "TEAM";
   const label = hasBusiness ? "Business" : "Team";
-  return { plan, roleLabel: `${label} · ${ROLE_DISPLAY[top]}` };
+  // Prototype's sidebar footer shows the plan as "<Plan> plan" (e.g. "Pro plan").
+  return { plan, roleLabel: `${label} plan` };
 }

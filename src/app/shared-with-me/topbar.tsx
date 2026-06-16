@@ -14,3 +14,15 @@ export function SharedWithMeTopbar({ count }: { count: number }) {
     </TopbarPortal>
   );
 }
+
+// FREE-plan gate (prototype frame 05): "Shared Prompts" + a "Free plan" badge.
+export function SharedWithMeFreeTopbar() {
+  return (
+    <TopbarPortal>
+      <TopbarTitle>Shared Prompts</TopbarTitle>
+      <span className="ml-auto rounded-full bg-surface-muted px-2.5 py-1 text-[11px] font-[550] text-ink-500">
+        Free plan
+      </span>
+    </TopbarPortal>
+  );
+}

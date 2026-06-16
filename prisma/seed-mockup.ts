@@ -241,6 +241,23 @@ async function main() {
     if (N) console.log(`✅ Spread createdAt over ${SPAN_DAYS}d for ${N} prompts`);
   }
 
+  // Backfill: favorite Alex's top prompts so the "Favorites" nav count + page are
+  // populated (prototype shows a non-zero Favorites count). Idempotent.
+  {
+    const FAV_TARGET = 31;
+    const top = await prisma.prompt.findMany({
+      where: { userId: alex.id },
+      select: { id: true },
+      take: FAV_TARGET,
+      orderBy: { usageCount: "desc" },
+    });
+    const res = await prisma.promptFavorite.createMany({
+      data: top.map((p) => ({ promptId: p.id, userId: alex.id })),
+      skipDuplicates: true,
+    });
+    if (res.count) console.log(`✅ Favorited ${res.count} prompts for Alex`);
+  }
+
   // ---- Prompt Market (public SharedPrompts) ----
   const marketCount = await prisma.sharedPrompt.count();
   if (marketCount === 0) {

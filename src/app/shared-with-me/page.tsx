@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth";
 import { getPlanContext } from "@/lib/plan";
 import { db } from "@/lib/db";
 import { TeamRole } from "@/generated/prisma";
-import { SharedWithMeTopbar } from "./topbar";
+import { SharedWithMeTopbar, SharedWithMeFreeTopbar } from "./topbar";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +27,7 @@ export default async function SharedWithMePage() {
   if (plan === "FREE") {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-16">
+        <SharedWithMeFreeTopbar />
         {/* Blurred skeleton cards behind the gate */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="grid w-full max-w-3xl grid-cols-3 gap-4 px-8 opacity-30 blur-sm">
