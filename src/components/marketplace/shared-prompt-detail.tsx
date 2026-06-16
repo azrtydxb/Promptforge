@@ -215,7 +215,7 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{authorDisplayName}</span>
-                      {sharedPrompt.author.reputationScore && sharedPrompt.author.reputationScore > 100 && (
+                      {(sharedPrompt.author.reputationScore ?? 0) > 100 && (
                         <Shield className="h-4 w-4 text-[#546ee5]" />
                       )}
                     </div>
@@ -381,7 +381,7 @@ export function SharedPromptDetail({ sharedPrompt }: SharedPromptDetailProps) {
                 </Avatar>
                 <div>
                   <p className="font-medium">{authorDisplayName}</p>
-                  {sharedPrompt.author.reputationScore && (
+                  {(sharedPrompt.author.reputationScore ?? 0) > 0 && (
                     <UserReputation reputationScore={sharedPrompt.author.reputationScore ?? 0} />
                   )}
                 </div>
