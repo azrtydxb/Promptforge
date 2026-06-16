@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { getFavoritePrompts } from "@/app/actions/prompt-favorites.actions";
 import { UnifiedPromptCardClean as UnifiedPromptCard } from "@/components/ui/unified-prompt-card-clean";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FavoritesTopbar } from "./topbar";
 
 export const dynamic = 'force-dynamic';
 
@@ -10,25 +11,31 @@ async function FavoritesList() {
 
   if (favorites.length === 0) {
     return (
-      <EmptyState
-        type="noData"
-        title="No favorites yet"
-        description="Start favoriting prompts by clicking the star icon to quickly access them here. Your favorite prompts will appear in this collection for easy reference."
-        size="lg"
-      />
+      <>
+        <FavoritesTopbar count={0} />
+        <EmptyState
+          type="noData"
+          title="No favorites yet"
+          description="Start favoriting prompts by clicking the star icon to quickly access them here. Your favorite prompts will appear in this collection for easy reference."
+          size="lg"
+        />
+      </>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-      {favorites.map((prompt) => (
-        <UnifiedPromptCard
-          key={prompt.id}
-          variant="personal"
-          data={prompt}
-        />
-      ))}
-    </div>
+    <>
+      <FavoritesTopbar count={favorites.length} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+        {favorites.map((prompt) => (
+          <UnifiedPromptCard
+            key={prompt.id}
+            variant="personal"
+            data={prompt}
+          />
+        ))}
+      </div>
+    </>
   );
 }
 

@@ -371,6 +371,13 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
   if (isCreateMode) {
     return (
       <div className="flex h-full">
+        <TopbarPortal>
+          <div className="flex items-center gap-1.5 text-[13px]">
+            <Link href="/prompts" className="text-ink-400 hover:text-ink-700">My Prompts</Link>
+            <span className="text-ink-300">/</span>
+            <span className="font-[550] text-ink-900">New prompt</span>
+          </div>
+        </TopbarPortal>
         <div className="flex-grow flex flex-col">
           {/* Header */}
           <div className="p-4 border-b">

@@ -30,6 +30,8 @@ import {
   uploadProfilePicture,
 } from '@/app/actions/profile.actions';
 import { cn } from '@/lib/utils';
+import { TopbarPortal } from '@/components/layout/topbar-portal';
+import { TopbarTitle } from '@/components/layout/topbar';
 import { validateUsername } from '@/lib/username-generator';
 import { Separator } from '@/components/ui/separator';
 import { LoadingStates } from '@/components/ui/loading-state';
@@ -308,6 +310,9 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
+      <TopbarPortal>
+        <TopbarTitle>Account settings</TopbarTitle>
+      </TopbarPortal>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
