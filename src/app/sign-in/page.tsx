@@ -70,8 +70,8 @@ export default function SignInPage() {
             Your team&apos;s prompt library, versioned and shared.
           </h1>
           <p className="mt-4 max-w-sm text-[13px] leading-relaxed text-rail-text">
-            Create, organize, and version your prompts — then share them privately with your
-            team or publish to the Prompt Market.
+            Organize, version and collaborate on AI prompts — with a marketplace to discover
+            what works.
           </p>
           <div className="mt-10 flex gap-10">
             {[
@@ -85,6 +85,9 @@ export default function SignInPage() {
               </div>
             ))}
           </div>
+          <p className="mt-8 text-[11px] text-rail-text-dim">
+            Trusted by product, marketing &amp; eng teams
+          </p>
         </div>
 
         <div className="relative text-[11px] text-rail-text-dim">
@@ -96,7 +99,7 @@ export default function SignInPage() {
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-[360px]">
           <h2 className="text-[21px] font-[660] tracking-[-0.02em] text-ink-900">Welcome back</h2>
-          <p className="mt-1 text-[13px] text-ink-600">Sign in to your Promptforge workspace.</p>
+          <p className="mt-1 text-[13px] text-ink-600">Sign in to your workspace to continue.</p>
 
           {/* Google OAuth */}
           <div className="mt-7">
@@ -126,7 +129,7 @@ export default function SignInPage() {
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-[12px] font-[550] text-ink-700">
-                Email Address
+                Email
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
