@@ -12,6 +12,7 @@ interface ZitadelProfile {
   sub: string
   email?: string
   name?: string
+  email_verified?: boolean
 }
 
 const providers: AuthOptions["providers"] = [
@@ -90,11 +91,20 @@ export const authOptions: AuthOptions = {
     newUser: "/sign-up",
   },
   callbacks: {
-    async signIn({ user, account }: { user: User; account?: Account | null; profile?: Profile }) {
+    async signIn({ user, account, profile }: { user: User; account?: Account | null; profile?: Profile }) {
       // Zitadel (Kryton SSO) sign-ins have no local password; link/create the
       // local User by email so the credentials path is unaffected.
       if (account?.provider === "zitadel") {
         if (!user.email) {
+          return false
+        }
+
+        // Only link/create a local account when Zitadel asserts the email is
+        // verified. Without this check, an SSO identity could present an
+        // unverified email matching an existing credentials user and
+        // silently take over that account.
+        const zitadelProfile = profile as ZitadelProfile | undefined
+        if (zitadelProfile?.email_verified !== true) {
           return false
         }
 
