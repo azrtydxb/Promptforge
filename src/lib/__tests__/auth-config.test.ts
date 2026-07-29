@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.isolateModules requires require() to re-load the module with mutated env per test */
 import type { AuthOptions, Account, Profile, User } from "next-auth"
 
 jest.mock("@/lib/db", () => ({
