@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ArrowRight, Eye, FileText, LayoutTemplate, Store, Pin } from "lucide-react";
+import { Heart, ArrowRight, Eye, FileText, LayoutTemplate, Store, Pin, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { togglePromptLike } from "@/app/actions/likes-comments.actions";
@@ -26,6 +26,8 @@ interface PersonalPromptData extends BasePromptData {
   isFavorited?: boolean;
   pinnedAt?: Date | null;
   isPinned?: boolean;
+  folder?: { id: string; name: string } | null;
+  agentPersona?: { id: string; name: string } | null;
   _count?: {
     likes?: number;
     favorites?: number;
@@ -86,6 +88,23 @@ const VARIANT_ICON = {
   shared: Store,
 };
 
+const FOLDER_DOT_COLORS = [
+  "#5E6AD2",
+  "#8B93E0",
+  "#3A9D6E",
+  "#D98C3F",
+  "#CD5B62",
+  "#7A5CD0",
+];
+
+function folderDotColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  }
+  return FOLDER_DOT_COLORS[hash % FOLDER_DOT_COLORS.length];
+}
+
 export function UnifiedPromptCardClean({
   variant,
   data,
@@ -93,7 +112,6 @@ export function UnifiedPromptCardClean({
   onPromptClick,
   onUseTemplate,
   onLikeToggle,
-  disableLink = false,
 }: UnifiedPromptCardProps) {
   const [isLiking, setIsLiking] = useState(false);
   const { onOpen } = useModal();
@@ -180,11 +198,23 @@ export function UnifiedPromptCardClean({
             {data.category}
           </span>
         )}
-        {variant === "personal" && (data as PersonalPromptData).pinnedAt && (
+        {variant === "personal" && (data as PersonalPromptData).pinnedAt ? (
           <span className="flex items-center gap-1 rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-[550] text-accent-700">
             <Pin className="h-3 w-3" /> Pinned
           </span>
-        )}
+        ) : variant === "personal" && (data as PersonalPromptData).folder ? (
+          <span className="flex items-center gap-1.5 rounded-full bg-[#F1F2F5] px-2 py-0.5 text-[10px] font-[550] text-ink-600">
+            <span
+              className="h-1.5 w-1.5 rounded-[2px]"
+              style={{
+                backgroundColor: folderDotColor(
+                  (data as PersonalPromptData).folder!.name
+                ),
+              }}
+            />
+            {(data as PersonalPromptData).folder!.name}
+          </span>
+        ) : null}
       </div>
 
       {/* Title */}
@@ -206,6 +236,16 @@ export function UnifiedPromptCardClean({
         <p className="mt-1.5 line-clamp-2 flex-1 text-[12px] leading-[1.5] text-ink-600">
           {data.description}
         </p>
+      )}
+
+      {/* Agent persona (personal) */}
+      {variant === "personal" && (data as PersonalPromptData).agentPersona && (
+        <div className="mt-3 flex flex-wrap gap-1">
+          <span className="flex items-center gap-1 rounded-full bg-accent-100 px-2 py-0.5 text-[10px] font-[550] text-accent-700">
+            <Bot className="h-3 w-3" />
+            {(data as PersonalPromptData).agentPersona!.name}
+          </span>
+        </div>
       )}
 
       {/* Tags */}

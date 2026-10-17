@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
 import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
 import { toast } from "sonner";
+import { MARKET_CATEGORIES } from "@/lib/market-categories";
 
 interface Template {
   id: string;
@@ -26,7 +27,7 @@ interface Template {
   } | null;
 }
 
-const CATEGORY_PILLS = ["All", "Writing", "Engineering", "Marketing", "Support", "Data"] as const;
+const CATEGORY_PILLS = ["All", ...MARKET_CATEGORIES] as const;
 type CategoryPill = (typeof CATEGORY_PILLS)[number];
 
 export function TemplatesSearchComponent() {

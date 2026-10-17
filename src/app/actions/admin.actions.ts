@@ -94,15 +94,25 @@ export async function getAllMetrics() {
 export async function getPromptCount(): Promise<{ total: number }> {
   await requireAdminAccess();
   try {
-    const [privateCount, sharedCount] = await Promise.all([
-      db.prompt.count(),
-      db.sharedPrompt.count(),
-    ]);
     // Private prompts already include published ones; avoid double-counting
     // by just returning the total private prompt count (each sharedPrompt is derived from a prompt)
-    return { total: privateCount };
+    const total = await db.prompt.count();
+    return { total };
   } catch (_error) {
     throw new Error("Failed to fetch prompt count");
+  }
+}
+
+// Embedding queue depth — published prompts awaiting index refresh.
+export async function getEmbeddingQueueStats(): Promise<{ jobs: number }> {
+  await requireAdminAccess();
+  try {
+    const jobs = await db.sharedPrompt.count({
+      where: { publishedAt: { not: null } },
+    });
+    return { jobs };
+  } catch (_error) {
+    throw new Error("Failed to fetch embedding queue");
   }
 }
 

@@ -1,5 +1,10 @@
 # Mockup Conformance — Gap Analysis & Master Checklist
 
+> **STATUS (superseded): historical planning doc.** This checklist captured the state *before*
+> the redesign was built. All 16 frames are now implemented against real data/routes (see the
+> commit history and `design_handoff_promptforge_redesign/README.md`). The ✅/🟡/❌ markers below
+> reflect the starting point and are kept for provenance only — do not treat them as current.
+
 Goal: the live app **100% matches** `Promptforge - Structured Pro.dc.html` (all 16 frames),
 with **real functions and data** — no mock-only screens, no placeholder content. Source of
 truth = the rendered mockup (open in browser), not the README prose.

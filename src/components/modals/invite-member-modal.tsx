@@ -221,7 +221,8 @@ export function InviteMemberModal() {
               />
             </div>
             <p className="text-[11px] text-ink-400 mt-1.5">
-              Press Enter or comma to add each email address.
+              Press Enter or comma to add each email address. Anyone on a
+              verified domain can be added instantly.
             </p>
           </div>
 

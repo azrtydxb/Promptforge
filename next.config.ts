@@ -55,6 +55,7 @@ const nextConfig: NextConfig = {
     '@prisma/client',
     'ioredis',
     'winston',
+    'resend',
   ],
 
   // Experimental features for performance

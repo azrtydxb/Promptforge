@@ -6,6 +6,7 @@ import { getPlanContext } from "@/lib/plan";
 import { db } from "@/lib/db";
 import { TeamRole } from "@/generated/prisma";
 import { SharedWithMeTopbar, SharedWithMeFreeTopbar } from "./topbar";
+import { SharedWithMeCard } from "@/components/shared-with-me/shared-with-me-card";
 
 export const dynamic = "force-dynamic";
 
@@ -117,8 +118,10 @@ export default async function SharedWithMePage() {
       isArchived: false,
     },
     include: {
-      team: { select: { id: true, name: true } },
       tags: { select: { id: true, name: true } },
+      createdBy: {
+        select: { name: true, username: true, profilePicture: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -159,66 +162,24 @@ export default async function SharedWithMePage() {
           {teamPrompts.map((prompt) => {
             const role = roleByTeam[prompt.teamId] ?? "VIEWER";
             const accessLabel = canEdit(role as TeamRole) ? "Can edit" : "Can view";
-            const accessColor =
-              accessLabel === "Can edit"
-                ? "bg-success-surface text-success"
-                : "bg-surface-muted text-ink-600";
-
-            const sharedDate = new Intl.DateTimeFormat("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }).format(new Date(prompt.createdAt));
 
             return (
-              <div
+              <SharedWithMeCard
                 key={prompt.id}
-                className="flex flex-col gap-3 rounded-[11px] border border-line-200 bg-surface-card p-4"
-              >
-                {/* Title */}
-                <div>
-                  <h3 className="truncate text-[14px] font-[600] text-ink-900">
-                    {prompt.title}
-                  </h3>
-                  {prompt.description && (
-                    <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-relaxed text-ink-600">
-                      {prompt.description}
-                    </p>
-                  )}
-                </div>
-
-                {/* Access badge + meta */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-[550] ${accessColor}`}
-                  >
-                    {accessLabel}
-                  </span>
-                  {prompt.tags.slice(0, 2).map((tag) => (
-                    <span
-                      key={tag.id}
-                      className="rounded-full bg-surface-muted px-2 py-0.5 text-[11px] text-ink-600"
-                    >
-                      {tag.name}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Shared by */}
-                <p className="text-[11.5px] text-ink-400">
-                  Shared by {prompt.team.name} · {sharedDate}
-                </p>
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <button className="flex-1 rounded-[7px] border border-line-200 bg-surface-muted py-1.5 text-[12px] font-[500] text-ink-700 hover:bg-surface-card transition-colors">
-                    Preview
-                  </button>
-                  <button className="flex-1 rounded-[7px] bg-accent-500 py-1.5 text-[12px] font-[500] text-white hover:bg-[#4F5AC4] transition-colors">
-                    Open
-                  </button>
-                </div>
-              </div>
+                data={{
+                  id: prompt.id,
+                  teamId: prompt.teamId,
+                  title: prompt.title,
+                  description: prompt.description,
+                  content: prompt.content,
+                  createdAt: prompt.createdAt,
+                  viewCount: prompt.viewCount,
+                  copyCount: prompt.copyCount,
+                  accessLabel,
+                  tags: prompt.tags,
+                  sharedBy: prompt.createdBy,
+                }}
+              />
             );
           })}
         </div>

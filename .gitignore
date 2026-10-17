@@ -96,3 +96,10 @@ gha-creds-*.json
 # Temporary data/extraction files
 scraped-*.json
 *-extracted.json
+
+# Design handoff reference bundle (visual spec only — not shipped)
+design_handoff_promptforge_redesign/
+k8s/design_handoff_promptforge_redesign/
+
+# Agent Manager worktrees
+.claude/
