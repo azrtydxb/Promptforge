@@ -11,7 +11,7 @@ metadata:
 spec:
   parentRefs:
     - { name: edge, namespace: envoy-gateway-system, sectionName: promptforge-directory }
-  hostnames: [promptforge.directory]
+  hostnames: [promptforge.directory, www.promptforge.directory]
   rules:
     - backendRefs:
         - { name: promptforge, port: 80 }
