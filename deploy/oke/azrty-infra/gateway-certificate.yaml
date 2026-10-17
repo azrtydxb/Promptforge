@@ -1,0 +1,15 @@
+# Certificate for promptforge.azrty.com. Paste next to the other per-host
+# Certificates in azrty-infra platform/gateway/gateway.yaml (DNS-01 via Route 53).
+#
+# Then also add the listener block (see README) to the Gateway "edge" spec.listeners,
+# and add promptforge.azrty.com to the ExternalDNS allowlist in oci/route53-access.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: promptforge-azrty-com
+  namespace: envoy-gateway-system
+spec:
+  secretName: promptforge-azrty-com-tls
+  issuerRef: { kind: ClusterIssuer, name: letsencrypt }
+  dnsNames: [promptforge.azrty.com]
+  privateKey: { algorithm: ECDSA, size: 256, rotationPolicy: Always }

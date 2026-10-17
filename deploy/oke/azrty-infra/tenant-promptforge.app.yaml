@@ -1,0 +1,25 @@
+# Tenant bootstrap for "promptforge" (see platform/tenants/promptforge).
+# Target location in azrty-infra: platform/apps/tenant-promptforge.yaml
+apiVersion: sync.kuvryn.io/v1alpha1
+kind: Application
+metadata:
+  name: tenant-promptforge
+  namespace: kuvryn-platform
+spec:
+  serviceAccountName: platform-deployer
+  dependsOn:
+    - name: cnpg-barman # ObjectStore CRD + WAL archiving
+    - name: gateway # promptforge listener + certificate
+  source:
+    repositoryRef: { name: azrty-infra }
+    path: platform/tenants/promptforge
+    render: { type: yaml }
+  destination: { namespace: promptforge }
+  sync: { automatic: true, conflictPolicy: fail, prune: true, selfHeal: true }
+  strategy: { type: rolling, failurePolicy: { action: pause, maxAttempts: 3, timeout: 10m } }
+  health: { timeout: 10m }
+  history: { limit: 10 }
+  deletionPolicy: Orphan
+  decryption:
+    provider: sops
+    secretRef: { name: kuvryn-sync-sops }

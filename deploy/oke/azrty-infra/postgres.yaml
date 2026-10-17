@@ -1,0 +1,70 @@
+# Postgres for Promptforge (CloudNativePG). CNPG creates promptforge-pg-app
+# (key `uri` -> DATABASE_URL). WAL archiving + daily base backups to OCI
+# (s3://azrty-pg-backups/promptforge/).
+#
+# Target location in azrty-infra: platform/tenants/promptforge/postgres.yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: promptforge-pg
+  namespace: promptforge
+  annotations:
+    sync.kuvryn.io/prune: disabled
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  bootstrap:
+    initdb:
+      database: promptforge
+      owner: promptforge
+  storage:
+    size: 50Gi # OCI block volume minimum
+    storageClass: oci-bv
+  resources:
+    requests: { cpu: 100m, memory: 512Mi }
+    limits: { memory: 1Gi }
+  monitoring:
+    enablePodMonitor: true
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: azrty-pg-backups
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: azrty-pg-backups
+  namespace: promptforge
+spec:
+  retentionPolicy: "30d"
+  configuration:
+    destinationPath: s3://azrty-pg-backups/promptforge/
+    endpointURL: https://axmcgpqk0w0z.compat.objectstorage.me-dubai-1.oraclecloud.com
+    s3Credentials:
+      accessKeyId: { name: pg-backup-credentials, key: ACCESS_KEY_ID }
+      secretAccessKey: { name: pg-backup-credentials, key: ACCESS_SECRET_KEY }
+      region: { name: pg-backup-credentials, key: REGION }
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  instanceSidecarConfiguration:
+    env:
+      - { name: AWS_REQUEST_CHECKSUM_CALCULATION, value: when_required }
+      - { name: AWS_RESPONSE_CHECKSUM_VALIDATION, value: when_required }
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: promptforge-pg-daily
+  namespace: promptforge
+spec:
+  schedule: "0 15 1 * * *" # 01:15 UTC daily
+  immediate: true
+  backupOwnerReference: self
+  cluster: { name: promptforge-pg }
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io

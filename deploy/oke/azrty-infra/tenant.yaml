@@ -1,0 +1,91 @@
+# Tenant "promptforge" (promptforge.azrty.com): namespace, a namespace-scoped
+# deployer and the Kuvryn Sync objects that deploy deploy/kuvryn-sync/oke from the
+# Promptforge repo. The app repo owns its workloads; this repo owns the namespace,
+# permissions, database, secrets and the gateway listener/certificate.
+#
+# Target location in azrty-infra: platform/tenants/promptforge/tenant.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: promptforge
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kuvryn-sync-deployer
+  namespace: promptforge
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kuvryn-sync-deployer
+  namespace: promptforge
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [""]
+    resources: [services, configmaps]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [policy]
+    resources: [poddisruptionbudgets]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [gateway.networking.k8s.io]
+    resources: [httproutes]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [apps]
+    resources: [replicasets]
+    verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [pods, events, endpoints, serviceaccounts]
+    verbs: [get, list, watch]
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kuvryn-sync-deployer
+  namespace: promptforge
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kuvryn-sync-deployer
+subjects:
+  - kind: ServiceAccount
+    name: kuvryn-sync-deployer
+    namespace: promptforge
+---
+apiVersion: sync.kuvryn.io/v1alpha1
+kind: Repository
+metadata:
+  name: promptforge
+  namespace: promptforge
+spec:
+  type: git
+  git:
+    url: https://github.com/azrtydxb/Promptforge.git
+    revision: main
+    auth:
+      secretRef:
+        name: promptforge-sync-git
+  pollInterval: 60s
+---
+apiVersion: sync.kuvryn.io/v1alpha1
+kind: Application
+metadata:
+  name: promptforge
+  namespace: promptforge
+spec:
+  serviceAccountName: kuvryn-sync-deployer
+  source:
+    repositoryRef: { name: promptforge }
+    path: deploy/kuvryn-sync/oke
+    render: { type: yaml }
+  destination: { namespace: promptforge }
+  sync: { automatic: true, conflictPolicy: fail, prune: true, selfHeal: true }
+  strategy: { type: rolling, failurePolicy: { action: rollback, maxAttempts: 3, timeout: 10m } }
+  health: { timeout: 10m0s }
+  history: { limit: 10 }
+  deletionPolicy: Orphan
