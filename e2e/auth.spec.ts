@@ -34,10 +34,10 @@ test.describe('Authentication', () => {
     })
 
     test('should navigate to sign up page', async ({ page }) => {
-      // Look for sign up link
-      const signUpLink = page.getByRole('link', { name: /sign up/i })
+      // The sign-in screen links to account creation via "Create an account"
+      const signUpLink = page.getByRole('link', { name: /create an account/i })
       await expect(signUpLink).toBeVisible()
-      
+
       await signUpLink.click()
       await expect(page).toHaveURL(/.*sign-up/)
     })

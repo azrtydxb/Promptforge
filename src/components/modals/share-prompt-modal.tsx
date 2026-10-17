@@ -12,7 +12,9 @@ import {
   publishPromptToMarketplace,
   getPublishStateForPrompt,
   unpublishPrompt,
+  updateMarketplaceCategory,
 } from "@/app/actions/shared-prompts.actions";
+import { MARKET_CATEGORIES } from "@/lib/market-categories";
 import {
   Copy,
   Check,
@@ -63,6 +65,7 @@ export function SharePromptModal() {
   // Publish section
   const [isPublished, setIsPublished] = useState(false);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [publishCategory, setPublishCategory] = useState("Writing");
   const [publishLoading, setPublishLoading] = useState(false);
 
   const appOrigin =
@@ -93,9 +96,10 @@ export function SharePromptModal() {
     // Initialize publish state from DB each time modal opens
     setPublishLoading(true);
     getPublishStateForPrompt(promptData.id)
-      .then(({ published, url }) => {
+      .then(({ published, url, category }) => {
         setIsPublished(published);
         setPublishedUrl(url);
+        if (category) setPublishCategory(category);
       })
       .catch(() => {
         // If action not yet deployed or fails, leave defaults (false/null)
@@ -160,6 +164,25 @@ export function SharePromptModal() {
     }
   };
 
+  const permissionOf = (link: ShareLinkItem): Permission =>
+    link.description?.toLowerCase().includes("edit") ? "edit" : "view";
+
+  const handlePermissionChange = async (
+    link: ShareLinkItem,
+    perm: Permission
+  ) => {
+    try {
+      await updateShareLink(link.id, { description: `Permission: ${perm}` });
+      setShareLinks((prev) =>
+        prev.map((l) =>
+          l.id === link.id ? { ...l, description: `Permission: ${perm}` } : l
+        )
+      );
+    } catch {
+      toast.error("Failed to update permission");
+    }
+  };
+
   const handlePublishToggle = async () => {
     if (!promptData) return;
     setPublishLoading(true);
@@ -172,7 +195,10 @@ export function SharePromptModal() {
         toast.success("Removed from Prompt Market");
       } else {
         // Turn ON — publish to marketplace
-        await publishPromptToMarketplace({ promptId: promptData.id });
+        await publishPromptToMarketplace({
+          promptId: promptData.id,
+          category: publishCategory,
+        });
         setIsPublished(true);
         setPublishedUrl(publicUrl);
         toast.success("Published to Prompt Market");
@@ -181,6 +207,22 @@ export function SharePromptModal() {
       toast.error(err instanceof Error ? err.message : isPublished ? "Failed to unpublish" : "Failed to publish");
     } finally {
       setPublishLoading(false);
+    }
+  };
+
+  const handleCategoryChange = async (category: string) => {
+    setPublishCategory(category);
+    if (!isPublished || !promptData) return;
+    try {
+      const res = await updateMarketplaceCategory(promptData.id, category);
+      if (res && "success" in res && !res.success) {
+        throw new Error(res.error);
+      }
+      toast.success("Category updated");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update category"
+      );
     }
   };
 
@@ -295,14 +337,16 @@ export function SharePromptModal() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span
-                      className={cn(
-                        "text-[11px] font-[500]",
-                        link.isActive ? "text-ink-600" : "text-ink-400"
-                      )}
+                    <select
+                      value={permissionOf(link)}
+                      onChange={(e) =>
+                        handlePermissionChange(link, e.target.value as Permission)
+                      }
+                      className="rounded-[6px] border border-line-200 bg-surface-muted px-1.5 py-0.5 text-[11px] text-ink-600 outline-none focus:border-accent-500 transition-colors"
                     >
-                      {link.isActive ? "Active" : "Inactive"}
-                    </span>
+                      <option value="view">Can view</option>
+                      <option value="edit">Can edit</option>
+                    </select>
                     <button
                       onClick={() => handleToggleActive(link)}
                       className="p-1 rounded-[5px] text-ink-400 hover:text-ink-700 hover:bg-surface-muted transition-colors"
@@ -381,6 +425,24 @@ export function SharePromptModal() {
 
             {isPublished && (
               <div className="space-y-2.5 rounded-[9px] border border-line-200 bg-surface-muted p-3.5">
+                {/* Category */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-[500] text-ink-600">
+                    Category
+                  </span>
+                  <select
+                    value={publishCategory}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    className="rounded-[7px] border border-line-200 bg-surface-card px-2.5 py-1.5 text-[11px] text-ink-700 outline-none focus:border-accent-500 transition-colors"
+                  >
+                    {MARKET_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Stats */}
                 <div className="flex items-center gap-4 text-[11px] tabular-nums text-ink-400">
                   <span className="flex items-center gap-1">

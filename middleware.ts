@@ -15,6 +15,7 @@ const protectedPaths = [
   '/tags',
   '/templates',
   '/favorites',
+  '/personas',
 ]
 
 // Generate or retrieve request ID

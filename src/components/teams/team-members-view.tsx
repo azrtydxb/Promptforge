@@ -1,12 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 import { Avatar } from "@/components/ui/avatar";
 import { TeamRole } from "@/generated/prisma";
 import { formatDistanceToNow } from "date-fns";
+import { ChevronDown, Check } from "lucide-react";
 import { RoleSelect, RemoveButton, ResendButton } from "./member-row-actions";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
 import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
+import { getUserTeams } from "@/app/actions/team.actions";
+import { setTeamContext } from "@/app/actions/team-context.actions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,13 +78,6 @@ interface TeamMembersViewProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const ROLE_DISPLAY: Record<string, string> = {
-  OWNER: "Owner",
-  ADMIN: "Admin",
-  MEMBER: "Editor",
-  VIEWER: "Viewer",
-};
-
 const LABEL_CLASS = "text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400";
 
 function KpiCell({ label, value }: { label: string; value: string | number }) {
@@ -97,6 +101,38 @@ export function TeamMembersView({
   currentUserRole,
 }: TeamMembersViewProps) {
   const { onOpen } = useModal();
+  const router = useRouter();
+  const [switchTeams, setSwitchTeams] = useState<Array<{ id: string; name: string }>>([]);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getUserTeams()
+      .then((teams) => {
+        if (!active) return;
+        setSwitchTeams(
+          (teams as Array<{ id: string; name: string }>).map((t) => ({
+            id: t.id,
+            name: t.name,
+          }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const switchToTeam = async (id: string | null) => {
+    setSwitcherOpen(false);
+    try {
+      await setTeamContext(id);
+      router.push(id ? `/teams/${id}/members` : "/teams");
+      router.refresh();
+    } catch {
+      // ignore
+    }
+  };
 
   const isAdmin = currentUserRole === TeamRole.ADMIN || currentUserRole === TeamRole.OWNER;
   const isOwner = currentUserRole === TeamRole.OWNER;
@@ -131,12 +167,39 @@ export function TeamMembersView({
       {/* ── Topbar Portal ── */}
       <TopbarPortal>
         <TopbarTitle>Teams</TopbarTitle>
-        <span className="flex items-center gap-1.5 rounded-[7px] border border-line-200 bg-surface-card px-2.5 py-1.5 text-[12.5px] font-[550] text-ink-700">
-          <span className="flex h-4 w-4 items-center justify-center rounded bg-accent-100 text-[9px] font-[600] text-accent-700">
-            {teamInitial}
-          </span>
-          {team.name}
-        </span>
+        <DropdownMenu open={switcherOpen} onOpenChange={setSwitcherOpen}>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-[7px] border border-line-200 bg-surface-card px-2.5 py-1.5 text-[12.5px] font-[550] text-ink-700 transition-colors hover:bg-surface-muted"
+              aria-label="Switch team"
+            >
+              <span className="flex h-4 w-4 items-center justify-center rounded bg-accent-100 text-[9px] font-[600] text-accent-700">
+                {teamInitial}
+              </span>
+              {team.name}
+              <ChevronDown className="h-3.5 w-3.5 text-ink-400" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="min-w-[200px]">
+            {switchTeams.length === 0 ? (
+              <DropdownMenuItem disabled>{team.name}</DropdownMenuItem>
+            ) : (
+              switchTeams.map((t) => (
+                <DropdownMenuItem
+                  key={t.id}
+                  onClick={() => switchToTeam(t.id)}
+                  className="flex items-center justify-between gap-2"
+                >
+                  <span className="truncate">{t.name}</span>
+                  {t.id === team.id && (
+                    <Check className="h-3.5 w-3.5 text-accent-700" />
+                  )}
+                </DropdownMenuItem>
+              ))
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
         {isAdmin && (
           <div className="ml-auto">
             <TopbarNewButton

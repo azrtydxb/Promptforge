@@ -10,12 +10,14 @@ import {
   ModerationStatus,
   Prisma
 } from '@/generated/prisma';
+import { normalizeCategory } from "@/lib/market-categories";
 
 interface PublishPromptData {
   promptId: string;
   title?: string;
   description?: string;
   visibility?: PromptVisibility;
+  category?: string;
 }
 
 
@@ -79,6 +81,7 @@ export async function publishPromptToMarketplace(data: PublishPromptData) {
         description: data.description || prompt.description,
         content: prompt.content || '',
         visibility: data.visibility || 'PUBLIC',
+        category: normalizeCategory(data.category),
         status,
         isPublished: status === 'APPROVED',
         publishedAt: status === 'APPROVED' ? new Date() : null
@@ -109,15 +112,19 @@ export async function publishPromptToMarketplace(data: PublishPromptData) {
 /** Whether a prompt is currently published to the Market, plus its URL. */
 export async function getPublishStateForPrompt(
   promptId: string
-): Promise<{ published: boolean; url: string | null }> {
+): Promise<{ published: boolean; url: string | null; category: string | null }> {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return { published: false, url: null };
+  if (!session?.user?.id) return { published: false, url: null, category: null };
   const shared = await db.sharedPrompt.findFirst({
     where: { promptId, authorId: session.user.id },
-    select: { id: true, isPublished: true },
+    select: { id: true, isPublished: true, category: true },
   });
-  if (!shared) return { published: false, url: null };
-  return { published: shared.isPublished, url: `/shared-prompts/${shared.id}` };
+  if (!shared) return { published: false, url: null, category: null };
+  return {
+    published: shared.isPublished,
+    url: `/shared-prompts/${shared.id}`,
+    category: shared.category ?? null,
+  };
 }
 
 /** Remove a prompt from the Prompt Market (deletes its SharedPrompt). Owner only. */
@@ -132,6 +139,29 @@ export async function unpublishPrompt(promptId: string) {
   await db.sharedPrompt.delete({ where: { id: shared.id } });
   revalidatePath('/shared-prompts');
   revalidatePath('/prompts');
+  return { success: true };
+}
+
+/** Update the Prompt Market category of an already-published prompt (owner only). */
+export async function updateMarketplaceCategory(
+  promptId: string,
+  category: string
+): Promise<{ success: boolean; error?: string }> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { success: false, error: 'Authentication required' };
+  }
+  const shared = await db.sharedPrompt.findFirst({
+    where: { promptId, authorId: session.user.id },
+    select: { id: true },
+  });
+  if (!shared) return { success: false, error: 'Prompt is not published' };
+  await db.sharedPrompt.update({
+    where: { id: shared.id },
+    data: { category: normalizeCategory(category) },
+  });
+  revalidatePath('/shared-prompts');
+  revalidatePath(`/shared-prompts/${shared.id}`);
   return { success: true };
 }
 

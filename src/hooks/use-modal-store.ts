@@ -30,6 +30,7 @@ export interface TagData {
 interface QuickPreviewData {
   promptId?: string;
   sharedId?: string;
+  openHref?: string;
   title: string;
   category?: string;
   content: string;

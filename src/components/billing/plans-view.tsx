@@ -39,10 +39,10 @@ interface PlanCard {
 const PLAN_CARDS: PlanCard[] = [
   {
     key: "FREE",
-    name: "Free",
+    name: "Individual",
     blurb: "Everything for personal prompt work.",
     price: "$0",
-    unit: "/ mo",
+    unit: "/ forever",
     cta: "Get started free",
   },
   {
@@ -51,8 +51,8 @@ const PLAN_CARDS: PlanCard[] = [
     blurb: "Private sharing, folders, roles & seats.",
     price: "$9",
     unit: "/ seat / mo",
-    cta: "Get started",
-    featured: false,
+    cta: "Upgrade to Team",
+    featured: true,
   },
   {
     key: "BUSINESS",
@@ -60,8 +60,7 @@ const PLAN_CARDS: PlanCard[] = [
     blurb: "SSO/SAML, SCIM provisioning & audit log.",
     price: "$18",
     unit: "/ seat / mo",
-    cta: "Upgrade to Business",
-    featured: true,
+    cta: "Upgrade",
   },
 ];
 
@@ -293,7 +292,7 @@ export function PlansView({ currentPlan, subscription }: PlansViewProps) {
           <thead>
             <tr className="border-b border-line-150 text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400">
               <th className="px-[18px] py-2.5 text-left font-[600]">Feature</th>
-              <th className="px-2 py-2.5 text-center font-[600]">Free</th>
+              <th className="px-2 py-2.5 text-center font-[600]">Individual</th>
               <th className="px-2 py-2.5 text-center font-[600]">Team</th>
               <th className="px-[18px] py-2.5 text-center font-[600]">Business</th>
             </tr>

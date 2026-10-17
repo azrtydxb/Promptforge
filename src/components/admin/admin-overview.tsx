@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getUserStats, getUsers } from "@/app/actions/admin-users.actions";
 import { getModerationStats } from "@/app/actions/moderation.actions";
 import { getCachePerformanceMetrics, getSystemHealth } from "@/app/actions/admin.actions";
-import { getPromptCount } from "@/app/actions/admin.actions";
+import { getPromptCount, getEmbeddingQueueStats } from "@/app/actions/admin.actions";
 import Link from "next/link";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ function KpiCard({
 }: {
   label: string;
   value: string | number;
-  sub?: string;
+  sub?: React.ReactNode;
 }) {
   return (
     <div className="bg-surface-card border border-line-200 rounded-[11px] p-[18px] flex flex-col gap-1">
@@ -133,13 +133,14 @@ export function AdminOverview() {
   const [recentUsers, setRecentUsers] = useState<PreviewUser[]>([]);
   const [promptCount, setPromptCount] = useState<number | null>(null);
   const [cacheHitRate, setCacheHitRate] = useState<string | null>(null);
+  const [embeddingJobs, setEmbeddingJobs] = useState<number | null>(null);
   const [services, setServices] = useState<ServiceHealth[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [statsResult, modResult, usersResult, countResult, cacheResult, healthResult] =
+        const [statsResult, modResult, usersResult, countResult, cacheResult, healthResult, queueResult] =
           await Promise.allSettled([
             getUserStats(),
             getModerationStats(),
@@ -147,6 +148,7 @@ export function AdminOverview() {
             getPromptCount(),
             getCachePerformanceMetrics(),
             getSystemHealth(),
+            getEmbeddingQueueStats(),
           ]);
 
         if (statsResult.status === "fulfilled") setUserStats(statsResult.value);
@@ -168,6 +170,9 @@ export function AdminOverview() {
         if (cacheResult.status === "fulfilled") {
           const rate = cacheResult.value.hitRate;
           setCacheHitRate(`${rate.toFixed(1)}%`);
+        }
+        if (queueResult.status === "fulfilled") {
+          setEmbeddingJobs(queueResult.value.jobs);
         }
         // Fix 3: real per-service health
         if (healthResult.status === "fulfilled") {
@@ -218,6 +223,10 @@ export function AdminOverview() {
 
   const pendingCount = modStats?.pending ?? 0;
   const flaggedCount = modStats?.flagged ?? 0;
+  const userGrowthPct =
+    userStats && userStats.totalUsers > 0
+      ? Math.round((userStats.newUsersThisMonth / userStats.totalUsers) * 100)
+      : 0;
 
   return (
     <div className="space-y-5">
@@ -226,7 +235,11 @@ export function AdminOverview() {
         <KpiCard
           label="Total users"
           value={userStats?.totalUsers ?? 0}
-          sub={`${userStats?.newUsersThisMonth ?? 0} this month`}
+          sub={
+            <span className="text-success font-[550] tabular-nums">
+              ↑ {userGrowthPct}% this month
+            </span>
+          }
         />
         {/* Fix 2: real prompt count */}
         <KpiCard
@@ -240,11 +253,10 @@ export function AdminOverview() {
           value={cacheHitRate ?? "—"}
           sub="Last 24 hours"
         />
-        {/* Fix 4: renamed to "Moderation queue" */}
         <KpiCard
-          label="Moderation queue"
-          value={`${pendingCount} pending`}
-          sub={flaggedCount > 0 ? `${flaggedCount} flagged` : "No flagged items"}
+          label="Embedding queue"
+          value={`${embeddingJobs ?? 0} jobs`}
+          sub="Published prompts indexing"
         />
       </div>
 

@@ -21,6 +21,7 @@ export function QuickPreviewModal() {
   const {
     promptId,
     sharedId,
+    openHref,
     title,
     category,
     content,
@@ -63,7 +64,9 @@ export function QuickPreviewModal() {
 
   const handleOpenFull = () => {
     onClose();
-    if (sharedId) {
+    if (openHref) {
+      router.push(openHref);
+    } else if (sharedId) {
       router.push(`/shared-prompts/${sharedId}`);
     } else if (promptId) {
       router.push(`/prompts/${promptId}`);

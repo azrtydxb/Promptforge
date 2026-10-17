@@ -56,6 +56,7 @@ model User {
   searchHistory    SearchHistory[]
   promptRatings    PromptRating[]
   drafts           PromptDraft[]
+  agentPersonas    AgentPersona[]
   // Team relations
   teamMemberships  TeamMember[]
   createdTeams     Team[]            @relation("TeamCreator")
@@ -177,6 +178,8 @@ model Prompt {
   pinnedAt            DateTime? // Track when prompt was pinned
   templateId          String?
   template            PromptTemplate?   @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  agentPersonaId      String?
+  agentPersona        AgentPersona?     @relation(fields: [agentPersonaId], references: [id], onDelete: SetNull)
   shareLinks          PromptShareLink[]
   searchHistoryClicks SearchHistory[]   @relation("ClickedPrompt")
   createdAt           DateTime          @default(now())
@@ -191,6 +194,7 @@ model Prompt {
   @@index([userId, createdAt])
   @@index([userId, folderId, createdAt]) // For folder queries
   @@index([userId, pinnedAt, order]) // For user prompt ordering
+  @@index([agentPersonaId])
 }
 
 model SharedPrompt {
@@ -869,4 +873,29 @@ model CacheVersion {
 
   @@index([group])
   @@index([version])
+}
+
+// ── Agent Personas ───────────────────────────────────────────────────────────
+// Standalone "agent persona" definitions: a named, role-based system prompt
+// (with tone/model/temperature) that users can create and reuse across agents.
+model AgentPersona {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  role         String?
+  description  String?
+  tone         String?
+  systemPrompt String
+  model        String?
+  temperature  Float?
+  tags         String[] @default([])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  prompts      Prompt[]
+
+  @@index([userId])
+  @@index([name])
+  @@index([userId, updatedAt])
 }

@@ -338,6 +338,68 @@ async function main() {
     console.log("✅ Team shared prompts created");
   }
 
+  // ---- Agent Personas ----
+  const personaCount = await prisma.agentPersona.count();
+  if (personaCount === 0) {
+    const personas = [
+      {
+        name: "Senior Code Reviewer",
+        role: "Staff Engineer",
+        tone: "Concise, direct",
+        description: "Reviews diffs for correctness, security and style with prioritized comments.",
+        systemPrompt:
+          "You are a staff engineer reviewing a code change. Report issues in priority order (blocker, major, minor). For each, cite the location and propose a concrete fix. Be concise and never restate the diff.",
+        model: "claude-sonnet-4",
+        temperature: 0.2,
+        tags: ["code", "review"],
+      },
+      {
+        name: "Support Agent",
+        role: "Customer Support",
+        tone: "Friendly, empathetic",
+        description: "Drafts empathetic, on-brand replies to customer tickets.",
+        systemPrompt:
+          "You are a customer support agent. Acknowledge the customer's issue, explain the resolution in plain language, and end with a clear next step. Match the brand voice and keep replies under 150 words.",
+        model: "claude-sonnet-4",
+        temperature: 0.5,
+        tags: ["support", "email"],
+      },
+      {
+        name: "Product Marketer",
+        role: "Product Marketing",
+        tone: "Persuasive",
+        description: "Turns a feature into crisp positioning and launch copy.",
+        systemPrompt:
+          "You are a product marketing lead. Given a feature, produce a value proposition, three benefit-led headlines, and a one-paragraph launch blurb. Lead with the customer outcome, not the feature name.",
+        model: "gpt-4o",
+        temperature: 0.8,
+        tags: ["marketing", "writing"],
+      },
+    ];
+    for (const p of personas) {
+      await prisma.agentPersona.create({ data: { ...p, userId: alex.id } });
+    }
+    console.log("✅ Agent personas created");
+
+    // Demo the Prompt ↔ Persona relation: attach the reviewer persona to one prompt.
+    const codePersona = await prisma.agentPersona.findFirst({
+      where: { userId: alex.id, name: "Senior Code Reviewer" },
+    });
+    if (codePersona) {
+      const target = await prisma.prompt.findFirst({
+        where: { userId: alex.id, agentPersonaId: null },
+        orderBy: { createdAt: "asc" },
+      });
+      if (target) {
+        await prisma.prompt.update({
+          where: { id: target.id },
+          data: { agentPersonaId: codePersona.id },
+        });
+        console.log("✅ Linked a prompt to an agent persona");
+      }
+    }
+  }
+
   console.log("🎉 Mockup seed complete");
 }
 

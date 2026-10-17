@@ -38,6 +38,8 @@ export async function getPromptsByFolder(folderId?: string, sort?: PromptSort) {
     },
     include: {
       tags: true,
+      folder: { select: { id: true, name: true } },
+      agentPersona: { select: { id: true, name: true } },
       _count: { select: { versions: true } },
     },
     orderBy: getOrderBy(sort),
@@ -115,6 +117,8 @@ export async function getAllPrompts(sort?: PromptSort) {
     },
     include: {
       tags: true,
+      folder: { select: { id: true, name: true } },
+      agentPersona: { select: { id: true, name: true } },
       _count: { select: { versions: true } },
     },
     orderBy: getOrderBy(sort),
@@ -224,6 +228,7 @@ interface CreatePromptParams {
   content?: string;
   folderId?: string;
   tags?: string[];
+  agentPersonaId?: string | null;
 }
 
 export async function createPrompt({
@@ -232,6 +237,7 @@ export async function createPrompt({
   content,
   folderId,
   tags,
+  agentPersonaId,
 }: CreatePromptParams) {
   try {
     const user = await requireAuth();
@@ -251,6 +257,7 @@ export async function createPrompt({
         userId: user.id,
         folderId,
         order: newOrder,
+        agentPersonaId,
         tags: {
           connectOrCreate: tags?.map((tag) => ({
             where: { name: tag },
@@ -328,11 +335,12 @@ interface UpdatePromptParams {
   content?: string;
   tags?: string[];
   description?: string;
+  agentPersonaId?: string | null;
 }
 
 export async function updatePrompt(
   id: string,
-  { title, content, tags, description }: UpdatePromptParams
+  { title, content, tags, description, agentPersonaId }: UpdatePromptParams
 ) {
   const user = await requireAuth();
 
@@ -350,6 +358,7 @@ export async function updatePrompt(
       title,
       description,
       content,
+      agentPersonaId,
       tags: tags
         ? {
             set: [],

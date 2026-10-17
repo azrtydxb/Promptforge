@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useTransition, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { PromptList } from "@/components/prompts/prompt-list";
-import { Search, Plus, Upload, Trash2, FolderInput, ChevronDown } from "lucide-react";
+import { Search, Upload, Trash2, FolderInput, ChevronDown } from "lucide-react";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
 import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
 import {

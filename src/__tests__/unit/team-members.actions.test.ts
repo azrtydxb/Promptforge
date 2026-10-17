@@ -597,7 +597,13 @@ describe('Team Members Actions', () => {
       expect(result).toEqual(members)
       expect(db.teamMember.findMany).toHaveBeenCalledWith({
         where: { teamId: 'team-123' },
-        include: {
+        select: {
+          id: true,
+          userId: true,
+          teamId: true,
+          role: true,
+          joinedAt: true,
+          lastActiveAt: true,
           user: {
             select: {
               id: true,

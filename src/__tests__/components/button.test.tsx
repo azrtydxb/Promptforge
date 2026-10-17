@@ -12,16 +12,16 @@ describe('Button Component', () => {
   it('should apply default variant and size', () => {
     render(<Button>Default Button</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-gradient-to-r')
-    expect(button).toHaveClass('from-blue-600')
-    expect(button).toHaveClass('h-10')
+    expect(button).toHaveClass('bg-accent-500')
+    expect(button).toHaveClass('text-white')
+    expect(button).toHaveClass('h-9')
   })
 
   it('should apply custom variant', () => {
     render(<Button variant="destructive">Delete</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('bg-gradient-to-r')
-    expect(button).toHaveClass('from-red-600')
+    expect(button).toHaveClass('bg-danger')
+    expect(button).toHaveClass('text-white')
   })
 
   it('should apply custom size', () => {
@@ -91,28 +91,28 @@ describe('Button Component', () => {
     it('should render primary variant', () => {
       render(<Button variant="primary">Primary</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('bg-gradient-to-r')
-      expect(button).toHaveClass('from-blue-600')
-      expect(button).toHaveClass('to-purple-600')
+      expect(button).toHaveClass('bg-accent-500')
+      expect(button).toHaveClass('text-white')
+      expect(button).toHaveClass('rounded-[8px]')
     })
 
     it('should render outline variant', () => {
       render(<Button variant="outline">Outline</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('border-2')
-      expect(button).toHaveClass('border-input')
+      expect(button).toHaveClass('border')
+      expect(button).toHaveClass('border-line-200')
     })
 
     it('should render ghost variant', () => {
       render(<Button variant="ghost">Ghost</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('hover:bg-accent')
+      expect(button).toHaveClass('hover:bg-surface-muted')
     })
 
     it('should render link variant', () => {
       render(<Button variant="link">Link</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('text-[hsl(var(--primary))]')
+      expect(button).toHaveClass('text-accent-700')
       expect(button).toHaveClass('underline-offset-4')
     })
   })
@@ -121,15 +121,15 @@ describe('Button Component', () => {
     it('should render icon size correctly', () => {
       render(<Button size="icon" aria-label="Settings">⚙️</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('h-10')
-      expect(button).toHaveClass('w-10')
+      expect(button).toHaveClass('h-9')
+      expect(button).toHaveClass('w-9')
     })
 
     it('should render large size correctly', () => {
       render(<Button size="lg">Large Button</Button>)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('h-12')
-      expect(button).toHaveClass('px-8')
+      expect(button).toHaveClass('h-11')
+      expect(button).toHaveClass('px-6')
     })
   })
 })

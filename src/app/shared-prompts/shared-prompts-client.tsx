@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useTransition, useCallback, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { UnifiedPromptCardClean as UnifiedPromptCard } from '@/components/ui/unified-prompt-card-clean';
 import { getSharedPrompts } from '@/app/actions/shared-prompts.actions';
+import { MARKET_CATEGORIES } from '@/lib/market-categories';
 import { getAllPrompts } from '@/app/actions/prompt.actions';
 import { publishPromptToMarketplace } from '@/app/actions/shared-prompts.actions';
 import { Loader2, RefreshCw, Search, X, ChevronDown, Star } from 'lucide-react';
@@ -62,7 +62,7 @@ interface SharedPromptsClientProps {
 
 type SortOption = 'trending' | 'copied' | 'top-rated' | 'newest';
 
-const CATEGORY_OPTIONS = ['Writing', 'Engineering', 'Marketing', 'Sales', 'Support', 'Data'] as const;
+const CATEGORY_OPTIONS = MARKET_CATEGORIES;
 
 const SORT_LABELS: Record<SortOption, string> = {
   trending: 'Trending',
@@ -114,7 +114,6 @@ export function SharedPromptsClient({
   const [publishingId, setPublishingId] = useState<string | null>(null);
 
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const router = useRouter();
 
   // Reset when server-side props change
   useEffect(() => {

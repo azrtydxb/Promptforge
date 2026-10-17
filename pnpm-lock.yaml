@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  prismjs: '>=1.30.0'
+
 importers:
 
   .:

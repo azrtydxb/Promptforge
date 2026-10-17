@@ -22,8 +22,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Prompt Manager",
-  description: "Organize your AI Prompts",
+  title: "Promptforge",
+  description: "Create, organize, version and share your AI prompts",
 };
 
 export default function RootLayout({

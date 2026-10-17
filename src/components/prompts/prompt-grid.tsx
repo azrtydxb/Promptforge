@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 
 export type PromptGridItem = Prompt & {
   tags: Tag[];
+  folder?: { id: string; name: string } | null;
+  agentPersona?: { id: string; name: string } | null;
   likeCount: number;
   isLikedByUser: boolean;
   _count?: {

@@ -1,0 +1,16 @@
+# Certificate for promptforge.directory. Paste next to the other per-host
+# Certificates in azrty-infra platform/gateway/gateway.yaml (DNS-01 via Route 53).
+#
+# Then also add the listener block (see README) to the Gateway "edge" spec.listeners.
+# promptforge.directory is NOT in the external-dns allowlist (azrty.com only), so
+# its A record stays wherever it is (AWS) until cutover is done by hand.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: promptforge-directory
+  namespace: envoy-gateway-system
+spec:
+  secretName: promptforge-directory-tls
+  issuerRef: { kind: ClusterIssuer, name: letsencrypt }
+  dnsNames: [promptforge.directory, www.promptforge.directory]
+  privateKey: { algorithm: ECDSA, size: 256, rotationPolicy: Always }

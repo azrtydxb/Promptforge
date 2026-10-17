@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: promptforge
+  namespace: promptforge
+  labels: { app: promptforge }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels: { app: promptforge }
+  template:
+    metadata:
+      labels: { app: promptforge }
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - { name: ghcr-pull }
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: promptforge
+          # Pinned by .github/workflows/oke-image.yml (placeholder until the first run).
+          image: ghcr.io/azrtydxb/promptforge@sha256:98a97b28cd72a42feac29453e7ceef5d829bb89d89b932891a0e1bac3423f9a9
+          ports:
+            - { name: http, containerPort: 3000 }
+          env:
+            - { name: NODE_ENV, value: production }
+            - { name: PORT, value: "3000" }
+            - { name: HOSTNAME, value: "0.0.0.0" }
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: { name: promptforge-pg-app, key: uri }
+          envFrom:
+            - secretRef: { name: promptforge-env }
+          startupProbe:
+            httpGet: { path: /api/health, port: http }
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet: { path: /api/health, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet: { path: /api/health, port: http }
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 1Gi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: promptforge
+  namespace: promptforge
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app: promptforge }

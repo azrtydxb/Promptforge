@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getPromptByIdRedis as getPromptById } from "@/app/actions/prompt.actions.redis";
 import { updatePrompt, createPrompt, updatePromptLastUsed } from "@/app/actions/prompt.actions";
+import { getPersonas } from "@/app/actions/persona.actions";
 import { EditorWithHistory } from "@/components/editor/editor-with-history";
 import type { Prompt, Tag, PromptVersion } from "@/generated/prisma";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -10,7 +11,6 @@ import { useAutoSaveDraft } from "@/hooks/use-auto-save-draft";
 import { SaveStatusIndicator } from "@/components/editor/save-status-indicator";
 import { DraftRecoveryDialog } from "@/components/editor/draft-recovery-dialog";
 import type { Draft } from "@/services/draft-storage";
-import { PromptHistoryTimeline } from "@/components/prompts/prompt-history-timeline";
 import { EnhancedTagInput } from "@/components/prompts/enhanced-tag-input";
 import {
   DropdownMenu,
@@ -20,15 +20,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, Save, ArrowLeft, Copy, Check, Share2, Eye, Split, Code2, Star, Pencil } from "lucide-react";
+import { ChevronDown, Save, ArrowLeft, Copy, Check, Star, Bot } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { TopbarPortal } from "@/components/layout/topbar-portal";
-import { TopbarTitle, TopbarNewButton } from "@/components/layout/topbar";
+import { TopbarNewButton } from "@/components/layout/topbar";
 import { useModal } from "@/hooks/use-modal-store";
 import { useSession } from "next-auth/react";
-import { MarkdownPreview } from "@/components/editor/markdown-preview";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FavoriteButton } from "@/components/prompts/favorite-button";
 
 // ── helper: highlight {{variables}} in prompt content ──────────────────────
@@ -60,11 +58,13 @@ export default function PromptPage({
   const [promptId, setPromptId] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState("Text");
   const [tags, setTags] = useState<string[]>([]);
+  const [personas, setPersonas] = useState<{ id: string; name: string }[]>([]);
+  const [personaId, setPersonaId] = useState<string>("");
+  const personaInitializedRef = useRef(false);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">("edit");
   const [isFavorited, setIsFavorited] = useState(false);
   const [showDraftRecovery, setShowDraftRecovery] = useState(false);
   const [recoveredDraft, setRecoveredDraft] = useState<Draft | null>(null);
@@ -159,6 +159,12 @@ export default function PromptPage({
         setTitle(fetchedPrompt?.title || "");
         setDescription(fetchedPrompt?.description || "");
         setTags(fetchedPrompt?.tags?.map(tag => tag.name) || []);
+        if (!personaInitializedRef.current) {
+          personaInitializedRef.current = true;
+          setPersonaId(
+            (fetchedPrompt as { agentPersonaId?: string | null } | null)?.agentPersonaId ?? ""
+          );
+        }
         // Set initial favorited state from DB
         if (fetchedPrompt) {
           const fp = fetchedPrompt as typeof fetchedPrompt & { favorites?: { id: string }[] };
@@ -227,6 +233,14 @@ export default function PromptPage({
     updatePrompt(promptId, { description: debouncedDescription });
   }, [debouncedDescription, promptId, prompt?.description, isCreateMode]);
 
+  useEffect(() => {
+    getPersonas()
+      .then((list) =>
+        setPersonas(list.map((p) => ({ id: p.id, name: p.name })))
+      )
+      .catch(() => setPersonas([]));
+  }, []);
+
   const handleSaveNewPrompt = async () => {
     if (!title.trim()) {
       alert("Please enter a title for the prompt");
@@ -293,23 +307,22 @@ export default function PromptPage({
     }
   };
 
-  const handleRestore = async () => {
-    if (!promptId) return;
-    try {
-      const fetchedPrompt = await getPromptById(promptId);
-      setPrompt(fetchedPrompt as (Prompt & { tags: Tag[], versions: PromptVersion[] }) | null);
-      setContent(fetchedPrompt?.content || "");
-    } catch (error) {
-      console.error('Error restoring prompt:', error);
-      alert('Failed to restore prompt version. Please try again.');
-    }
-  };
-
   const handleTagsChange = async (newTags: string[]) => {
     setTags(newTags);
     if (!isCreateMode && promptId) {
       // Update tags in real-time for edit mode
       await updatePrompt(promptId, { tags: newTags });
+    }
+  };
+
+  const handlePersonaChange = async (newPersonaId: string) => {
+    setPersonaId(newPersonaId);
+    if (!isCreateMode && promptId) {
+      try {
+        await updatePrompt(promptId, { agentPersonaId: newPersonaId || null });
+      } catch (error) {
+        console.error("Error updating persona:", error);
+      }
     }
   };
 
@@ -320,30 +333,6 @@ export default function PromptPage({
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy:", error);
-    }
-  };
-
-  const handleCopyAsMarkdown = async () => {
-    try {
-      // Format the prompt as markdown
-      const markdownContent = `# ${title}
-
-${description ? `> ${description}\n\n` : ''}## Prompt
-
-\`\`\`${selectedLanguage.toLowerCase()}
-${content}
-\`\`\`
-
-${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : ''}
-
----
-*Created with [PromptForge](${window.location.origin})*`;
-
-      await navigator.clipboard.writeText(markdownContent);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy as markdown:", error);
     }
   };
 
@@ -659,6 +648,41 @@ ${tags.length > 0 ? `\n## Tags\n\n${tags.map(tag => `- ${tag}`).join('\n')}` : '
                   <p className="text-[10px] font-[600] uppercase tracking-[0.05em] text-ink-400 mt-1">Favorites</p>
                 </div>
               </div>
+            </div>
+
+            {/* Agent persona card */}
+            <div className="bg-surface-card border border-line-200 rounded-[11px] p-5 mt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Bot className="h-3.5 w-3.5 text-accent-500" />
+                <span className="text-[13px] font-[620] text-ink-900">
+                  Agent persona
+                </span>
+              </div>
+              <select
+                value={personaId}
+                onChange={(e) => handlePersonaChange(e.target.value)}
+                className="w-full rounded-[7px] border border-line-200 bg-surface-muted px-2.5 py-1.5 text-[12.5px] text-ink-700 outline-none transition-colors focus:border-accent-500"
+              >
+                <option value="">No persona assigned</option>
+                {personas.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-[11px] leading-snug text-ink-400">
+                {personas.length === 0
+                  ? "Create personas in the Agent Personas section."
+                  : personaId
+                    ? "This prompt uses the selected persona's role and system prompt."
+                    : "Attach a persona to give this prompt a role and tone."}
+              </p>
+              <Link
+                href="/personas"
+                className="mt-2 inline-flex text-[11.5px] font-[550] text-accent-700 transition-colors hover:text-accent-500"
+              >
+                Manage personas →
+              </Link>
             </div>
 
             {/* Version history card */}
