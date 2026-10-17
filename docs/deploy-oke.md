@@ -5,8 +5,8 @@ existing AWS ECS deployment. The same image and code serve both.
 
 |              | ECS                                                         | OKE                                                                                                     |
 | ------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Public URL   | (ECS ALB)                                                   | https://promptforge.azrty.com                                                                           |
-| Image        | ECR `promptforge`, amd64, `.github/workflows/deploy.yml`    | OCIR `dxb.ocir.io/axmcgpqk0w0z/azrty/promptforge`, amd64 + arm64, `.github/workflows/oke-image.yml`       |
+| Public URL   | https://promptforge.directory (AWS)                         | https://promptforge.directory (OKE; DNS cutover manual)                                                  |
+| Image        | ECR `promptforge`, amd64, `.github/workflows/deploy.yml`    | GHCR `ghcr.io/azrtydxb/promptforge`, amd64 + arm64, `.github/workflows/oke-image.yml`                    |
 | Manifests    | (ECS task definition)                                       | `deploy/kuvryn-sync/oke/` (Kuvryn Sync applies them)                                                     |
 | Database     | AWS RDS                                                     | CloudNativePG `promptforge-pg` (secret `promptforge-pg-app`, key `uri`)                                  |
 | Secrets      | AWS Secrets Manager                                         | SOPS-managed secrets in `azrty-infra/platform/tenants/promptforge/`                                      |
@@ -31,7 +31,7 @@ kubectl -n promptforge run psql --rm -i --restart=Never --image=postgres:16 \
 ```
 
 The mockup seed can be run the same way with the builder image
-(`dxb.ocir.io/axmcgpqk0w0z/azrty/promptforge:migrate`), tag `migrate` when needed.
+(`ghcr.io/azrtydxb/promptforge:migrate`), tag `migrate` when needed.
 
 ## What lives where
 
@@ -41,7 +41,8 @@ The mockup seed can be run the same way with the builder image
 
 ## Go-live checklist
 
-1. Add GitHub repo secrets `OCIR_USERNAME` / `OCIR_TOKEN` (OCIR push auth).
+1. (No image secret needed: the OKE image workflow pushes with the built-in
+   `GITHUB_TOKEN`; make the GHCR package public or add a `ghcr-pull` secret.)
 2. Merge `deploy/kuvryn-sync/oke/` to `main`; the **OKE image** workflow builds the
    multi-arch image and pins its digest in `deployment.yaml`.
 3. Move `deploy/oke/azrty-infra/*` into `azrty-infra` (`platform/tenants/promptforge/`

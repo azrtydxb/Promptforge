@@ -1,4 +1,4 @@
-# Tenant "promptforge" (promptforge.azrty.com): namespace, a namespace-scoped
+# Tenant "promptforge" (promptforge.directory): namespace, a namespace-scoped
 # deployer and the Kuvryn Sync objects that deploy deploy/kuvryn-sync/oke from the
 # Promptforge repo. The app repo owns its workloads; this repo owns the namespace,
 # permissions, database, secrets and the gateway listener/certificate.

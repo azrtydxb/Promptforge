@@ -1,6 +1,8 @@
 # Served on the shared OKE gateway ("edge" in envoy-gateway-system). The listener
-# and its certificate for promptforge.azrty.com are owned by azrty-infra
+# and its certificate for promptforge.directory are owned by azrty-infra
 # (platform/gateway/gateway.yaml) — see deploy/oke/azrty-infra/README.md.
+# NOTE: external-dns on OKE is filtered to azrty.com, so it will NOT change the
+# live promptforge.directory records (currently AWS). DNS cutover is manual.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -8,8 +10,8 @@ metadata:
   namespace: promptforge
 spec:
   parentRefs:
-    - { name: edge, namespace: envoy-gateway-system, sectionName: promptforge-azrty-com }
-  hostnames: [promptforge.azrty.com]
+    - { name: edge, namespace: envoy-gateway-system, sectionName: promptforge-directory }
+  hostnames: [promptforge.directory]
   rules:
     - backendRefs:
         - { name: promptforge, port: 80 }

@@ -77,3 +77,6 @@ scripts/
 # seed.ts is kept in the build context so the :migrate image (builder stage) can run it;
 # the distroless runtime image copies only schema.prisma, so seed.ts is never shipped.
 prisma/migrations/
+
+# Agent Manager worktrees (not part of the app)
+.claude/

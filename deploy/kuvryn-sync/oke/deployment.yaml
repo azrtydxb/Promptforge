@@ -15,7 +15,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       imagePullSecrets:
-        - { name: ocir-pull }
+        - { name: ghcr-pull }
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -24,7 +24,7 @@ spec:
       containers:
         - name: promptforge
           # Pinned by .github/workflows/oke-image.yml (placeholder until the first run).
-          image: dxb.ocir.io/axmcgpqk0w0z/azrty/promptforge@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          image: ghcr.io/azrtydxb/promptforge@sha256:98a97b28cd72a42feac29453e7ceef5d829bb89d89b932891a0e1bac3423f9a9
           ports:
             - { name: http, containerPort: 3000 }
           env:

@@ -16,14 +16,14 @@ The certificate object is in `gateway-certificate.yaml`. Add the matching listen
 to the `edge` Gateway (`platform/gateway/gateway.yaml`, `spec.listeners`):
 
 ```yaml
-  - name: promptforge-azrty-com
+  - name: promptforge-directory
     protocol: HTTPS
     port: 443
-    hostname: promptforge.azrty.com
+    hostname: promptforge.directory
     tls:
       mode: Terminate
       certificateRefs:
-      - {kind: Secret, name: promptforge-azrty-com-tls}
+      - {kind: Secret, name: promptforge-directory-tls}
     allowedRoutes:
       namespaces:
         from: Selector
@@ -31,9 +31,9 @@ to the `edge` Gateway (`platform/gateway/gateway.yaml`, `spec.listeners`):
           matchLabels: {kubernetes.io/metadata.name: promptforge}
 ```
 
-ExternalDNS only creates A records for allow-listed names (`oci/route53-access`,
-`external_dns_names`). Add `promptforge.azrty.com` there (OpenTofu apply) or the
-record will not appear.
+ExternalDNS on OKE is filtered to `azrty.com` (`--domain-filter=azrty.com`), so it
+will **not** manage `promptforge.directory`. The domain currently points at the
+live AWS deployment; the cutover to the OKE load balancer is a manual DNS change.
 
 ## 2. SOPS secrets (create in `platform/tenants/promptforge/`)
 
@@ -43,8 +43,8 @@ tenants). Create each with `sops` after copying a sibling tenant's file as a tem
 | Secret                    | Type                              | Keys                                                                 |
 | ------------------------- | --------------------------------- | -------------------------------------------------------------------- |
 | `promptforge-sync-git`    | `Opaque`                          | git credentials for Kuvryn Sync pulling `azrtydxb/Promptforge`        |
-| `ocir-pull`               | `kubernetes.io/dockerconfigjson`  | `.dockerconfigjson` for `dxb.ocir.io`                                |
-| `promptforge-env`         | `Opaque`                          | `NEXTAUTH_SECRET`, `NEXTAUTH_URL=https://promptforge.azrty.com`, `NEXT_PUBLIC_APP_URL`, plus SMTP/OAuth/provider keys as needed |
+| `ghcr-pull`               | `kubernetes.io/dockerconfigjson`  | `.dockerconfigjson` for `ghcr.io` (omit if the package is public)     |
+| `promptforge-env`         | `Opaque`                          | `NEXTAUTH_SECRET`, `NEXTAUTH_URL=https://promptforge.directory`, `NEXT_PUBLIC_APP_URL`, plus SMTP/OAuth/provider keys as needed |
 | `pg-backup-credentials`   | `Opaque`                          | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY`, `REGION` (OCI Object Storage)   |
 
 The database URL comes from CNPG: `promptforge-pg-app` (key `uri`) is created
@@ -66,7 +66,9 @@ kubectl -n promptforge get pods
 
 ## Notes / decisions to confirm
 
-- **Hostname**: assumed `promptforge.azrty.com`; change `httproute.yaml` (app repo),
-  the listener, the certificate and the ExternalDNS allowlist if different.
+- **Hostname**: `promptforge.directory` (already live on AWS); change
+  `httproute.yaml` (app repo), the listener and the certificate if different.
+- **Cutover**: OKE will not take over DNS automatically (external-dns is
+  filtered to azrty.com); point the A record at the OKE LB when ready.
 - **Coexistence**: this runs alongside ECS; `deploy.yml` (ECR/ECS) is untouched.
 - **Schema**: apply out-of-band (see the app repo `docs/deploy-oke.md`).
