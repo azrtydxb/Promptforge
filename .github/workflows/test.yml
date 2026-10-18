@@ -82,7 +82,15 @@ jobs:
       run: |
         npx prisma generate
         npx prisma db push --skip-generate
-    
+
+    # The e2e specs sign in as alex@growth.co / promptforge, which only
+    # prisma/seed-mockup.ts creates. Without this seed the login never
+    # redirects and every authenticated spec times out.
+    - name: Seed mockup data
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/promptforge_test
+      run: pnpm run db:seed-mockup
+
     - name: Run Playwright tests
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/promptforge_test
