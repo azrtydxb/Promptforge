@@ -25,7 +25,7 @@ env:
 
 jobs:
   image:
-    runs-on: arc-azrtydxb-publish
+    runs-on: arc-azrtydxb
     # arm64-native build (OKE nodes are ARM64); a QEMU emulated leg breaks
     # Prisma's WASM schema validation under Node 26.
     timeout-minutes: 90
