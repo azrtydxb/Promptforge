@@ -33,7 +33,7 @@ spec:
             - { name: HOSTNAME, value: "0.0.0.0" }
             - name: DATABASE_URL
               valueFrom:
-                secretKeyRef: { name: promptforge-pg-app, key: uri }
+                secretKeyRef: { name: promptforge-pg-shared, key: uri }
           envFrom:
             - secretRef: { name: promptforge-env }
           startupProbe:
