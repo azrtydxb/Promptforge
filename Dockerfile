@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ----- Stage 1: Builder -----
-FROM node:20-slim AS builder
+FROM node:26-slim AS builder
 WORKDIR /app
 
 # Install OpenSSL for Prisma, curl + bash for the pnpm install script, ca-certificates
