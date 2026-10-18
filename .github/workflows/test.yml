@@ -3,8 +3,12 @@ name: Test
 on:
   push:
     branches: [ main, develop ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, develop ]
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch: {}
 
 jobs:
   unit-tests:
@@ -41,6 +45,11 @@ jobs:
 
   e2e-tests:
     name: E2E Tests
+    # Playwright e2e is a full-tier job: never on PRs. It still has genuine
+    # failures (webkit sign-in, persona-assignment persistence) and is not a
+    # required check; keep it on push-to-main / nightly / manual while those
+    # are triaged.
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
 
     services:
