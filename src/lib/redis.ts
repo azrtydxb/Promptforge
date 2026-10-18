@@ -12,7 +12,14 @@ const redisConfig = {
   db: 0,
 
   // Connection settings
-  lazyConnect: false, // Connect immediately on initialization (FIX B: connection pooling)
+  // NOT eager. With REDIS_ENABLED=false this app is meant to run without Redis, but
+  // not every caller checks isRedisEnabled() before constructing the client --
+  // monitoring.getRedisMetrics() calls getRedisClient() unconditionally -- so an
+  // eager client dials localhost:6379 and ioredis then reconnects forever, flooding
+  // the logs with ECONNREFUSED. Lazy connect keeps that harmless: the client only
+  // dials when a command is actually issued, and initRedis() still calls connect()
+  // explicitly when Redis is enabled, so the enabled path is unchanged.
+  lazyConnect: true,
   keepAlive: 30000,
   family: 4, // IPv4
   connectTimeout: 10000,
