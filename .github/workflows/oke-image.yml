@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE: ghcr.io/azrtydxb/promptforge
+  IMAGE: ghcr.io/azrtydxb/promptforge-oke
   MANIFEST: deploy/kuvryn-sync/oke/deployment.yaml
 
 jobs:
