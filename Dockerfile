@@ -11,7 +11,7 @@ RUN apt-get update && \
 
 # Install pnpm via corepack (bundled with Node) — reliable, no PATH / native-lib issues.
 # Pinned to pnpm 9.x to match pnpm-lock.yaml (lockfileVersion 9.0).
-RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+RUN npm install -g corepack@0.36.0 && corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
