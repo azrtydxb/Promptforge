@@ -24,7 +24,7 @@ spec:
       containers:
         - name: promptforge
           # Pinned by .github/workflows/oke-image.yml (placeholder until the first run).
-          image: ghcr.io/azrtydxb/promptforge-oke@sha256:dcc225969bfc06358739a6bb81efa37e3953d8c53e6725633a6332827407a030
+          image: ghcr.io/azrtydxb/promptforge-oke@sha256:d177d9f30d624f69ba5e8eb4f8fb5a664fd1b590e1072b7672c5b98748eef651
           ports:
             - { name: http, containerPort: 3000 }
           env:
