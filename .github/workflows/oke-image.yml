@@ -32,12 +32,18 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
+      # The runner pod's rootless BuildKit sidecar (native arm64); it pushes with
+      # the docker CLI's credentials, so both logins below must run in this job.
+      - id: builder
+        uses: azrtydxb/.github/actions/setup-builder@d021f2ca9fa3d6682085a7d069b7c8b1dc7b9b80 # main
       - id: ant
         uses: azrtydxb/ant-setup-action@549f7472cf26b0885441ed9f9a7fab0277545000 # v1
         with:
           build-cache: "true"
           cache-name: oke
-      - uses: docker/setup-buildx-action@v4
+          # The arch of the image, not of the runner the job happens to run on.
+          arch-suffix: arm64
+          docker-login: "true"
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -48,6 +54,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v7
         with:
+          builder: ${{ steps.builder.outputs.name }}
           context: .
           file: ./Dockerfile
           platforms: linux/arm64
