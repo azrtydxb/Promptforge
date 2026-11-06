@@ -83,7 +83,7 @@ export async function ratePrompt(
     logger.error("Failed to rate prompt", { _error, sharedPromptId });
 
     if (_error instanceof z.ZodError) {
-      return { success: false, error: _error.errors[0].message };
+      return { success: false, error: _error.issues[0].message };
     }
 
     return { success: false, error: "Failed to rate prompt" };

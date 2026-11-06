@@ -160,7 +160,7 @@ export async function moderatePrompt(input: z.infer<typeof moderatePromptSchema>
     logger.error("Failed to moderate prompt", { _error });
 
     if (_error instanceof z.ZodError) {
-      return { success: false, error: _error.errors[0].message };
+      return { success: false, error: _error.issues[0].message };
     }
 
     return { success: false, error: "Failed to moderate prompt" };
@@ -223,7 +223,7 @@ export async function createModerationRule(input: z.infer<typeof createRuleSchem
     logger.error("Failed to create moderation rule", { _error });
 
     if (_error instanceof z.ZodError) {
-      return { success: false, error: _error.errors[0].message };
+      return { success: false, error: _error.issues[0].message };
     }
 
     return { success: false, error: "Failed to create moderation rule" };

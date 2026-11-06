@@ -14,7 +14,7 @@ export class ValidationError extends Error {
 
 export function handleZodError(error: unknown): ValidationError {
   if (error instanceof ZodError) {
-    const details = error.errors.map(err => ({
+    const details = error.issues.map(err => ({
       field: err.path.join('.'),
       message: err.message,
     }));
@@ -44,7 +44,7 @@ export function withValidation<T>(
     } catch (error) {
       if (error instanceof ZodError) {
         logger.warn('Validation error', {
-          errors: error.errors,
+          errors: error.issues,
           path: request.url,
         });
         
@@ -52,7 +52,7 @@ export function withValidation<T>(
           {
             success: false,
             error: 'Validation failed',
-            details: error.errors.map(err => ({
+            details: error.issues.map(err => ({
               field: err.path.join('.'),
               message: err.message,
             })),
@@ -109,7 +109,7 @@ export function validateQueryParams<T>(
     if (error instanceof ZodError) {
       throw new ValidationError(
         'Query parameter validation failed',
-        error.errors.map(err => ({
+        error.issues.map(err => ({
           field: err.path.join('.'),
           message: err.message,
         }))
@@ -135,7 +135,7 @@ export function validateBatch<T>(
       if (error instanceof ZodError) {
         errors.push({
           index,
-          error: error.errors.map(e => e.message).join(', ')
+          error: error.issues.map(e => e.message).join(', ')
         });
       }
     }

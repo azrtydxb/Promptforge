@@ -126,7 +126,7 @@ export async function saveDraft(input: z.infer<typeof draftSchema>) {
     logger.error("Failed to save draft", { _error });
 
     if (_error instanceof z.ZodError) {
-      return { success: false, error: _error.errors[0].message };
+      return { success: false, error: _error.issues[0].message };
     }
 
     return { success: false, error: "Failed to save draft" };

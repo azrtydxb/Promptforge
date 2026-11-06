@@ -185,7 +185,7 @@ export async function createCollection(
     logger.error("Failed to create collection", { _error });
 
     if (_error instanceof z.ZodError) {
-      return { success: false, error: _error.errors[0].message };
+      return { success: false, error: _error.issues[0].message };
     }
 
     return { success: false, error: "Failed to create collection" };
@@ -245,7 +245,7 @@ export async function updateCollection(
     logger.error("Failed to update collection", { _error, collectionId });
 
     if (_error instanceof z.ZodError) {
-      return { success: false, error: _error.errors[0].message };
+      return { success: false, error: _error.issues[0].message };
     }
 
     return { success: false, error: "Failed to update collection" };
