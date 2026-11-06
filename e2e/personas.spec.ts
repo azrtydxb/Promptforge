@@ -1,10 +1,23 @@
 import { test, expect, type Page } from '@playwright/test'
 
-// The dev server compiles each route on first hit, and a click or fill that
-// lands before the page has hydrated is lost (WebKit most often: sign-in and
-// create persona then time out). Let the page settle before driving it.
+// The dev server compiles each route on first hit, and a fill or click that
+// lands before React has hydrated the page is lost: hydration re-renders the
+// controlled inputs from their empty state, so a value typed too early is wiped
+// and a form submit is blocked by the then-empty required field. "networkidle"
+// does not mean hydrated (WebKit on a loaded runner reaches it first), so wait
+// for React to have attached to every control on the page.
 async function settle(page: Page) {
   await page.waitForLoadState('networkidle')
+  await page.waitForFunction(
+    () =>
+      Array.from(
+        document.querySelectorAll('input, textarea, select, button')
+      )
+        .filter((el) => !el.closest('nextjs-portal'))
+        .every((el) => Object.keys(el).some((k) => k.startsWith('__reactProps$'))),
+    undefined,
+    { timeout: 30000 }
+  )
 }
 
 async function login(page: Page) {
