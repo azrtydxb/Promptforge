@@ -24,7 +24,7 @@ spec:
       containers:
         - name: promptforge
           # OCIR, linux/arm64. Pinned by .github/workflows/oke-image.yml.
-          image: dxb.ocir.io/axmcgpqk0w0z/azrty/promptforge@sha256:PLACEHOLDER
+          image: dxb.ocir.io/axmcgpqk0w0z/azrty/promptforge@sha256:9f8d8f571f5fd1a05550abddd180a4775c58b9fc43710e5bc1abc8faa5cadcb1
           ports:
             - { name: http, containerPort: 3000 }
           env:
