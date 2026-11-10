@@ -43,7 +43,7 @@ tenants). Create each with `sops` after copying a sibling tenant's file as a tem
 | Secret                    | Type                              | Keys                                                                 |
 | ------------------------- | --------------------------------- | -------------------------------------------------------------------- |
 | `promptforge-sync-git`    | `Opaque`                          | git credentials for Kuvryn Sync pulling `azrtydxb/Promptforge`        |
-| `ghcr-pull`               | `kubernetes.io/dockerconfigjson`  | `.dockerconfigjson` for `ghcr.io` (omit if the package is public)     |
+| `ocir-pull`               | `kubernetes.io/dockerconfigjson`  | `.dockerconfigjson` for `dxb.ocir.io` (read-only pull identity)       |
 | `promptforge-env`         | `Opaque`                          | `NEXTAUTH_SECRET`, `NEXTAUTH_URL=https://promptforge.directory`, `NEXT_PUBLIC_APP_URL`, plus SMTP/OAuth/provider keys as needed |
 | `pg-backup-credentials`   | `Opaque`                          | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY`, `REGION` (OCI Object Storage)   |
 

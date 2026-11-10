@@ -15,7 +15,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       imagePullSecrets:
-        - { name: ghcr-pull }
+        - { name: ocir-pull }
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -23,8 +23,8 @@ spec:
         seccompProfile: { type: RuntimeDefault }
       containers:
         - name: promptforge
-          # Pinned by .github/workflows/oke-image.yml (placeholder until the first run).
-          image: ghcr.io/azrtydxb/promptforge-oke@sha256:8fbb43c6590d3952543d7f9f6ae20deb4cd78669998fc5eef8241526ecf7d9e9
+          # OCIR, linux/arm64. Pinned by .github/workflows/oke-image.yml.
+          image: dxb.ocir.io/axmcgpqk0w0z/azrty/promptforge@sha256:9f8d8f571f5fd1a05550abddd180a4775c58b9fc43710e5bc1abc8faa5cadcb1
           ports:
             - { name: http, containerPort: 3000 }
           env:
@@ -36,6 +36,9 @@ spec:
                 secretKeyRef: { name: promptforge-pg-shared, key: uri }
           envFrom:
             - secretRef: { name: promptforge-env }
+            # OIDC client at login.azrty.com (ZITADEL_ISSUER, _CLIENT_ID, _CLIENT_SECRET),
+            # written by the zitadel-config runner in azrty-infra.
+            - secretRef: { name: promptforge-oidc }
           startupProbe:
             httpGet: { path: /api/health, port: http }
             periodSeconds: 5

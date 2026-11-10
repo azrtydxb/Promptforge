@@ -1,16 +1,17 @@
 # Deploying Promptforge on OKE
 
-Promptforge runs on OKE (Oracle Kubernetes Engine, ARM64 nodes) alongside the
-existing AWS ECS deployment. The same image and code serve both.
+Promptforge runs on OKE (Oracle Kubernetes Engine, ARM64 nodes). The former AWS ECS
+deployment (and its `deploy.yml` workflow) is retired.
 
-|              | ECS                                                         | OKE                                                                                                     |
-| ------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Public URL   | https://promptforge.directory (AWS)                         | https://promptforge.directory (OKE; DNS cutover manual)                                                  |
-| Image        | ECR `promptforge`, amd64, `.github/workflows/deploy.yml`    | GHCR `ghcr.io/azrtydxb/promptforge`, amd64 + arm64, `.github/workflows/oke-image.yml`                    |
-| Manifests    | (ECS task definition)                                       | `deploy/kuvryn-sync/oke/` (Kuvryn Sync applies them)                                                     |
-| Database     | AWS RDS                                                     | CloudNativePG `promptforge-pg` (secret `promptforge-pg-app`, key `uri`)                                  |
-| Secrets      | AWS Secrets Manager                                         | SOPS-managed secrets in `azrty-infra/platform/tenants/promptforge/`                                      |
-| GitOps       | —                                                           | Kuvryn Sync `Repository` + `Application` (`azrty-infra/platform/tenants/promptforge/tenant.yaml`)        |
+|              | OKE                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| Public URL   | https://promptforge.directory                                                                            |
+| Image        | OCIR `dxb.ocir.io/axmcgpqk0w0z/azrty/promptforge`, linux/arm64 cross-compiled from `Dockerfile.oke` (no QEMU), `.github/workflows/oke-image.yml` pins the digest through an auto-merging PR |
+| Sign-in      | Zitadel at login.azrty.com; the client is written to secret `promptforge-oidc` by azrty-infra's zitadel-config |
+| Manifests | `deploy/kuvryn-sync/oke/` (Kuvryn Sync applies them) |
+| Database | CloudNativePG `promptforge-pg` (secret `promptforge-pg-app`, key `uri`) |
+| Secrets | SOPS-managed secrets in `azrty-infra/platform/tenants/promptforge/` |
+| GitOps | Kuvryn Sync `Repository` + `Application` (`azrty-infra/platform/tenants/promptforge/tenant.yaml`) |
 
 ## Runtime
 
@@ -31,7 +32,7 @@ kubectl -n promptforge run psql --rm -i --restart=Never --image=postgres:16 \
 ```
 
 The mockup seed can be run the same way with the builder image
-(`ghcr.io/azrtydxb/promptforge:migrate`), tag `migrate` when needed.
+(`docker build --target builder -f Dockerfile.oke`), when needed.
 
 ## What lives where
 
@@ -41,10 +42,10 @@ The mockup seed can be run the same way with the builder image
 
 ## Go-live checklist
 
-1. (No image secret needed: the OKE image workflow pushes with the built-in
-   `GITHUB_TOKEN`; make the GHCR package public or add a `ghcr-pull` secret.)
+1. The image workflow needs the repository secrets `OCIR_USERNAME`, `OCIR_TOKEN` and `SYNC_TOKEN`; the
+   namespace needs the `ocir-pull` secret (azrty-infra).
 2. Merge `deploy/kuvryn-sync/oke/` to `main`; the **OKE image** workflow builds the
-   multi-arch image and pins its digest in `deployment.yaml`.
+   arm64 image and pins its digest in `deployment.yaml`.
 3. Move `deploy/oke/azrty-infra/*` into `azrty-infra` (`platform/tenants/promptforge/`
    + `platform/apps/tenant-promptforge.yaml`) and add the gateway listener.
 4. Create the SOPS secrets (see `deploy/oke/azrty-infra/README.md`).
