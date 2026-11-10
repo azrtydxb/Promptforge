@@ -1,0 +1,79 @@
+# syntax=docker/dockerfile:1.7
+
+# OKE image (linux/arm64). Cross-compiled, never emulated: every RUN is in the builder
+# stage, which runs on $BUILDPLATFORM (the amd64 CI host); the runtime stage only COPYs.
+# The arm64 native pieces are fetched, not built:
+#   - Prisma: schema.prisma lists binaryTargets linux-arm64-openssl-3.0.x, so `prisma
+#     generate` downloads the arm64 query engine alongside the host one.
+#   - sharp (next/image): pnpm installs the arm64 @img packages too (supportedArchitectures
+#     below) and they are swapped into the standalone output in place of the host ones.
+# The Dockerfile (amd64) is unchanged.
+
+# ----- Stage 1: Builder (runs on the build host) -----
+FROM --platform=$BUILDPLATFORM node:26-slim AS builder
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openssl curl ca-certificates bash libatomic1 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Pinned to pnpm 9.x to match pnpm-lock.yaml (lockfileVersion 9.0).
+RUN npm install -g corepack@0.36.0 && corepack enable && corepack prepare pnpm@9.15.9 --activate
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Install the packages of both architectures: x64 runs the build (SWC, esbuild, Prisma CLI),
+# arm64 supplies the native modules that ship in the image.
+RUN node -e 'const fs=require("fs");const p=JSON.parse(fs.readFileSync("package.json"));p.pnpm={...p.pnpm,supportedArchitectures:{os:["linux"],cpu:["x64","arm64"],libc:["glibc"]}};fs.writeFileSync("package.json",JSON.stringify(p,null,2))'
+
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+
+COPY . .
+
+RUN pnpm prisma generate
+
+# A placeholder DATABASE_URL is set ONLY for the build: Next.js constructs the Prisma client
+# while collecting page data. No queries run at build time. The real values are injected at
+# runtime from the promptforge-env, promptforge-oidc and promptforge-pg-shared secrets.
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public"
+ENV NEXTAUTH_SECRET="build-time-placeholder-not-used-at-runtime"
+ENV NEXTAUTH_URL="http://localhost:3000"
+RUN pnpm build
+
+# Make the standalone output linux/arm64: swap the host (x64) sharp packages for the arm64
+# ones, and drop the host Prisma query engine. Fails the build if an arm64 piece is missing.
+RUN set -eu; \
+    P=/app/node_modules/.pnpm; S=/app/.next/standalone/node_modules/.pnpm; \
+    sharp=$(ls -d "$S"/sharp@* | head -n 1); \
+    for pkg in sharp-linux-arm64 sharp-libvips-linux-arm64; do \
+      src=$(ls -d "$P"/@img+"$pkg"@* | head -n 1); \
+      cp -a "$src" "$S/$(basename "$src")"; \
+      ln -sfn "../../../$(basename "$src")/node_modules/@img/$pkg" "$sharp/node_modules/@img/$pkg"; \
+    done; \
+    rm -rf "$S"/@img+sharp-linux-x64* "$S"/@img+sharp-libvips-linux-x64* \
+           "$sharp"/node_modules/@img/sharp-linux-x64 "$sharp"/node_modules/@img/sharp-libvips-linux-x64; \
+    test -e /app/src/generated/prisma/libquery_engine-linux-arm64-openssl-3.0.x.so.node; \
+    rm -f /app/src/generated/prisma/libquery_engine-debian-openssl-3.0.x.so.node; \
+    rm -rf .next/cache
+
+# ----- Stage 2: Runtime (distroless, target platform; COPY only, no RUN) -----
+FROM gcr.io/distroless/nodejs20-debian12
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+COPY --from=builder --chown=1000:1000 /app/.next/standalone ./
+COPY --from=builder --chown=1000:1000 /app/.next/static ./.next/static
+COPY --from=builder --chown=1000:1000 /app/public ./public
+COPY --from=builder --chown=1000:1000 /app/src/generated/prisma ./src/generated/prisma
+COPY --from=builder --chown=1000:1000 /app/prisma/schema.prisma ./prisma/schema.prisma
+
+USER 1000
+EXPOSE 3000
+
+CMD ["server.js"]

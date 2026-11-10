@@ -7,6 +7,8 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+  // "native" is the build host; linux-arm64 is the OKE image (Dockerfile.oke cross-compiles).
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
 }
 
 datasource db {

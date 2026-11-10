@@ -1,96 +1,133 @@
 name: OKE image
 
-# Builds the Promptforge image for linux/amd64 + linux/arm64 (OKE nodes are ARM64),
-# pushes it to GHCR and pins the new digest in deploy/kuvryn-sync/oke/deployment.yaml
-# in a follow-up commit. Kuvryn Sync on the OKE cluster deploys that commit.
-# (Pushes made with GITHUB_TOKEN do not trigger workflows, so the pin commit does
-# not loop.) Independent of deploy.yml, which keeps deploying ECS.
+# Builds the Promptforge image for linux/arm64 (OKE nodes are ARM64) on a GitHub-hosted
+# amd64 runner (the repository is public, so it does not use the self-hosted runners): the
+# build stage of Dockerfile.oke runs on the build host and the runtime stage only COPYs, so
+# arm64 is cross-compiled, never emulated (no QEMU). The image goes to OCIR. On pull requests it is pushed as
+# pr-<sha> (proves the build, gives a deployable digest). On main it is pushed as sha-<sha>/latest and the new digest is pinned in
+# deploy/kuvryn-sync/oke/deployment.yaml through an auto-merging pull request, opened as the
+# Kuvryn Sync deployer (SYNC_TOKEN) so its `gate` run starts without approval. Kuvryn Sync
+# on the OKE cluster deploys the merged commit.
 on:
   push:
     branches: [main]
-    paths-ignore: ["deploy/kuvryn-sync/**", "deploy/oke/**", "docs/**", "**/*.md"]
+    paths-ignore: ["deploy/kuvryn-sync/**", "docs/**", "**/*.md"]
+  pull_request:
+    paths-ignore: ["deploy/kuvryn-sync/**", "docs/**", "**/*.md"]
   workflow_dispatch:
 
 permissions:
   contents: write
-  packages: write
-  id-token: write # Kuvryn Ant OIDC (azrtydxb/ant-setup-action)
-
-concurrency:
-  group: oke-image-${{ github.ref }}
-  cancel-in-progress: false
+  pull-requests: write
 
 env:
-  IMAGE: ghcr.io/azrtydxb/promptforge-oke
+  IMAGE: dxb.ocir.io/axmcgpqk0w0z/azrty/promptforge
   MANIFEST: deploy/kuvryn-sync/oke/deployment.yaml
 
 jobs:
   image:
-    runs-on: ubuntu-24.04-arm
-    # arm64-native build (OKE nodes are ARM64) on GitHub's native arm64 runner;
-    # an emulated leg breaks Prisma's WASM schema validation under Node 26.
+    # Same-repo pull requests only: forks and Dependabot get no OCIR secrets.
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
-      # Buildx pushes with the docker CLI's credentials, so both logins below
-      # must run in this job.
-      - uses: docker/setup-buildx-action@v4
-      - id: ant
-        uses: azrtydxb/ant-setup-action@v1
         with:
-          build-cache: "true"
-          cache-name: oke
-          # The arch of the image, not of the runner the job happens to run on.
-          arch-suffix: arm64
-          docker-login: "true"
-      - name: Log in to GHCR
+          # The pin step compares this commit with the history of main.
+          fetch-depth: 0
+      # docker-container driver: BuildKit on the runner, native amd64, no QEMU.
+      - uses: docker/setup-buildx-action@v4
+      - name: Log in to OCIR
         uses: docker/login-action@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push
+          registry: dxb.ocir.io
+          username: ${{ secrets.OCIR_USERNAME }}
+          password: ${{ secrets.OCIR_TOKEN }}
+      - name: Image tags
+        id: tags
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            echo "list=${IMAGE}:pr-${PR_SHA}" >> "$GITHUB_OUTPUT"
+          else
+            printf 'list=%s\n' "${IMAGE}:sha-${GITHUB_SHA},${IMAGE}:latest" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build and push (linux/arm64)
         id: build
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./Dockerfile
+          file: Dockerfile.oke
+          cache-from: type=gha,scope=oke-image
+          cache-to: type=gha,scope=oke-image,mode=max
           platforms: linux/arm64
           push: true
           provenance: false
-          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          cache-from: ${{ steps.ant.outputs.cache-from }}
-          cache-to: ${{ steps.ant.outputs.cache-to }}
-          tags: |
-            ${{ env.IMAGE }}:sha-${{ github.sha }}
-            ${{ env.IMAGE }}:latest
-      - name: Pin digest in the deploy manifest
+          sbom: false
+          tags: ${{ steps.tags.outputs.list }}
+      - name: Image digest
+        run: echo "pushed ${IMAGE}@${{ steps.build.outputs.digest }}"
+      - name: Install gh CLI
+        if: github.event_name != 'pull_request'
+        run: command -v gh >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq gh; }
+      - name: Pin digest in the deploy manifest (pull request)
+        if: github.event_name != 'pull_request'
         env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN }}
           DIGEST: ${{ steps.build.outputs.digest }}
-          # main's ruleset lets a deploy key bypass the required checks, which the
-          # GitHub Actions token cannot be granted (it was refused with GH006). SSH
-          # over 443 keeps the push working from the runner's restricted egress.
-          DEPLOY_KEY: ${{ secrets.PROMPTFORGE_DEPLOY_KEY }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
         run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          printf 'Host github.com\n  HostName ssh.github.com\n  Port 443\n  User git\n  IdentityFile ~/.ssh/deploy_key\n  StrictHostKeyChecking accept-new\n' > ~/.ssh/config
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Rebuilt from origin on every attempt: a concurrent push only moves main.
-          for attempt in 1 2 3; do
-            git fetch --quiet origin "${GITHUB_REF_NAME}"
-            git reset --hard --quiet "origin/${GITHUB_REF_NAME}"
-            sed -i -E "s|(image: ${IMAGE})[@:][^[:space:]]*|\1@${DIGEST}|" "$MANIFEST"
-            if git diff --quiet; then echo "manifest already pinned"; exit 0; fi
-            git commit -qam "deploy: promptforge ${DIGEST:7:12} [skip ci]"
-            if git push --quiet "git@github.com:${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"; then
-              echo "pinned ${DIGEST} on ${GITHUB_REF_NAME}"
+          PIN_BRANCH="deploy/pin-${DIGEST:7:12}"
+          # main may have moved while the image built (other pushes, other
+          # pins). Never rebase an old edit of the manifest: fetch main, reset
+          # onto it, pin again and push the pin branch; retry when that push
+          # loses a race. The pin lands as a PR (the org ruleset requires a PR
+          # and the `gate` check); auto-merge squashes it once the check passes.
+          for attempt in 1 2 3 4 5; do
+            git fetch --quiet origin "$BRANCH"
+            if ! git merge-base --is-ancestor "$SHA" "origin/$BRANCH"; then
+              echo "$SHA is no longer on $BRANCH; not pinning"
               exit 0
             fi
-            echo "push rejected, rebuilding from origin (attempt $attempt)"
-            sleep 5
+            # The newest commit on main that this workflow builds (the push
+            # filter's paths). If this build does not contain it, a newer run
+            # pins a newer image, and an older image must never overwrite that
+            # pin. It may be an ancestor of SHA: a push whose last commit only
+            # touches deploy/ or docs/ still builds the earlier code commits.
+            newest=$(git log -1 --format=%H "origin/$BRANCH" -- . \
+              ':(exclude)deploy/kuvryn-sync/**' ':(exclude)docs/**' \
+              ':(exclude,glob)**/*.md')
+            if ! git merge-base --is-ancestor "$newest" "$SHA"; then
+              echo "newer build input $newest on $BRANCH; not pinning $SHA"
+              exit 0
+            fi
+            git checkout --quiet --force -B "$PIN_BRANCH" "origin/$BRANCH"
+            sed -i -E "s|(image: ${IMAGE})[@:][^[:space:]]*|\1@${DIGEST}|" "$MANIFEST"
+            if git diff --quiet; then
+              echo "manifest already pinned"
+              exit 0
+            fi
+            git commit --quiet -am "deploy: promptforge ${DIGEST:7:12}"
+            if git push --force "https://x-access-token:${GH_TOKEN}@github.com/azrtydxb/Promptforge.git" "HEAD:${PIN_BRANCH}"; then
+              if ! gh pr view "$PIN_BRANCH" >/dev/null 2>&1; then
+                gh pr create --base "$BRANCH" --head "$PIN_BRANCH" \
+                  --title "deploy: promptforge ${DIGEST:7:12}" \
+                  --body "Automated digest pin for ${SHA} (image ${DIGEST}). Kuvryn Sync deploys the merged commit."
+              fi
+              # The PR is opened as the sync deployer (a trusted collaborator),
+              # so `gate` starts without approval; auto-merge then lands it.
+              gh pr merge "$PIN_BRANCH" --squash --auto
+              echo "pin PR for ${DIGEST} opened; auto-merge enabled"
+              exit 0
+            fi
+            echo "pin branch push lost a race (attempt $attempt); retrying"
+            sleep $((attempt * 5))
           done
-          echo "could not pin the digest" >&2
+          echo "could not open the pin PR for ${DIGEST} after 5 attempts" >&2
           exit 1
