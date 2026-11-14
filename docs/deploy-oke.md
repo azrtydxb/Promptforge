@@ -19,7 +19,7 @@ deployment (and its `deploy.yml` workflow) is retired.
   startup, readiness and liveness probes.
 - Image: `gcr.io/distroless/nodejs20-debian12` running Next.js standalone
   (`node server.js`), files owned by uid/gid 1000; the pod sets `runAsNonRoot`.
-- **2 replicas**, default rolling update (stateless), PDB `minAvailable: 1`.
+- **1 replica**, default rolling update (stateless), PDB `maxUnavailable: 1` (`minAvailable: 1` on a single replica blocks node drains).
 
 ## Applying the database schema
 
