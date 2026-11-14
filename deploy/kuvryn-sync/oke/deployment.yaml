@@ -65,6 +65,6 @@ metadata:
   name: promptforge
   namespace: promptforge
 spec:
-  minAvailable: 1
+  maxUnavailable: 1 # single replica: minAvailable 1 would block node drains
   selector:
     matchLabels: { app: promptforge }
