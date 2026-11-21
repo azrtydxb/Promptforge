@@ -111,7 +111,7 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/cheerio": "^1.0.0",
-    "@types/diff": "^7.0.2",
+    "@types/diff": "^8.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.19.22",
     "@types/react": "^19.3.0",
